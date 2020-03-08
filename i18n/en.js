@@ -1,0 +1,33 @@
+module.exports = {
+	deleted_done: 'Item has been deleted successfully.',
+	failed_auth: 'Failed to authenticate token.',
+	failed_auth_app: 'There was a problem checking the application.',
+	failed_auth_user: 'There was a problem checking user credentials.',
+	failed_create_auth_app: 'There was a problem registering the application.',
+	id_not_valid: 'Id is not valid',
+	item_not_exists: 'Item is not exists',
+	no_token: 'No token provided.',
+	quantity_not_valid: 'Quantity is not valid',
+	saved_done: 'Item has been saved successfully.',
+	unexpected_error: 'Unexpected error',
+	unauthorized_user: "You don't have permission to access this page",
+	unsupported_file_types: "Error: File upload only supports the following filetypes",
+
+	order_status_list: {
+		"0": 'Not confirmed',
+		"1": 'Pending',
+		"2": 'Processing',
+		"3": 'On the way',
+		"4": 'Delivered',
+		"5": 'Canceled',
+		"6": 'Disapproved',
+		"7": 'Reverse Request Revocation',
+		"8": 'Returned',
+		"9": 'Request reversed',
+		"10": 'Return part of the amount',
+		"11": 'Full refund',
+		"12": 'Ready to pick',
+		"13": 'Time is up',
+		"14": 'Request is invalid',
+	}
+};
