@@ -5,6 +5,11 @@ const controller = require('./controller');
 
 
 /**
+ * GET /product/:soft_code/
+ */
+router.get('/:soft_code/price_picture', controller.price_picture);
+
+/**
  * PUT /product/:soft_code
  */
 router.put('/:soft_code/price_qty_weight', controller.update_price_qty_weight);

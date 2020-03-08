@@ -1,10 +1,32 @@
 // Products Controller
 
 // Load required modules
-const ObjectID = require("mongodb").ObjectID;
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
 const collectionName = "product";
+
+/**
+ * Get price and picture for product
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.price_picture = (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const filter = {
+		soft_code: req.params.soft_code
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	collection.findOne(filter, { projection: { price: true, picture: true } }, function (err, doc) {
+		if (!doc) {
+			return res.out({}, enums.status_message.NO_DATA);
+		}
+		res.out(doc);
+	});
+};
 
 /**
  * Update price, qty and weight for product
