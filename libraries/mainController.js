@@ -35,7 +35,7 @@ module.exports.create = async function (req, res, collectionName) {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.update = async function (req, res, collectionName) {
+module.exports.update = async function (req, res, collectionName, callback) {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
@@ -66,9 +66,13 @@ module.exports.update = async function (req, res, collectionName) {
 		_id: ObjectID(req.params.Id)
 	};
 	collection.updateOne(update_by, row)
-		.then((response) => res.out({
-			message: local.saved_done
-		}, enums.status_message.UPDATED))
+		.then((response) => {
+			res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+
+			callback(response);
+		})
 		.catch((error) => res.out({
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));
