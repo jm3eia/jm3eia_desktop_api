@@ -19,4 +19,9 @@ router.put('/:soft_code/price_qty_weight', controller.update_price_qty_weight);
  */
 router.put('/:soft_code/increase_quantity', controller.increase_quantity);
 
+/**
+ * PUT /product/:soft_code/decrease_quantity
+ */
+router.put('/:soft_code/decrease_quantity', controller.decrease_quantity);
+
 module.exports = router;

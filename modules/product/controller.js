@@ -95,3 +95,58 @@ module.exports.increase_quantity = async (req, res) => {
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));
 };
+
+/**
+ * Decrease quantity for product
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.decrease_quantity = async (req, res) => {
+
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	req.custom.model = require('./models/increase_quantity')
+	const filter = {
+		soft_code: req.params.soft_code
+	}
+
+	const {
+		data,
+		unset,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const product = await collection.findOne(filter);
+
+	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
+		if(data.store_id.toString() === s.store_id.toString()){
+			s.quantity -= data.quantity;
+		}
+		s.quantity = s.quantity >= 0 ? s.quantity : 0;
+		return s;
+	});
+	
+	const local = req.custom.local;
+	
+	const lastUser_update = ObjectID(req.custom.authUser.userId);
+	const row = {
+		$set: {
+			prod_n_storeArr: prod_n_storeArr,
+			lastUser_update: lastUser_update
+		}
+	};
+	req.custom.cache.unset(collectionName).catch(() => { });
+	collection.updateOne(filter, row)
+		.then((response) => res.out({
+			message: local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+};
