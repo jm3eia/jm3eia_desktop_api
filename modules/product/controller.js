@@ -56,6 +56,19 @@ module.exports.barcode = (req, res) => {
 };
 
 /**
+ * Update weight
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.weight = (req, res) => {
+	req.custom.model = require('./models/weight')
+	req.custom.update_by = {
+		soft_code: req.params.soft_code
+	}
+	mainController.update(req, res, collectionName);
+};
+
+/**
  * Increase quantity for product
  * @param {Object} req
  * @param {Object} res

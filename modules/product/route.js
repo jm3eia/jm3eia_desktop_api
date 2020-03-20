@@ -29,4 +29,9 @@ router.put('/:soft_code/decrease_quantity', controller.decrease_quantity);
  */
 router.put('/:soft_code/barcode', controller.barcode);
 
+/**
+ * PUT /product/:soft_code/weight
+ */
+router.put('/:soft_code/weight', controller.weight);
+
 module.exports = router;
