@@ -83,6 +83,8 @@ module.exports.increase_quantity = async (req, res) => {
 	const filter = {
 		soft_code: req.params.soft_code
 	}
+	
+	const local = req.custom.local;
 
 	const {
 		data,
@@ -108,8 +110,6 @@ module.exports.increase_quantity = async (req, res) => {
 		}
 		return s;
 	});
-	
-	const local = req.custom.local;
 	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
@@ -143,6 +143,8 @@ module.exports.decrease_quantity = async (req, res) => {
 	const filter = {
 		soft_code: req.params.soft_code
 	}
+	
+	const local = req.custom.local;
 
 	const {
 		data,
@@ -169,8 +171,6 @@ module.exports.decrease_quantity = async (req, res) => {
 		s.quantity = s.quantity >= 0 ? s.quantity : 0;
 		return s;
 	});
-	
-	const local = req.custom.local;
 	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
