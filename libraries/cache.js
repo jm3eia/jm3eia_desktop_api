@@ -36,8 +36,7 @@ exports.unset = (_key) => {
 			keys.forEach(function (key, pos) {
 				if (key.includes(_key)) {
 					client.del(key, function (err, o) {
-						if (err)
-							console.log('[Redis.cache.delete]', !err ? true : false, key);
+						console.log('[Redis.cache.delete]', !err ? true : false, key);
 					});
 				}
 			});
