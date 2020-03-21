@@ -96,6 +96,12 @@ module.exports.increase_quantity = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	const product = await collection.findOne(filter);
 
+	if (!product) {
+		return res.out({
+			message: local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
 	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
 		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
 			s.quantity += data.quantity;
@@ -149,6 +155,12 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
 	const product = await collection.findOne(filter);
+
+	if (!product) {
+		return res.out({
+			message: local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
 
 	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
 		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
