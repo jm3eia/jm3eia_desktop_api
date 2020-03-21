@@ -34,7 +34,6 @@ exports.unset = (_key) => {
 		}
 		client.keys("*", function (err, keys) {
 			keys.forEach(function (key, pos) {
-				console.log(key, _key, key.includes(_key));
 				if (key.includes(_key)) {
 					client.del(key, function (err, o) {
 						if (err)
