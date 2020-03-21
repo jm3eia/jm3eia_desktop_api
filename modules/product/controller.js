@@ -151,7 +151,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	const product = await collection.findOne(filter);
 
 	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		if(data.store_id.toString() === s.store_id.toString()){
+		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
 			s.quantity -= data.quantity;
 		}
 		s.quantity = s.quantity >= 0 ? s.quantity : 0;
