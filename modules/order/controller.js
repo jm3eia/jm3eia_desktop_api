@@ -72,11 +72,15 @@ module.exports.update_status = async (req, res) => {
 module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
-			doc.products = doc.products.reduce((prod, curr) => {
-				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-				prod[curr.supplier_id].push(curr);
-				return prod;
-			}, {});
+			try {
+				doc.products = doc.products.reduce((prod, curr) => {
+					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+					prod[curr.supplier_id].push(curr);
+					return prod;
+				}, {});
+			} catch (error) {
+				doc.products = [];
+			}
 
 			return doc;
 		});
@@ -92,11 +96,15 @@ module.exports.list = (req, res) => {
 module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, (doc) => {
 
-		doc.products = doc.products.reduce((prod, curr) => {
-			prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-			prod[curr.supplier_id].push(curr);
-			return prod;
-		}, {});
+		try {
+			doc.products = doc.products.reduce((prod, curr) => {
+				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+				prod[curr.supplier_id].push(curr);
+				return prod;
+			}, {});
+		} catch (error) {
+			doc.products = [];
+		}
 
 		res.out(doc);
 	});
