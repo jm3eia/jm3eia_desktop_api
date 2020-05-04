@@ -70,6 +70,9 @@ module.exports.update_status = async (req, res) => {
  * @param {Object} res
  */
 module.exports.list = (req, res) => {
+	if(req.query.status){
+		req.custom.clean_filter.status = req.query.status;
+	}
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
