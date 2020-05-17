@@ -7,6 +7,29 @@ const mainController = require("../../libraries/mainController");
 const collectionName = "product";
 
 /**
+ * Get product info
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.info = (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const filter = {
+		soft_code: req.params.soft_code
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	collection.findOne(filter, { }, function (err, doc) {
+		if (!doc) {
+			return res.out({}, enums.status_message.NO_DATA);
+		}
+		res.out(doc);
+	});
+};
+
+/**
  * Get price and picture for product
  * @param {Object} req
  * @param {Object} res

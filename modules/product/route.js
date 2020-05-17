@@ -5,6 +5,11 @@ const controller = require('./controller');
 
 
 /**
+ * GET /product/:soft_code
+ */
+router.get('/:soft_code', controller.info);
+
+/**
  * GET /product/:soft_code/price_picture
  */
 router.get('/:soft_code/price_picture', controller.price_picture);
