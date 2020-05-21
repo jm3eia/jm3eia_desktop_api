@@ -14,6 +14,11 @@ module.exports = {
         admindb: process.env.DB_ADMIN_DB,
         limit: parseInt(process.env.DB_LIMIT)
     },
+	redis: {
+		host: process.env.REDIS_HOST,
+		port: process.env.REDIS_PORT,
+		password: process.env.REDIS_PASS
+	},
     test: {
         username: process.env.TEST_USERNAME,
         password: process.env.TEST_PASSWORD
