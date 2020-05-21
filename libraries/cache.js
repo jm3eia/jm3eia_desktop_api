@@ -1,8 +1,8 @@
 'use strict';
 // Load required modules
-
+const config = require('./config');
 const redis = require("redis"),
-	client = redis.createClient();
+	client = redis.createClient(config.redis);
 
 client.on("error", function (err) {
 	console.log("Error Redis" + err);
