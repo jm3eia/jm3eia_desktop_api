@@ -66,6 +66,19 @@ module.exports.update_price_qty_weight = (req, res) => {
 };
 
 /**
+ * Update quantities of product
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.quantity = (req, res) => {
+	req.custom.model = require('./models/quantity')
+	req.custom.update_by = {
+		soft_code: req.params.soft_code
+	}
+	mainController.update(req, res, collectionName);
+};
+
+/**
  * Update barcode
  * @param {Object} req
  * @param {Object} res

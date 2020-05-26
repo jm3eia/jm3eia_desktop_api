@@ -20,6 +20,11 @@ router.get('/:soft_code/price_picture', controller.price_picture);
 router.put('/:soft_code/price_qty_weight', controller.update_price_qty_weight);
 
 /**
+ * PUT /product/:soft_code/quantity
+ */
+router.put('/:soft_code/quantity', controller.quantity);
+
+/**
  * PUT /product/:soft_code/increase_quantity
  */
 router.put('/:soft_code/increase_quantity', controller.increase_quantity);
