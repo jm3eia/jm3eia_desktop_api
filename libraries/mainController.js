@@ -40,7 +40,7 @@ module.exports.update = async function (req, res, collectionName, callback) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 	if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
-		res.out({
+		return res.out({
 			'message': req.custom.local.id_not_valid
 		}, enums.status_message.INVALID_URL_PARAMETER);
 	}
@@ -71,7 +71,9 @@ module.exports.update = async function (req, res, collectionName, callback) {
 				message: local.saved_done
 			}, enums.status_message.UPDATED)
 
-			callback(response);
+			if (callback) {
+				callback(response);
+			}
 		})
 		.catch((error) => res.out({
 			message: error.message
@@ -88,7 +90,7 @@ module.exports.delete = function (req, res, collectionName) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 	if (!ObjectID.isValid(req.params.Id)) {
-		res.out({
+		return res.out({
 			'message': req.custom.local.id_not_valid
 		}, enums.status_message.INVALID_URL_PARAMETER);
 	}
@@ -172,7 +174,7 @@ module.exports.read = function (req, res, collectionName, callback) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 	if (!ObjectID.isValid(req.params.Id)) {
-		res.out({
+		return res.out({
 			message: req.custom.local.id_not_valid
 		}, enums.status_message.INVALID_URL_PARAMETER);
 	}
