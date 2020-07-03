@@ -70,11 +70,57 @@ module.exports.update_status = async (req, res) => {
  * @param {Object} res
  */
 module.exports.list = (req, res) => {
-	if(req.query.status){
-		req.custom.clean_filter.status = req.query.status;
+	if (req.query.filter && req.query.filter.status) {
+		req.custom.clean_filter['status'] = parseInt(req.query.filter.status);
 	}
+
+	if (req.query.filter && req.query.filter.issues) {
+		req.custom.clean_filter['issues'] = { "$ne": null };
+	}
+
+	if (req.query.filter && req.query.filter.fullname) {
+		req.custom.clean_filter['user_data.fullname'] = { "$regex": req.query.filter.fullname.toString() };
+	}
+
+	if (req.query.filter && req.query.filter.mobile) {
+		req.custom.clean_filter['user_data.mobile'] = { "$regex": req.query.filter.mobile.toString() };
+	}
+
+	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
+		req.custom.clean_filter['created'] = {
+			"$gte": new Date(req.query.filter.from_date.toString()),
+			"$lte": new Date(req.query.filter.to_date.toString())
+		};
+	} else {
+		if (req.query.filter && req.query.filter.from_date) {
+			req.custom.clean_filter['created'] = { "$gte": new Date(req.query.filter.from_date.toString()) };
+		}
+
+		if (req.query.filter && req.query.filter.to_date) {
+			req.custom.clean_filter['created'] = { "$lte": new Date(req.query.filter.to_date.toString()) };
+		}
+	}
+
+	if (req.query.filter && req.query.filter.coupon) {
+		req.custom.clean_filter['coupon.code'] = req.query.filter.coupon;
+	}
+
+	if (req.query.filter && req.query.filter.employee_no) {
+		req.custom.clean_filter['issues.history.employee_no'] = req.query.filter.employee_no;
+	}
+
+	if (req.query.filter && req.query.filter.customer_no) {
+		req.custom.clean_filter['issues.history.customer_no'] = req.query.filter.customer_no;
+	}
+
+	if (req.query.filter && req.query.filter.rank_id &&
+		ObjectID.isValid(req.query.filter.rank_id)) {
+		req.custom.clean_filter['prod_n_categoryArr.rank_id'] = ObjectID(req.query.filter.rank_id);
+	}
+
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
+
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
 					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
