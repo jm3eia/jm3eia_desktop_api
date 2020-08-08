@@ -5,43 +5,43 @@ const controller = require('./controller');
 
 
 /**
- * GET /product/:soft_code
+ * GET /product/:sku
  */
-router.get('/:soft_code', controller.info);
+router.get('/:sku', controller.info);
 
 /**
- * GET /product/:soft_code/price_picture
+ * GET /product/:sku/price_picture
  */
-router.get('/:soft_code/price_picture', controller.price_picture);
+router.get('/:sku/price_picture', controller.price_picture);
 
 /**
- * PUT /product/:soft_code/price_qty_weight
+ * PUT /product/:sku/price_qty_weight
  */
-router.put('/:soft_code/price_qty_weight', controller.update_price_qty_weight);
+router.put('/:sku/price_qty_weight', controller.update_price_qty_weight);
 
 /**
- * PUT /product/:soft_code/quantity
+ * PUT /product/:sku/quantity
  */
-router.put('/:soft_code/quantity', controller.quantity);
+router.put('/:sku/quantity', controller.quantity);
 
 /**
- * PUT /product/:soft_code/increase_quantity
+ * PUT /product/:sku/increase_quantity
  */
-router.put('/:soft_code/increase_quantity', controller.increase_quantity);
+router.put('/:sku/increase_quantity', controller.increase_quantity);
 
 /**
- * PUT /product/:soft_code/decrease_quantity
+ * PUT /product/:sku/decrease_quantity
  */
-router.put('/:soft_code/decrease_quantity', controller.decrease_quantity);
+router.put('/:sku/decrease_quantity', controller.decrease_quantity);
 
 /**
- * PUT /product/:soft_code/barcode
+ * PUT /product/:sku/barcode
  */
-router.put('/:soft_code/barcode', controller.barcode);
+router.put('/:sku/barcode', controller.barcode);
 
 /**
- * PUT /product/:soft_code/weight
+ * PUT /product/:sku/weight
  */
-router.put('/:soft_code/weight', controller.weight);
+router.put('/:sku/weight', controller.weight);
 
 module.exports = router;

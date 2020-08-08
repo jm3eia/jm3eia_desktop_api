@@ -17,7 +17,7 @@ module.exports.info = (req, res) => {
 	}
 
 	const filter = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
@@ -40,7 +40,7 @@ module.exports.price_picture = (req, res) => {
 	}
 
 	const filter = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
@@ -60,7 +60,7 @@ module.exports.price_picture = (req, res) => {
 module.exports.update_price_qty_weight = (req, res) => {
 	req.custom.model = require('./models/update_price_qty_weight')
 	req.custom.update_by = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -73,7 +73,7 @@ module.exports.update_price_qty_weight = (req, res) => {
 module.exports.quantity = (req, res) => {
 	req.custom.model = require('./models/quantity')
 	req.custom.update_by = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -86,7 +86,7 @@ module.exports.quantity = (req, res) => {
 module.exports.barcode = (req, res) => {
 	req.custom.model = require('./models/barcode')
 	req.custom.update_by = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -99,7 +99,7 @@ module.exports.barcode = (req, res) => {
 module.exports.weight = (req, res) => {
 	req.custom.model = require('./models/weight')
 	req.custom.update_by = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -117,7 +117,7 @@ module.exports.increase_quantity = async (req, res) => {
 
 	req.custom.model = require('./models/increase_quantity')
 	const filter = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	
 	const local = req.custom.local;
@@ -177,7 +177,7 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	req.custom.model = require('./models/increase_quantity')
 	const filter = {
-		soft_code: req.params.soft_code
+		sku: req.params.sku
 	}
 	
 	const local = req.custom.local;
