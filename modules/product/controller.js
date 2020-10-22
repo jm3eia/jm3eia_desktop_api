@@ -70,7 +70,7 @@ module.exports.update_price_qty_weight = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.quantity = (req, res) => {
+module.exports.quantity = async (req, res) => {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
