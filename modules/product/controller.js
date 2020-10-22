@@ -21,7 +21,7 @@ module.exports.info = (req, res) => {
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.findOne(filter, { }, function (err, doc) {
+	collection.findOne(filter, {}, function (err, doc) {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
@@ -71,11 +71,57 @@ module.exports.update_price_qty_weight = (req, res) => {
  * @param {Object} res
  */
 module.exports.quantity = (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
 	req.custom.model = require('./models/quantity')
-	req.custom.update_by = {
+	const filter = {
 		sku: req.params.sku
 	}
-	mainController.update(req, res, collectionName);
+
+	const local = req.custom.local;
+
+	const {
+		data,
+		unset,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const product = await collection.findOne(filter);
+
+	if (!product) {
+		return res.out({
+			message: local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+			s.quantity = data.quantity;
+		}
+		return s;
+	});
+
+	const lastUser_update = ObjectID(req.custom.authUser.userId);
+	const row = {
+		$set: {
+			prod_n_storeArr: prod_n_storeArr,
+			lastUser_update: lastUser_update
+		}
+	};
+	req.custom.cache.unset(collectionName).catch(() => { });
+	collection.updateOne(filter, row)
+		.then((response) => res.out({
+			message: local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
 };
 
 /**
@@ -119,7 +165,7 @@ module.exports.increase_quantity = async (req, res) => {
 	const filter = {
 		sku: req.params.sku
 	}
-	
+
 	const local = req.custom.local;
 
 	const {
@@ -140,13 +186,13 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
+	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 			s.quantity += data.quantity;
 		}
 		return s;
 	});
-	
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
@@ -179,7 +225,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	const filter = {
 		sku: req.params.sku
 	}
-	
+
 	const local = req.custom.local;
 
 	const {
@@ -200,14 +246,14 @@ module.exports.decrease_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
+	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 			s.quantity -= data.quantity;
 		}
 		s.quantity = s.quantity >= 0 ? s.quantity : 0;
 		return s;
 	});
-	
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {

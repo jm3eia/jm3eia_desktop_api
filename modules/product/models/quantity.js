@@ -1,25 +1,15 @@
 const ObjectID = require("mongodb").ObjectID;
 // Product model
 module.exports = {
-    "prod_n_storeArr": {
+    "quantity": {
+        "type": Number,
+        "required": true
+    },
+    "store_id": {
+        "type": ObjectID,
+        "collection": "store",
         "required": true,
-        "type": Array,
-        "model":{
-            "store_id": {
-                "type": ObjectID,
-                "collection": "store",
-                "required": true,
-                "isObject_key": true
-            },
-            "quantity": {
-                "type": Number,
-                "required": true
-            },
-            "status": {
-                "type": Boolean,
-                "required": true
-            }
-        }
+        "isObject_key": true
     },
     "modified": {
         "type": Date,
