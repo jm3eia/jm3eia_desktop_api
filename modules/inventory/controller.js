@@ -1,11 +1,11 @@
-// Stores Controller
+// Inventories Controller
 
 // Load required modules
 const mainController = require("../../libraries/mainController");
-const collectionName = "store";
+const collectionName = "inventory";
 
 /**
- * List all stores
+ * List all inventories
  * @param {Object} req
  * @param {Object} res
  */
@@ -14,7 +14,7 @@ module.exports.list = (req, res) => {
 };
 
 /**
- * Read store by id
+ * Read inventory by id
  * @param {Object} req
  * @param {Object} res
  */

@@ -101,7 +101,7 @@ module.exports.quantity = async (req, res) => {
 	}
 
 	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
 			s.quantity = data.quantity;
 		}
 		return s;
@@ -187,7 +187,7 @@ module.exports.increase_quantity = async (req, res) => {
 	}
 
 	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
 			s.quantity += data.quantity;
 		}
 		return s;
@@ -247,7 +247,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	}
 
 	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
 			s.quantity -= data.quantity;
 		}
 		s.quantity = s.quantity >= 0 ? s.quantity : 0;

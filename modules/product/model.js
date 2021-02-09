@@ -87,9 +87,9 @@ module.exports = {
     "prod_n_inventoryArr": {
         "type": Array,
         "model":{
-            "store_id": {
+            "inventory_id": {
                 "type": ObjectID,
-                "collection": "store",
+                "collection": "inventory",
                 "required": true,
                 "isObject_key": true
             },

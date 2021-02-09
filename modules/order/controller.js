@@ -46,10 +46,10 @@ module.exports.update_status = async (req, res) => {
 		const quantity = quantity_n_order.quantity;
 		let prod_n_inventoryArr = [];
 		for (const i of p.prod_n_inventoryArr) {
-			if (i.store_id.toString() == order.store_id.toString()) {
+			if (i.inventory_id.toString() == order.inventory_id.toString()) {
 				i.quantity += quantity;
 			}
-			i.store_id = ObjectID(i.store_id.toString());
+			i.inventory_id = ObjectID(i.inventory_id.toString());
 			prod_n_inventoryArr.push(i);
 		}
 		const update = prod_collection.updateOne({

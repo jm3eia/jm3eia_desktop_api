@@ -13,9 +13,9 @@ module.exports = {
         "required": true,
         "type": Array,
         "model":{
-            "store_id": {
+            "inventory_id": {
                 "type": ObjectID,
-                "collection": "store",
+                "collection": "inventory",
                 "required": true,
                 "isObject_key": true
             },
