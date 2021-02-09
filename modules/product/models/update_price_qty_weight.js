@@ -9,7 +9,7 @@ module.exports = {
         "type": Number,
         "default": 0.0
     },
-    "prod_n_storeArr": {
+    "prod_n_inventoryArr": {
         "required": true,
         "type": Array,
         "model":{

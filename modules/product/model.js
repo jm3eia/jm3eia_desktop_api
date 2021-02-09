@@ -84,7 +84,7 @@ module.exports = {
             }
         }
     },
-    "prod_n_storeArr": {
+    "prod_n_inventoryArr": {
         "type": Array,
         "model":{
             "store_id": {

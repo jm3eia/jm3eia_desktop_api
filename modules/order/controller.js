@@ -44,18 +44,18 @@ module.exports.update_status = async (req, res) => {
 	for (const p of the_products) {
 		const quantity_n_order = order.products.find((pi) => pi._id.toString() === p._id.toString());
 		const quantity = quantity_n_order.quantity;
-		let prod_n_storeArr = [];
-		for (const i of p.prod_n_storeArr) {
+		let prod_n_inventoryArr = [];
+		for (const i of p.prod_n_inventoryArr) {
 			if (i.store_id.toString() == order.store_id.toString()) {
 				i.quantity += quantity;
 			}
 			i.store_id = ObjectID(i.store_id.toString());
-			prod_n_storeArr.push(i);
+			prod_n_inventoryArr.push(i);
 		}
 		const update = prod_collection.updateOne({
 			_id: ObjectID(p._id.toString())
 		}, {
-			$set: { prod_n_storeArr: prod_n_storeArr }
+			$set: { prod_n_inventoryArr: prod_n_inventoryArr }
 		});
 		promises.push(update);
 	}
@@ -75,20 +75,6 @@ module.exports.list = (req, res) => {
 	}
 
 	mainController.list(req, res, collectionName, {}, (out) => {
-		out.data = out.data.map((doc) => {
-
-			try {
-				doc.products = doc.products.reduce((prod, curr) => {
-					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-					prod[curr.supplier_id].push(curr);
-					return prod;
-				}, {});
-			} catch (error) {
-				doc.products = [];
-			}
-
-			return doc;
-		});
 		res.out(out);
 	});
 };
@@ -100,17 +86,6 @@ module.exports.list = (req, res) => {
  */
 module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, (doc) => {
-
-		try {
-			doc.products = doc.products.reduce((prod, curr) => {
-				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-				prod[curr.supplier_id].push(curr);
-				return prod;
-			}, {});
-		} catch (error) {
-			doc.products = [];
-		}
-
 		res.out(doc);
 	});
 };

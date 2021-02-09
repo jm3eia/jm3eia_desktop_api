@@ -100,7 +100,7 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
 		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 			s.quantity = data.quantity;
 		}
@@ -110,7 +110,7 @@ module.exports.quantity = async (req, res) => {
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
-			prod_n_storeArr: prod_n_storeArr,
+			prod_n_inventoryArr: prod_n_inventoryArr,
 			lastUser_update: lastUser_update
 		}
 	};
@@ -186,7 +186,7 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
 		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 			s.quantity += data.quantity;
 		}
@@ -196,7 +196,7 @@ module.exports.increase_quantity = async (req, res) => {
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
-			prod_n_storeArr: prod_n_storeArr,
+			prod_n_inventoryArr: prod_n_inventoryArr,
 			lastUser_update: lastUser_update
 		}
 	};
@@ -246,7 +246,7 @@ module.exports.decrease_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
 		if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 			s.quantity -= data.quantity;
 		}
@@ -257,7 +257,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
-			prod_n_storeArr: prod_n_storeArr,
+			prod_n_inventoryArr: prod_n_inventoryArr,
 			lastUser_update: lastUser_update
 		}
 	};
