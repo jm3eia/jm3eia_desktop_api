@@ -1,0 +1,4 @@
+
+// Maintenance model
+module.exports = {
+};

@@ -167,7 +167,7 @@ module.exports = (req, res, next) => {
  */
 function checkpolicy(req, res) {
 	return new Promise((resolve, reject) => {
-		if (req.custom.class === 'auth' && req.custom.action === 'login') {
+		if ((req.custom.class === 'auth' && req.custom.action === 'login') || ['maintenance'].indexOf(req.custom.class) > -1) {
 			resolve(true);
 		}
 		const config = req.custom.config;
