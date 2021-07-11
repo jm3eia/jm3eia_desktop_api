@@ -5,12 +5,12 @@ const controller = require('./controller');
 
 
 /**
- * GET /inventory
+ * GET /store
  */
 router.get('/', controller.list);
 
 /**
- * GET /inventory/:Id
+ * GET /store/:Id
  */
 router.get('/:Id', controller.read);
 

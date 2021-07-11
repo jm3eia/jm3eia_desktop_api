@@ -5,9 +5,9 @@ module.exports = {
         "type": Number,
         "required": true
     },
-    "inventory_id": {
+    "store_id": {
         "type": ObjectID,
-        "collection": "inventory",
+        "collection": "store",
         "required": true,
         "isObject_key": true
     },

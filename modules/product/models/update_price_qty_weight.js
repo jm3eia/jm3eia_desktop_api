@@ -9,13 +9,13 @@ module.exports = {
         "type": Number,
         "default": 0.0
     },
-    "prod_n_inventoryArr": {
+    "prod_n_storeArr": {
         "required": true,
         "type": Array,
         "model":{
-            "inventory_id": {
+            "store_id": {
                 "type": ObjectID,
-                "collection": "inventory",
+                "collection": "store",
                 "required": true,
                 "isObject_key": true
             },

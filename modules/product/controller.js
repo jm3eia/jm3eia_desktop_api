@@ -17,11 +17,11 @@ module.exports.info = (req, res) => {
 	}
 
 	const filter = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.findOne(filter, {}, function (err, doc) {
+	collection.findOne(filter, { }, function (err, doc) {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
@@ -40,7 +40,7 @@ module.exports.price_picture = (req, res) => {
 	}
 
 	const filter = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
@@ -60,7 +60,7 @@ module.exports.price_picture = (req, res) => {
 module.exports.update_price_qty_weight = (req, res) => {
 	req.custom.model = require('./models/update_price_qty_weight')
 	req.custom.update_by = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -71,57 +71,59 @@ module.exports.update_price_qty_weight = (req, res) => {
  * @param {Object} res
  */
 module.exports.quantity = async (req, res) => {
-	if (req.custom.isAuthorized === false) {
-		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
-	}
 
-	req.custom.model = require('./models/quantity')
-	const filter = {
-		sku: req.params.sku
-	}
+	if (req.custom.isAuthorized === false) {
+                return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+        }
+
+        req.custom.model = require('./models/increase_quantity')
+        const filter = {
+                soft_code: req.params.soft_code
+        }
 
 	const local = req.custom.local;
 
-	const {
-		data,
-		unset,
-		error
-	} = await req.custom.getValidData(req);
-	if (error) {
-		return res.out(error, enums.status_message.VALIDATION_ERROR);
-	}
+        const {
+                data,
+                unset,
+                error
+        } = await req.custom.getValidData(req);
+        if (error) {
+                return res.out(error, enums.status_message.VALIDATION_ERROR);
+        }
 
-	const collection = req.custom.db.client().collection(collectionName);
-	const product = await collection.findOne(filter);
+        const collection = req.custom.db.client().collection(collectionName);
+        const product = await collection.findOne(filter);
 
-	if (!product) {
-		return res.out({
-			message: local.item_not_exists
-		}, enums.status_message.NOT_FOUND);
-	}
+        if (!product) {
+                return res.out({
+                        message: local.item_not_exists
+                }, enums.status_message.NOT_FOUND);
+        }
 
-	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
-			s.quantity = data.quantity;
-		}
-		return s;
-	});
-
-	const lastUser_update = ObjectID(req.custom.authUser.userId);
-	const row = {
-		$set: {
-			prod_n_inventoryArr: prod_n_inventoryArr,
-			lastUser_update: lastUser_update
-		}
-	};
-	req.custom.cache.unset(collectionName).catch(() => { });
-	collection.updateOne(filter, row)
-		.then((response) => res.out({
-			message: local.saved_done
-		}, enums.status_message.UPDATED))
-		.catch((error) => res.out({
-			message: error.message
-		}, enums.status_message.UNEXPECTED_ERROR));
+        const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
+		console.log(data.store_id.toString() === s.store_id.toString(), data.store_id.toString(), s.store_id.toString());
+                if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
+                        s.quantity = data.quantity;
+                }
+                return s;
+        });
+	console.log(prod_n_storeArr);
+        const lastUser_update = ObjectID(req.custom.authUser.userId);
+        const row = {
+                $set: {
+                        prod_n_storeArr: prod_n_storeArr,
+                        lastUser_update: lastUser_update
+                }
+        };
+        req.custom.cache.unset(collectionName).catch(() => { });
+        collection.updateOne(filter, row)
+                .then((response) => res.out({
+                        message: local.saved_done
+                }, enums.status_message.UPDATED))
+                .catch((error) => res.out({
+                        message: error.message
+                }, enums.status_message.UNEXPECTED_ERROR));
 };
 
 /**
@@ -132,7 +134,7 @@ module.exports.quantity = async (req, res) => {
 module.exports.barcode = (req, res) => {
 	req.custom.model = require('./models/barcode')
 	req.custom.update_by = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -145,7 +147,7 @@ module.exports.barcode = (req, res) => {
 module.exports.weight = (req, res) => {
 	req.custom.model = require('./models/weight')
 	req.custom.update_by = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
 	mainController.update(req, res, collectionName);
 };
@@ -163,9 +165,9 @@ module.exports.increase_quantity = async (req, res) => {
 
 	req.custom.model = require('./models/increase_quantity')
 	const filter = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
-
+	
 	const local = req.custom.local;
 
 	const {
@@ -186,17 +188,17 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
+	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
+		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
 			s.quantity += data.quantity;
 		}
 		return s;
 	});
-
+	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
-			prod_n_inventoryArr: prod_n_inventoryArr,
+			prod_n_storeArr: prod_n_storeArr,
 			lastUser_update: lastUser_update
 		}
 	};
@@ -223,9 +225,9 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	req.custom.model = require('./models/increase_quantity')
 	const filter = {
-		sku: req.params.sku
+		soft_code: req.params.soft_code
 	}
-
+	
 	const local = req.custom.local;
 
 	const {
@@ -246,18 +248,18 @@ module.exports.decrease_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_inventoryArr = product.prod_n_inventoryArr.map((s) => {
-		if (data && data.inventory_id && s && s.inventory_id && data.inventory_id.toString() === s.inventory_id.toString()) {
+	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
+		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
 			s.quantity -= data.quantity;
 		}
 		s.quantity = s.quantity >= 0 ? s.quantity : 0;
 		return s;
 	});
-
+	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: {
-			prod_n_inventoryArr: prod_n_inventoryArr,
+			prod_n_storeArr: prod_n_storeArr,
 			lastUser_update: lastUser_update
 		}
 	};
