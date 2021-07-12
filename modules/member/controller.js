@@ -38,7 +38,7 @@ module.exports.wallet = async (req, res) => {
 			if (parseFloat(doc.wallet) != parseFloat(req.body.wallet)) {
 				req.body.wallet += parseFloat(doc.wallet);
 				const wallet_data = {
-					"member_id": ObjectID(req.params.Id.toString()),
+					"member_id": ObjectID(req.body.member_id.toString()),
 					"old_wallet": parseFloat(doc.wallet),
 					"new_wallet": parseFloat(req.body.wallet),
 					"notes": req.body.notes,
