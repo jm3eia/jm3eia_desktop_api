@@ -42,6 +42,7 @@ module.exports.wallet = async (req, res) => {
 					"old_wallet": parseFloat(doc.wallet),
 					"new_wallet": parseFloat(req.body.wallet),
 					"notes": req.body.notes,
+					"created": new Date(),
 				};
 				_promise = wallet_history_collection.insertOne(wallet_data);
 			}
