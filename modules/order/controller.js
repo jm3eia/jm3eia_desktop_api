@@ -16,7 +16,7 @@ module.exports.update_status = async (req, res) => {
 
 	const update_quantity_arr = [5, 6, 7, 8, 9, 11];
 
-	const collection = req.custom.db.client().collection('order');
+	const collection = req.custom.db.client().collection(collectionName);
 	let order = collection.findOne({ _id: ObjectID(req.params.Id) });
 
 	// Order confirmed
@@ -52,7 +52,6 @@ module.exports.update_status = async (req, res) => {
 		return false;
 	}
 
-	const collection = req.custom.db.client().collection(collectionName);
 	order = await collection.findOne({
 		_id: ObjectID(req.params.Id)
 	})
