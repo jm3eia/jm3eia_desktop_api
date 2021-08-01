@@ -25,7 +25,7 @@ module.exports.update_status = async (req, res) => {
 		if (order.user_data && order.user_data._id) {
 
 			const member_collection = req.custom.db.client().collection('order');
-			const user_info = collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
+			const user_info = member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
 
 			let points = parseInt(user_info.points || 0);
 			let wallet = parseInt(user_info.wallet || 0);
@@ -36,7 +36,6 @@ module.exports.update_status = async (req, res) => {
 				points += parseInt(total_prods);
 			}
 
-			const member_collection = req.custom.db.client().collection('member');
 			await member_collection.updateOne({
 				_id: ObjectID(data.user_data._id.toString())
 			}, {
