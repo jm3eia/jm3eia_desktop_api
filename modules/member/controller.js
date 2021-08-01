@@ -32,7 +32,7 @@ module.exports.wallet = async (req, res) => {
 	const wallet_history_collection = req.custom.db.client().collection('wallet_history');
 	collection.findOne({
 		_id: ObjectID(req.body.member_id),
-	}, function (err, doc) {
+	}, async function (err, doc) {
 		let _promise = Promise.resolve(true);
 		if (doc) {
 			if (parseFloat(doc.wallet) != parseFloat(req.body.wallet)) {
@@ -45,6 +45,15 @@ module.exports.wallet = async (req, res) => {
 					"created": new Date(),
 				};
 				_promise = wallet_history_collection.insertOne(wallet_data);
+
+				await collection.updateOne({
+					_id: ObjectID(req.body.member_id.toString())
+				}, {
+					$set: {
+						wallet: parseFloat(req.body.wallet)
+					}
+				});
+
 			}
 		}
 		_promise.catch(() => null).then(() => res.out({
