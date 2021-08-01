@@ -24,7 +24,7 @@ module.exports.update_status = async (req, res) => {
 
 		if (order.user_data && order.user_data._id) {
 
-			const member_collection = req.custom.db.client().collection('order');
+			const member_collection = req.custom.db.client().collection('member');
 			const user_info = member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
 
 			let points = parseInt(user_info.points || 0);
