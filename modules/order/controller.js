@@ -16,6 +16,39 @@ module.exports.update_status = async (req, res) => {
 
 	const update_quantity_arr = [5, 6, 7, 8, 9, 11];
 
+	const collection = req.custom.db.client().collection('order');
+	const order = collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	// Order confirmed
+	if (parseInt(req.body.status) === 7 && order.status != 7) {
+
+		if (order.user_data && order.user_data._id) {
+
+			const member_collection = req.custom.db.client().collection('order');
+			const user_info = collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
+
+			let points = parseInt(user_info.points || 0);
+			let wallet = parseInt(user_info.wallet || 0);
+
+			if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
+				wallet = user_info.wallet - wallet2money;
+			} else {
+				points += parseInt(total_prods);
+			}
+
+			const member_collection = req.custom.db.client().collection('member');
+			await member_collection.updateOne({
+				_id: ObjectID(data.user_data._id.toString())
+			}, {
+				$set: {
+					points: points,
+					wallet: wallet
+				}
+			})
+				.catch((error) => { });
+		}
+	}
+
 	if (update_quantity_arr.indexOf(req.body.status) === -1) {
 		return false;
 	}
