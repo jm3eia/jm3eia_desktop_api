@@ -33,7 +33,7 @@ module.exports.update_status = async (req, res) => {
 			if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 				wallet = user_info.wallet - wallet2money;
 			} else {
-				points += parseInt(total_prods);
+				points += parseInt(order.total);
 			}
 
 			await member_collection.updateOne({
