@@ -17,7 +17,7 @@ module.exports.update_status = async (req, res) => {
 	const update_quantity_arr = [5, 6, 7, 8, 9, 11];
 
 	const collection = req.custom.db.client().collection(collectionName);
-	let order = collection.findOne({ _id: ObjectID(req.params.Id) });
+	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
 	// Order confirmed
 	if (parseInt(req.body.status) === 7 && order.status != 7) {
@@ -25,7 +25,7 @@ module.exports.update_status = async (req, res) => {
 		if (order.user_data && order.user_data._id) {
 
 			const member_collection = req.custom.db.client().collection('member');
-			const user_info = member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
+			const user_info = await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
 
 			let points = parseInt(user_info.points || 0);
 			let wallet = parseInt(user_info.wallet || 0);
