@@ -14,13 +14,13 @@ module.exports.update_status = async (req, res) => {
 	req.custom.model = require('./models/update_status')
 	mainController.update(req, res, collectionName);
 
-	const update_quantity_arr = [5, 6, 7, 8, 9, 11];
+	const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
 
 	const collection = req.custom.db.client().collection(collectionName);
 	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
-	// Order confirmed
-	if (parseInt(req.body.status) === 7 && order.status != 7) {
+	// Order Completed 4
+	if (parseInt(req.body.status) === 4 && order.status != 4) {
 
 		if (order.user_data && order.user_data._id) {
 
