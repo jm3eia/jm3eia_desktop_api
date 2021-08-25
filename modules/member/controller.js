@@ -3,6 +3,7 @@
 // Load required modules
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
+const common = require("../../libraries/common");
 
 /**
  * Update quantities of product
@@ -39,8 +40,8 @@ module.exports.wallet = async (req, res) => {
 				req.body.wallet += parseFloat(doc.wallet);
 				const wallet_data = {
 					"member_id": ObjectID(req.body.member_id.toString()),
-					"old_wallet": parseFloat(doc.wallet),
-					"new_wallet": parseFloat(req.body.wallet),
+					"old_wallet": common.getFixedPrice(doc.wallet),
+					"new_wallet": common.getFixedPrice(req.body.wallet),
 					"notes": req.body.notes,
 					"created": new Date(),
 				};

@@ -28,7 +28,7 @@ module.exports.update_status = async (req, res) => {
 			const user_info = await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
 
 			let points = parseInt(user_info.points || 0);
-			let wallet = parseInt(user_info.wallet || 0);
+			let wallet = parseFloat(user_info.wallet || 0);
 
 			if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 				wallet = user_info.wallet - wallet2money;
