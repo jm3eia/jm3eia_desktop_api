@@ -27,7 +27,7 @@ module.exports.update_status = async (req, res) => {
 	// Order Completed 4
 	if (parseInt(req.body.status) === 4 && order.status != 4) {
 
-		if (order.user_data && order.user_data._id) {
+		if (order.user_data && order.user_data._id && user_info) {
 
 			let points = parseInt(user_info.points || 0);
 			let wallet = parseInt(user_info.wallet || 0);
