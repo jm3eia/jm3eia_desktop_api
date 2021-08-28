@@ -62,6 +62,7 @@ function send_to_multiple(message, device_tokens) {
 }
 
 function call_api(url, method = 'GET', body = {}) {
+	this.headers = this.headers || {}
 	this.headers['User-Agent'] = 'Notification Services';
 	this.headers['Language'] = process.env.API_LANGUAGE;
 
