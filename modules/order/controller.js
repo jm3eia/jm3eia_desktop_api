@@ -21,7 +21,8 @@ module.exports.update_status = async (req, res) => {
 	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
 	const member_collection = req.custom.db.client().collection('member');
-	const user_info = await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
+	const user_info = order && order.user_data && order.user_data._id ?
+		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 
 	// Order Completed 4
 	if (parseInt(req.body.status) === 4 && order.status != 4) {
