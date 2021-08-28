@@ -54,27 +54,27 @@ function send_to_multiple(message, device_tokens) {
 			"status": "done"
 		}
 	};
-	this.headers = {
+	const headers = {
 		'Content-Type': 'application/json',
 		Authorization: `key=${process.env.FIREBASE_API_KEY}`
 	}
-	return call_api(`https://fcm.googleapis.com/fcm/send`, 'POST', body);
+	return call_api(`https://fcm.googleapis.com/fcm/send`, 'POST', body, headers);
 }
 
-function call_api(url, method = 'GET', body = {}) {
-	this.headers = this.headers || {}
-	this.headers['User-Agent'] = 'Notification Services';
-	this.headers['Language'] = process.env.API_LANGUAGE;
+function call_api(url, method = 'GET', body = {}, headers = {}) {
+	headers = headers || {}
+	headers['User-Agent'] = 'Notification Services';
+	headers['Language'] = process.env.API_LANGUAGE;
 
-	if (!this.headers['Authorization']) {
-		this.headers['Authorization'] = `Bearer ${this.token}`;
+	if (!headers['Authorization']) {
+		headers['Authorization'] = `Bearer ${this.token}`;
 	}
 
 	return new Promise((resolve, reject) => {
 		var options = {
 			method: method,
 			url: url,
-			headers: this.headers,
+			headers: headers,
 			body: body,
 			json: true
 		};
