@@ -1,4 +1,5 @@
 module.exports = {
+	order_confirmed: 'تم تسليم طلبك بنجاح',
 	deleted_done: 'Item has been deleted successfully.',
 	failed_auth: 'Failed to authenticate token.',
 	failed_auth_app: 'There was a problem checking the application.',

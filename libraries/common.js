@@ -1,5 +1,6 @@
 // Load required modules
 const moment = require('moment');
+const request = require("request");
 const Decimal = require('mongodb').Decimal128;
 
 const parseArabicNumbers = function (str) {
@@ -36,3 +37,55 @@ module.exports.group_products_by_suppliers = (products, req) => {
 		return prod;
 	}, {});
 }
+
+
+function send_to_multiple(message, device_tokens) {
+	const body = {
+		"registration_ids": device_tokens,
+		"notification": {
+			"body": message.body,
+			"title": message.title
+		},
+		"priority": "high",
+		"data": {
+			"click_action": "FLUTTER_NOTIFICATION_CLICK",
+			"url": message.url,
+			"id": "1",
+			"status": "done"
+		}
+	};
+	this.headers = {
+		'Content-Type': 'application/json',
+		Authorization: `key=${process.env.FIREBASE_API_KEY}`
+	}
+	return call_api(`https://fcm.googleapis.com/fcm/send`, 'POST', body);
+}
+
+function call_api(url, method = 'GET', body = {}) {
+	this.headers['User-Agent'] = 'Notification Services';
+	this.headers['Language'] = process.env.API_LANGUAGE;
+
+	if (!this.headers['Authorization']) {
+		this.headers['Authorization'] = `Bearer ${this.token}`;
+	}
+
+	return new Promise((resolve, reject) => {
+		var options = {
+			method: method,
+			url: url,
+			headers: this.headers,
+			body: body,
+			json: true
+		};
+		request(options, function (error, response, body) {
+			if (error) {
+				reject(error);
+			} else {
+				resolve(body);
+			}
+		});
+
+	});
+}
+
+module.exports.send_to_multiple = send_to_multiple;

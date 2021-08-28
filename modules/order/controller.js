@@ -2,6 +2,7 @@
 
 // Load required modules
 const mainController = require("../../libraries/mainController");
+const common = require("../../libraries/common");
 const ObjectID = require('mongodb').ObjectID;
 const collectionName = "order";
 
@@ -45,6 +46,12 @@ module.exports.update_status = async (req, res) => {
 				}
 			})
 				.catch((error) => { });
+		}
+
+		if (user_info.device_token) {
+			const device_tokens = [user_info.device_token];
+			const message = req.custom.local.order_confirmed;
+			await common.send_to_multiple(message, device_tokens).catch(() => null);
 		}
 	}
 
@@ -105,16 +112,16 @@ module.exports.list = (req, res) => {
 		req.custom.clean_filter['status'] = parseInt(req.query.status);
 	}
 
-	mainController.list(req, res, collectionName, {}, (out) => {
+	mainController.list(req, res, collectionName, { }, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
 					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 					prod[curr.supplier_id].push(curr);
 					return prod;
-				}, {});
+				}, { });
 			} catch (error) {
-			//	doc.products = [];
+				//	doc.products = [];
 			}
 
 			return doc;
@@ -136,9 +143,9 @@ module.exports.read = (req, res) => {
 				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 				prod[curr.supplier_id].push(curr);
 				return prod;
-			}, {});
+			}, { });
 		} catch (error) {
-		//	doc.products = [];
+			//	doc.products = [];
 		}
 
 		res.out(doc);
