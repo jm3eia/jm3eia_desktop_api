@@ -54,6 +54,18 @@ module.exports.update_status = async (req, res) => {
 			await common.send_to_multiple(message, device_tokens).catch(() => null);
 		}
 	}
+	// Order Canceled 5
+	else if (parseInt(req.body.status) === 5 && order.status != 5 && parseFloat(order.discount_by_wallet_value) > 0) {
+		const wallet = user_info.wallet + order.discount_by_wallet_value;
+		await member_collection.updateOne({
+			_id: ObjectID(order.user_data._id.toString())
+		}, {
+			$set: {
+				wallet: wallet
+			}
+		})
+			.catch((error) => { });
+	}
 
 	if (update_quantity_arr.indexOf(req.body.status) === -1) {
 		return false;
