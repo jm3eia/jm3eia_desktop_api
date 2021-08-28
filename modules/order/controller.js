@@ -20,13 +20,13 @@ module.exports.update_status = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
+	const member_collection = req.custom.db.client().collection('member');
+	const user_info = await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
+
 	// Order Completed 4
 	if (parseInt(req.body.status) === 4 && order.status != 4) {
 
 		if (order.user_data && order.user_data._id) {
-
-			const member_collection = req.custom.db.client().collection('member');
-			const user_info = await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) });
 
 			let points = parseInt(user_info.points || 0);
 			let wallet = parseInt(user_info.wallet || 0);
