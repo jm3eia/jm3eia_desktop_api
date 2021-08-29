@@ -8,6 +8,7 @@ module.exports = {
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
 	order_confirmed: 'Your order has been delivered successfully',
+	order_status: "Order Status",
 	quantity_not_valid: 'Quantity is not valid',
 	saved_done: 'Item has been saved successfully.',
 	unexpected_error: 'Unexpected error',

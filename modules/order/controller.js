@@ -50,7 +50,11 @@ module.exports.update_status = async (req, res) => {
 
 			if (user_info.device_token) {
 				const device_tokens = [user_info.device_token];
-				const message = req.custom.local.order_confirmed;
+				const message = {
+					title: req.custom.local.order_status,
+					body: req.custom.local.order_confirmed,
+					url: null,
+				};
 				await common.send_to_multiple(message, device_tokens).catch(() => null);
 			}
 		}
