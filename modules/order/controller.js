@@ -55,7 +55,7 @@ module.exports.update_status = async (req, res) => {
 					body: req.custom.local.order_confirmed,
 					url: null,
 				};
-				await common.send_to_multiple(message, device_tokens).catch(() => null);
+				await common.send_to_multiple(message, device_tokens, true).catch(() => null);
 			}
 		}
 	}

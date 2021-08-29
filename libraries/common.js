@@ -39,7 +39,7 @@ module.exports.group_products_by_suppliers = (products, req) => {
 }
 
 
-function send_to_multiple(message, device_tokens) {
+function send_to_multiple(message, device_tokens, wallet = false) {
 	const body = {
 		"registration_ids": device_tokens,
 		"notification": {
@@ -50,6 +50,7 @@ function send_to_multiple(message, device_tokens) {
 		"data": {
 			"click_action": "FLUTTER_NOTIFICATION_CLICK",
 			"url": message.url,
+			"wallet": wallet,
 			"id": "1",
 			"status": "done"
 		}
