@@ -30,7 +30,7 @@ module.exports.update_status = async (req, res) => {
 		if (order.user_data && order.user_data._id && user_info) {
 
 			let points = parseInt(user_info.points || 0);
-			let wallet = parseInt(user_info.wallet || 0);
+			let wallet = parseFloat(user_info.wallet || 0);
 
 			if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 				wallet = user_info.wallet - wallet2money;
@@ -52,7 +52,7 @@ module.exports.update_status = async (req, res) => {
 				const device_tokens = [user_info.device_token];
 				const message = {
 					title: req.custom.local.order_status,
-					body: req.custom.local.order_confirmed,
+					body: req.custom.local.order_confirmed(parseInt(order.total), points),
 					url: null,
 				};
 				await common.send_to_multiple(message, device_tokens, true).catch(() => null);

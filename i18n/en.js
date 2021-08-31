@@ -7,7 +7,9 @@ module.exports = {
 	id_not_valid: 'Id is not valid',
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
-	order_confirmed: 'Your order has been delivered successfully',
+	order_confirmed: (points_winned, new_points) => {
+		return `مبروك ربحت ${points_winned} نقطة برصيد نقاطك اصبح الرصيد ${new_points} نقطة`;
+	},
 	order_status: "Order Status",
 	quantity_not_valid: 'Quantity is not valid',
 	saved_done: 'Item has been saved successfully.',
