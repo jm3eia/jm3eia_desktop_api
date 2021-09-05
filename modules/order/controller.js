@@ -12,17 +12,18 @@ const collectionName = "order";
  * @param {Object} res
  */
 module.exports.update_status = async (req, res) => {
+
+	const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
+
+	const collection = req.custom.db.client().collection(collectionName);
+	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	const member_collection = req.custom.db.client().collection('member');
+	const user_info = order && order.user_data && order.user_data._id ?
+		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
+
 	req.custom.model = require('./models/update_status')
-	mainController.update(req, res, collectionName, () => {
-
-		const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
-
-		const collection = req.custom.db.client().collection(collectionName);
-		let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
-
-		const member_collection = req.custom.db.client().collection('member');
-		const user_info = order && order.user_data && order.user_data._id ?
-			await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
+	mainController.update(req, res, collectionName, async () => {
 
 		// Order Completed 4
 		if (parseInt(req.body.status) === 4 && order.status != 4) {
