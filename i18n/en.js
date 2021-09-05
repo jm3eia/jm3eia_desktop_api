@@ -10,7 +10,7 @@ module.exports = {
 	order_confirmed: (points_winned, new_points) => {
 		return `مبروك ربحت ${points_winned} نقطة برصيد نقاطك اصبح الرصيد ${new_points} نقطة`;
 	},
-	order_status: "Order Status",
+	order_status: 'حالة الطلب: تم التسليم',
 	quantity_not_valid: 'Quantity is not valid',
 	saved_done: 'Item has been saved successfully.',
 	unexpected_error: 'Unexpected error',
