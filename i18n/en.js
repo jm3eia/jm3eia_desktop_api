@@ -25,8 +25,11 @@ module.exports = {
 	order_has_been_returned: "حالة الطلب : تم رد الطلب الي الجمعيه لعدم الرد يرجى التواصل مع خدمه العملاء بالشات",
 	order_status_returned: "مردود",
 	
-	order_has_been_picked: "تم التجهيز",
-	order_status_picked: "تم تجهيز طلبك وبانتظار السائق للتوصيل",
+	order_has_been_picked: "تم تجهيز طلبك وبانتظار السائق للتوصيل",
+	order_status_picked: "تم التجهيز",
+	
+	order_has_been_canceled: "تم إلغاء الطلب",
+	order_status_canceled: "تم الغاء الطلب لوجود بعض النواقص نتمني لكم تسوق افضل في المرات القادمه",
 
 
 	quantity_not_valid: 'Quantity is not valid',

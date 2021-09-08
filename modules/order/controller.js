@@ -85,6 +85,11 @@ module.exports.update_status = async (req, res) => {
 				message_title = req.custom.local.order_status_delivered;
 				is_wallet_notification = true;
 			}
+			// Order Canceled 5
+			else if (parseInt(req.body.status) === 5 && order.status != 5) {
+				message_body = req.custom.local.order_has_been_canceled;
+				message_title = req.custom.local.order_status_canceled;
+			}
 			// Order Confirmed 7
 			else if (parseInt(req.body.status) === 7 && order.status != 7) {
 				message_body = req.custom.local.order_has_been_confirmed;
