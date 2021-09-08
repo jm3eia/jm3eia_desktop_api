@@ -48,16 +48,6 @@ module.exports.update_status = async (req, res) => {
 					}
 				})
 					.catch((error) => { });
-
-				if (user_info.device_token) {
-					const device_tokens = [user_info.device_token];
-					const message = {
-						title: req.custom.local.order_status,
-						body: req.custom.local.order_confirmed(parseInt(order.total), points),
-						url: null,
-					};
-					await common.send_to_multiple(message, device_tokens, true).catch(() => null);
-				}
 			}
 		}
 		// Order Canceled 5
@@ -71,6 +61,56 @@ module.exports.update_status = async (req, res) => {
 				}
 			})
 				.catch((error) => { });
+		}
+
+		let message_body = null;
+		let message_title = null;
+		let is_wallet_notification = false;
+
+		if (user_info.device_token) {
+
+			// Order Processing 2
+			if (parseInt(req.body.status) === 2 && order.status != 2) {
+				message_body = req.custom.local.order_has_been_processing;
+				message_title = req.custom.local.order_status_processing;
+			}
+			// Order On the way 3
+			else if (parseInt(req.body.status) === 3 && order.status != 3) {
+				message_body = req.custom.local.order_on_way;
+				message_title = req.custom.local.order_status_on_way;
+			}
+			// Order Delivered 4
+			else if (parseInt(req.body.status) === 4 && order.status != 4) {
+				message_body = req.custom.local.order_delivered(parseInt(order.total), points);
+				message_title = req.custom.local.order_status_delivered;
+				is_wallet_notification = true;
+			}
+			// Order Confirmed 7
+			else if (parseInt(req.body.status) === 7 && order.status != 7) {
+				message_body = req.custom.local.order_has_been_confirmed;
+				message_title = req.custom.local.order_status_confirmed;
+			}
+			// Order Returned 8
+			else if (parseInt(req.body.status) === 8 && order.status != 8) {
+				message_body = req.custom.local.order_has_been_returned;
+				message_title = req.custom.local.order_status_returned;
+			}
+			// Order Ready to pick 12
+			else if (parseInt(req.body.status) === 12 && order.status != 12) {
+				message_body = req.custom.local.order_has_been_picked;
+				message_title = req.custom.local.order_status_picked;
+			}
+
+
+			if (message_body) {
+				const device_tokens = [user_info.device_token];
+				const message = {
+					title: message_title,
+					body: message_body,
+					url: null,
+				};
+				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
+			}
 		}
 
 		if (update_quantity_arr.indexOf(req.body.status) === -1) {

@@ -7,10 +7,28 @@ module.exports = {
 	id_not_valid: 'Id is not valid',
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
-	order_confirmed: (points_winned, new_points) => {
+	
+	order_delivered: (points_winned, new_points) => {
 		return `مبروك ربحت ${points_winned} نقطة برصيد نقاطك اصبح الرصيد ${new_points} نقطة`;
 	},
-	order_status: 'حالة الطلب: تم التسليم',
+	order_status_delivered: 'حالة الطلب: تم التسليم',
+	
+	order_has_been_processing: "جاري التجهيز",
+	order_status_processing: "حالة الطلب: يتم تجهيز طلبك الان",
+	
+	order_on_way: "تم شحن الطلب",
+	order_status_on_way: "تم تحميل طلبك مع السائق وجاري التوصيل",
+		
+	order_has_been_confirmed: "تم تأكيد طلبك بنجاح",
+	order_status_confirmed: "تم التأكيد",
+	
+	order_has_been_returned: "حالة الطلب : تم رد الطلب الي الجمعيه لعدم الرد يرجى التواصل مع خدمه العملاء بالشات",
+	order_status_returned: "مردود",
+	
+	order_has_been_picked: "تم التجهيز",
+	order_status_picked: "تم تجهيز طلبك وبانتظار السائق للتوصيل",
+
+
 	quantity_not_valid: 'Quantity is not valid',
 	saved_done: 'Item has been saved successfully.',
 	unexpected_error: 'Unexpected error',
@@ -20,17 +38,17 @@ module.exports = {
 	order_status_list: {
 		"0": 'Not confirmed',
 		"1": 'Pending',
-		"2": 'Processing',
-		"3": 'On the way',
-		"4": 'Delivered',
+		"2": 'Processing', //
+		"3": 'On the way', //
+		"4": 'Delivered', //
 		"5": 'Canceled',
 		"6": 'Disapproved',
-		"7": 'Confirmed',
-		"8": 'Returned',
+		"7": 'Confirmed', //
+		"8": 'Returned', //
 		"9": 'Request reversed',
 		"10": 'Return part of the amount',
 		"11": 'Full refund',
-		"12": 'Ready to pick',
+		"12": 'Ready to pick', //
 		"13": 'Time is up',
 		"14": 'Request is invalid',
 	}
