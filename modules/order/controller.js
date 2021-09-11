@@ -33,22 +33,24 @@ module.exports.update_status = async (req, res) => {
 				let points = parseInt(user_info.points || 0);
 				let wallet = parseFloat(user_info.wallet || 0);
 
-				if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
-					wallet = user_info.wallet - wallet2money;
-				} else {
-					const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : parseInt(order.total);
-					points += parseInt(new_points);
-				}
-
-				await member_collection.updateOne({
-					_id: ObjectID(order.user_data._id.toString())
-				}, {
-					$set: {
-						points: points,
-						wallet: wallet
+				const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : 0;
+				if (new_points > 0) {
+					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
+						wallet = user_info.wallet - wallet2money;
+					} else {
+						points += parseInt(new_points);
 					}
-				})
-					.catch((error) => { });
+
+					await member_collection.updateOne({
+						_id: ObjectID(order.user_data._id.toString())
+					}, {
+						$set: {
+							points: points,
+							wallet: wallet
+						}
+					})
+						.catch((error) => { });
+				}
 			}
 		}
 		// Order Canceled 5
