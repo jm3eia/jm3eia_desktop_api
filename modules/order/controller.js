@@ -36,7 +36,8 @@ module.exports.update_status = async (req, res) => {
 				if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 					wallet = user_info.wallet - wallet2money;
 				} else {
-					points += parseInt(order.total);
+					const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : parseInt(order.total);
+					points += parseInt(new_points);
 				}
 
 				await member_collection.updateOne({

@@ -7,30 +7,27 @@ module.exports = {
 	id_not_valid: 'Id is not valid',
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
-	order_confirmed: (points_winned, new_points) => {
-		return `مبروك ربحت ${points_winned} نقطة برصيد نقاطك اصبح الرصيد ${new_points} نقطة`;
-	},
-	
+
 	order_delivered: (points_winned, new_points) => {
 		return `مبروك ربحت ${points_winned} نقطة برصيد نقاطك اصبح الرصيد ${new_points} نقطة`;
 	},
 	order_status_delivered: 'حالة الطلب: تم التسليم',
-	
+
 	order_has_been_processing: "جاري التجهيز",
 	order_status_processing: "حالة الطلب: يتم تجهيز طلبك الان",
-	
+
 	order_on_way: "تم شحن الطلب",
 	order_status_on_way: "تم تحميل طلبك مع السائق وجاري التوصيل",
-		
+
 	order_has_been_confirmed: "تم تأكيد طلبك بنجاح",
 	order_status_confirmed: "تم التأكيد",
-	
+
 	order_has_been_returned: "حالة الطلب : تم رد الطلب الي الجمعيه لعدم الرد يرجى التواصل مع خدمه العملاء بالشات",
 	order_status_returned: "مردود",
-	
+
 	order_has_been_picked: "تم تجهيز طلبك وبانتظار السائق للتوصيل",
 	order_status_picked: "تم التجهيز",
-	
+
 	order_has_been_canceled: "تم إلغاء الطلب",
 	order_status_canceled: "تم الغاء الطلب لوجود بعض النواقص نتمني لكم تسوق افضل في المرات القادمه",
 

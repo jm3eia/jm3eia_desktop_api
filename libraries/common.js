@@ -38,6 +38,9 @@ module.exports.group_products_by_suppliers = (products, req) => {
 	}, {});
 }
 
+module.exports.is_numeric = function (str) {
+	return /^-?\d+$/.test(value);
+}
 
 function send_to_multiple(message, device_tokens, wallet = false) {
 	const body = {
