@@ -74,39 +74,49 @@ module.exports.update_status = async (req, res) => {
 
 			// Order Processing 2
 			if (parseInt(req.body.status) === 2 && order.status != 2) {
-				message_body = req.custom.local.order_has_been_processing;
-				message_title = req.custom.local.order_status_processing;
+				message_body = req.custom.local.order_notification_body_2;
+				message_title = req.custom.local.order_notification_title_2;
 			}
 			// Order On the way 3
 			else if (parseInt(req.body.status) === 3 && order.status != 3) {
-				message_body = req.custom.local.order_on_way;
-				message_title = req.custom.local.order_status_on_way;
+				message_body = req.custom.local.order_notification_body_3;
+				message_title = req.custom.local.order_notification_title_3;
 			}
 			// Order Delivered 4
 			else if (parseInt(req.body.status) === 4 && order.status != 4) {
-				message_body = req.custom.local.order_delivered(parseInt(order.total), points);
-				message_title = req.custom.local.order_status_delivered;
+				message_body = req.custom.local.order_notification_body_4;
+				message_title = req.custom.local.order_notification_title_4;
 				is_wallet_notification = true;
 			}
 			// Order Canceled 5
 			else if (parseInt(req.body.status) === 5 && order.status != 5) {
-				message_body = req.custom.local.order_has_been_canceled;
-				message_title = req.custom.local.order_status_canceled;
+				message_body = req.custom.local.order_notification_body_5;
+				message_title = req.custom.local.order_notification_title_5;
+			}
+			// Order Disapproved 6
+			else if (parseInt(req.body.status) === 6 && order.status != 6) {
+				message_body = req.custom.local.order_notification_body_6;
+				message_title = req.custom.local.order_notification_title_6;
 			}
 			// Order Confirmed 7
 			else if (parseInt(req.body.status) === 7 && order.status != 7) {
-				message_body = req.custom.local.order_has_been_confirmed;
-				message_title = req.custom.local.order_status_confirmed;
+				message_body = req.custom.local.order_notification_body_7;
+				message_title = req.custom.local.order_notification_title_7;
 			}
 			// Order Returned 8
 			else if (parseInt(req.body.status) === 8 && order.status != 8) {
-				message_body = req.custom.local.order_has_been_returned;
-				message_title = req.custom.local.order_status_returned;
+				message_body = req.custom.local.order_notification_body_8;
+				message_title = req.custom.local.order_notification_title_8;
 			}
 			// Order Ready to pick 12
 			else if (parseInt(req.body.status) === 12 && order.status != 12) {
-				message_body = req.custom.local.order_has_been_picked;
-				message_title = req.custom.local.order_status_picked;
+				message_body = req.custom.local.order_notification_body_12;
+				message_title = req.custom.local.order_notification_title_12;
+			}
+			// Order Time is up 13
+			else if (parseInt(req.body.status) === 13 && order.status != 13) {
+				message_body = req.custom.local.order_notification_body_13;
+				message_title = req.custom.local.order_notification_title_13;
 			}
 
 
