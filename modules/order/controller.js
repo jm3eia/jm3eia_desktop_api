@@ -70,7 +70,7 @@ module.exports.update_status = async (req, res) => {
 		let message_title = null;
 		let is_wallet_notification = false;
 
-		if (user_info.device_token) {
+		if (user_info && user_info.device_token) {
 
 			// Order Processing 2
 			if (parseInt(req.body.status) === 2 && order.status != 2) {
