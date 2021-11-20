@@ -73,7 +73,7 @@ module.exports.update_status = async (req, res) => {
 		if (user_info && user_info.device_token) {
 
 			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
-				req.custom.local = require(`../i18n/${user_info.language}`);
+				req.custom.local = require(`../../i18n/${user_info.language}`);
 			}
 
 			// Order Processing 2
