@@ -37,7 +37,7 @@ module.exports.points = async (req, res) => {
 		let _promise = Promise.resolve(true);
 		if (doc) {
 			if (parseFloat(doc.points) != parseFloat(req.body.points)) {
-				req.body.points += parseFloat(doc.points);
+				req.body.points += parseFloat(doc.points || 0);
 				const points_data = {
 					"member_id": ObjectID(req.body.member_id.toString()),
 					"old_points": common.getFixedPrice(doc.points),
