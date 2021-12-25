@@ -99,7 +99,7 @@ module.exports.wallet = async (req, res) => {
 		let _promise = Promise.resolve(true);
 		if (doc) {
 			if (parseFloat(doc.wallet) != parseFloat(req.body.wallet)) {
-				req.body.wallet += parseFloat(doc.wallet);
+				req.body.wallet = parseFloat(req.body.wallet) + parseFloat(doc.wallet || 0);
 				const wallet_data = {
 					"member_id": ObjectID(req.body.member_id.toString()),
 					"old_wallet": common.getFixedPrice(doc.wallet),
