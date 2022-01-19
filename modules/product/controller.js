@@ -21,7 +21,7 @@ module.exports.info = (req, res) => {
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.findOne(filter, { }, function (err, doc) {
+	collection.findOne(filter, {}, function (err, doc) {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
@@ -73,57 +73,75 @@ module.exports.update_price_qty_weight = (req, res) => {
 module.exports.quantity = async (req, res) => {
 
 	if (req.custom.isAuthorized === false) {
-                return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
-        }
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
 
-        req.custom.model = require('./models/increase_quantity')
-        const filter = {
-                soft_code: req.params.soft_code
-        }
+	req.custom.model = require('./models/increase_quantity')
+	const filter = { $or: [{ "soft_code": req.params.soft_code }, { "variants.soft_code": req.params.soft_code }] };
 
 	const local = req.custom.local;
 
-        const {
-                data,
-                unset,
-                error
-        } = await req.custom.getValidData(req);
-        if (error) {
-                return res.out(error, enums.status_message.VALIDATION_ERROR);
-        }
+	const {
+		data,
+		unset,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
 
-        const collection = req.custom.db.client().collection(collectionName);
-        const product = await collection.findOne(filter);
+	const collection = req.custom.db.client().collection(collectionName);
+	const product = await collection.findOne(filter);
 
-        if (!product) {
-                return res.out({
-                        message: local.item_not_exists
-                }, enums.status_message.NOT_FOUND);
-        }
+	if (!product) {
+		return res.out({
+			message: local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
 
-        const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		console.log(data.store_id.toString() === s.store_id.toString(), data.store_id.toString(), s.store_id.toString());
-                if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
-                        s.quantity = data.quantity;
-                }
-                return s;
-        });
-	console.log(prod_n_storeArr);
-        const lastUser_update = ObjectID(req.custom.authUser.userId);
-        const row = {
-                $set: {
-                        prod_n_storeArr: prod_n_storeArr,
-                        lastUser_update: lastUser_update
-                }
-        };
-        req.custom.cache.unset(collectionName).catch(() => { });
-        collection.updateOne(filter, row)
-                .then((response) => res.out({
-                        message: local.saved_done
-                }, enums.status_message.UPDATED))
-                .catch((error) => res.out({
-                        message: error.message
-                }, enums.status_message.UNEXPECTED_ERROR));
+	const lastUser_update = ObjectID(req.custom.authUser.userId);
+	let row = {};
+	let prod_n_storeArr = [];
+	if (product.soft_code == req.params.soft_code) {
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = data.quantity;
+			}
+			return s;
+		});
+		row = {
+			$set: {
+				prod_n_storeArr: prod_n_storeArr,
+				lastUser_update: lastUser_update
+			}
+		};
+	} else {
+		const variants = product.variants.map((v) => {
+			if (v.soft_code == req.params.soft_code) {
+				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+						s.quantity = data.quantity;
+					}
+					return s;
+				});
+			}
+			return v;
+		});
+		row = {
+			$set: {
+				variants: variants,
+				lastUser_update: lastUser_update
+			}
+		};
+	}
+	req.custom.cache.unset(collectionName).catch(() => { });
+	collection.updateOne(filter, row)
+		.then((response) => res.out({
+			message: local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
 };
 
 /**
@@ -164,10 +182,8 @@ module.exports.increase_quantity = async (req, res) => {
 	}
 
 	req.custom.model = require('./models/increase_quantity')
-	const filter = {
-		soft_code: req.params.soft_code
-	}
-	
+	const filter = { $or: [{ "soft_code": req.params.soft_code }, { "variants.soft_code": req.params.soft_code }] };
+
 	const local = req.custom.local;
 
 	const {
@@ -188,20 +204,41 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
-			s.quantity += data.quantity;
-		}
-		return s;
-	});
-	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
-	const row = {
-		$set: {
-			prod_n_storeArr: prod_n_storeArr,
-			lastUser_update: lastUser_update
-		}
-	};
+	let row = {};
+	let prod_n_storeArr = [];
+	if (product.soft_code == req.params.soft_code) {
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity += data.quantity;
+			}
+			return s;
+		});
+		row = {
+			$set: {
+				prod_n_storeArr: prod_n_storeArr,
+				lastUser_update: lastUser_update
+			}
+		};
+	} else {
+		const variants = product.variants.map((v) => {
+			if (v.soft_code == req.params.soft_code) {
+				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+						s.quantity += data.quantity;
+					}
+					return s;
+				});
+			}
+			return v;
+		});
+		row = {
+			$set: {
+				variants: variants,
+				lastUser_update: lastUser_update
+			}
+		};
+	}
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => res.out({
@@ -224,10 +261,8 @@ module.exports.decrease_quantity = async (req, res) => {
 	}
 
 	req.custom.model = require('./models/increase_quantity')
-	const filter = {
-		soft_code: req.params.soft_code
-	}
-	
+	const filter = { $or: [{ "soft_code": req.params.soft_code }, { "variants.soft_code": req.params.soft_code }] };
+
 	const local = req.custom.local;
 
 	const {
@@ -248,21 +283,45 @@ module.exports.decrease_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	const prod_n_storeArr = product.prod_n_storeArr.map((s)=>{
-		if(data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()){
-			s.quantity -= data.quantity;
-		}
-		s.quantity = s.quantity >= 0 ? s.quantity : 0;
-		return s;
-	});
-	
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
-	const row = {
-		$set: {
-			prod_n_storeArr: prod_n_storeArr,
-			lastUser_update: lastUser_update
-		}
-	};
+	let row = {};
+	let prod_n_storeArr = [];
+	if (product.soft_code == req.params.soft_code) {
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity -= data.quantity;
+			}
+			s.quantity = s.quantity >= 0 ? s.quantity : 0;
+			return s;
+		});
+		row = {
+			$set: {
+				prod_n_storeArr: prod_n_storeArr,
+				lastUser_update: lastUser_update
+			}
+		};
+	} else {
+		const variants = product.variants.map((v) => {
+			if (v.soft_code == req.params.soft_code) {
+				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+						s.quantity -= data.quantity;
+					}
+					s.quantity = s.quantity >= 0 ? s.quantity : 0;
+					return s;
+				});
+			}
+			return v;
+		});
+		row = {
+			$set: {
+				variants: variants,
+				lastUser_update: lastUser_update
+			}
+		};
+	}
+
+
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => res.out({
