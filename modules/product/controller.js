@@ -210,7 +210,7 @@ module.exports.increase_quantity = async (req, res) => {
 	if (product.soft_code == req.params.soft_code) {
 		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
 			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity += data.quantity;
+				s.quantity += parseInt(data.quantity);
 			}
 			return s;
 		});
@@ -225,7 +225,7 @@ module.exports.increase_quantity = async (req, res) => {
 			if (v.soft_code == req.params.soft_code) {
 				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
 					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity += data.quantity;
+						s.quantity += parseInt(data.quantity);
 					}
 					return s;
 				});

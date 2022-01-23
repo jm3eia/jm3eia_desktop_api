@@ -165,7 +165,7 @@ module.exports.update_status = async (req, res) => {
 			if (skus.indexOf(product.sku) > -1) {
 				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
 					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity += data.quantity;
+						s.quantity += parseInt(data.quantity);
 					}
 					return s;
 				});
@@ -180,7 +180,7 @@ module.exports.update_status = async (req, res) => {
 					if (skus.indexOf(v.sku) > -1) {
 						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
 							if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-								s.quantity += data.quantity;
+								s.quantity += parseInt(data.quantity);
 							}
 							return s;
 						});
