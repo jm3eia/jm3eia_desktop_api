@@ -149,27 +149,52 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
-		const ids = order.products.map((p) => ObjectID(p._id.toString()));
+		const skus = order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
-		const the_products = await prod_collection.find({
-			_id: {
-				$in: ids
-			}
-		})
+		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
+		const the_products = await prod_collection.find(filter)
 			.toArray() || [];
 		let promises = [];
 
-		for (const p of the_products) {
-			const quantity_n_order = order.products.find((pi) => pi._id.toString() === p._id.toString());
-			const quantity = quantity_n_order.quantity;
+		for (const product of the_products) {
+
+
+			const lastUser_update = ObjectID(req.custom.authUser.userId);
+			let row = {};
 			let prod_n_storeArr = [];
-			for (const i of p.prod_n_storeArr) {
-				if (i.store_id.toString() == order.store_id.toString()) {
-					i.quantity += quantity;
-				}
-				i.store_id = ObjectID(i.store_id.toString());
-				prod_n_storeArr.push(i);
+			if (skus.indexOf(product.sku) > -1) {
+				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+						s.quantity += data.quantity;
+					}
+					return s;
+				});
+				row = {
+					$set: {
+						prod_n_storeArr: prod_n_storeArr,
+						lastUser_update: lastUser_update
+					}
+				};
+			} else {
+				const variants = product.variants.map((v) => {
+					if (skus.indexOf(v.sku) > -1) {
+						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+							if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+								s.quantity += data.quantity;
+							}
+							return s;
+						});
+					}
+					return v;
+				});
+				row = {
+					$set: {
+						variants: variants,
+						lastUser_update: lastUser_update
+					}
+				};
 			}
+
 			const update = prod_collection.updateOne({
 				_id: ObjectID(p._id.toString())
 			}, {
