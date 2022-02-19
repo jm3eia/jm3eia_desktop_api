@@ -44,4 +44,9 @@ router.put('/:soft_code/barcode', controller.barcode);
  */
 router.put('/:soft_code/weight', controller.weight);
 
+/**
+ * POST /product/update_status
+ */
+router.put('/update_status', controller.update_status);
+
 module.exports = router;
