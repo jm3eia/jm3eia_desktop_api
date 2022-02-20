@@ -347,67 +347,82 @@ module.exports.update_status = async (req, res) => {
 	const filter = {
 		status: true,
 	};
-	const total = await collection.count(filter, (err, total) => {
-		if (err) {
-			return 0;
-		}
-		return total;
+	const total = await new Promise((resolve, reject) => {
+		collection.count(filter, (err, total) => {
+			if (err) {
+				return resolve(0);
+			}
+			resolve(total);
+		})
 	});
 
 	const limit = 1000;
 	const pages = parseInt(parseFloat(parseInt(total)) / limit + 0.999);
+	let updated_count = 0;
 
 	for (let i = 0; i < pages; i++) {
 
-		await collection
-			.find(filter, {})
-			.limit(limit)
-			.skip(i)
-			.toArray(async function (err, docs) {
-				if (err) {
-					return false;
-				}
-				const skus = [];
-				for (const doc of docs) {
-					let has_quantity = false;
-					if (doc.variants) {
+		await new Promise(async (resolve, reject) => {
 
-						for (const v of doc.variants) {
+			await collection
+				.find(filter, {})
+				.limit(limit)
+				.skip(i)
+				.toArray(async function (err, docs) {
+					if (err) {
+						return resolve(false);
+					}
+					const skus = [];
+					for (const doc of docs) {
+						let has_quantity = false;
+						if (doc.variants) {
 
-							const variant_has_quantity = v.prod_n_storeArr.filter((s) => s.quantity > 0 && s.status) ? true : false;
-							if (variant_has_quantity) {
-								has_quantity = true;
-								continue;
+							for (const v of doc.variants) {
+
+								const variant_has_quantity = v.prod_n_storeArr.filter((s) => s.quantity > 0 && s.status) ? true : false;
+								if (variant_has_quantity) {
+									has_quantity = true;
+									continue;
+								}
+
+							}
+
+							if (!has_quantity) {
+								skus.push(doc.sku);
+							}
+
+						} else {
+
+							has_quantity = doc.prod_n_storeArr.filter((s) => parseInt(s.quantity) > 0 && s.status).length > 0 ? true : false;
+							if (!has_quantity) {
+								skus.push(doc.sku);
 							}
 
 						}
 
-						if (!has_quantity) {
-							skus.push(doc.sku);
-						}
-
-					} else {
-
-						has_quantity = doc.prod_n_storeArr.filter((s) => s.quantity > 0 && s.status) ? true : false;
-						if (!has_quantity) {
-							skus.push(doc.sku);
-						}
-
 					}
+					if (skus.length > 0) {
+						updated_count = parseInt(updated_count) + skus.length;
+						console.log(updated_count);
+						const update_by = { sku: { $in: skus } };
+						const row = { $set: { status: false } };
+						await new Promise((resolve_update, reject_update) => {
+							collection.updateMany(update_by, row)
+								.catch((error) => null)
+								.then(() => resolve_update(true))
+						});
+					}
+				});
 
-				}
+			resolve(true);
 
-				const update_by = { sku: { $in: skus } };
-				const row = { status: false };
-				await collection.updateMany(update_by, row)
-					.catch((error) => null);
+		})
 
-			});
 	}
 
 	const local = req.custom.local;
 	res.out({
-		message: local.saved_done
+		message: local.saved_done,
 	}, enums.status_message.UPDATED);
 
 };
