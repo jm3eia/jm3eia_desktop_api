@@ -344,8 +344,10 @@ module.exports.update_status = async (req, res) => {
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-
-	const total = await collection.count(req.custom.clean_filter, (err, total) => {
+	const filter = {
+		status: true,
+	};
+	const total = await collection.count(filter, (err, total) => {
 		if (err) {
 			return 0;
 		}
@@ -354,9 +356,6 @@ module.exports.update_status = async (req, res) => {
 
 	const limit = 1000;
 	const pages = parseInt(parseFloat(parseInt(total)) / limit + 0.999);
-	const filter = {
-		status: true,
-	};
 
 	for (let i = 0; i < pages; i++) {
 
