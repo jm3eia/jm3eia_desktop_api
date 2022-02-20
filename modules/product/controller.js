@@ -410,7 +410,7 @@ module.exports.update_status = async (req, res) => {
 		});
 	}
 
-	console.log('Done');
+	console.log('Done', updated_count);
 	const local = req.custom.local;
 	res.out({
 		message: local.saved_done,
