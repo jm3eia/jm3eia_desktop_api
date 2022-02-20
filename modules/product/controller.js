@@ -343,6 +343,8 @@ module.exports.update_status = async (req, res) => {
 		return res.out(req.custom.UnauthorizedObject, status_message.UNAUTHENTICATED);
 	}
 
+	const collection = req.custom.db.client().collection(collectionName);
+
 	const total = await collection.count(req.custom.clean_filter, (err, total) => {
 		if (err) {
 			return 0;
