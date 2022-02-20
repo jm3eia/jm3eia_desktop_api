@@ -398,7 +398,7 @@ module.exports.update_status = async (req, res) => {
 
 			} else {
 
-				has_quantity = doc.prod_n_storeArr.filter((s) => parseInt(s.quantity) > 0 && s.status).length > 0 ? true : false;
+				has_quantity = doc.prod_n_storeArr.filter((s) => parseInt(s.quantity) > 0).length > 0 ? true : false;
 				if (!has_quantity) {
 					skus.push(doc.sku);
 				}
