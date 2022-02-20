@@ -409,6 +409,6 @@ module.exports.update_status = async (req, res) => {
 	const local = req.custom.local;
 	res.out({
 		message: local.saved_done
-	}, status_message.UPDATED);
+	}, enums.status_message.UPDATED);
 
 };
