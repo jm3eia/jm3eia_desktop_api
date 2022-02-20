@@ -340,7 +340,7 @@ module.exports.decrease_quantity = async (req, res) => {
  */
 module.exports.update_status = async (req, res) => {
 	if (req.custom.isAuthorized === false) {
-		return res.out(req.custom.UnauthorizedObject, status_message.UNAUTHENTICATED);
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
