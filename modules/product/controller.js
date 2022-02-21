@@ -217,7 +217,8 @@ module.exports.increase_quantity = async (req, res) => {
 		row = {
 			$set: {
 				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update
+				lastUser_update: lastUser_update,
+				status: true,
 			}
 		};
 	} else {
@@ -235,7 +236,8 @@ module.exports.increase_quantity = async (req, res) => {
 		row = {
 			$set: {
 				variants: variants,
-				lastUser_update: lastUser_update
+				lastUser_update: lastUser_update,
+				status: true,
 			}
 		};
 	}
