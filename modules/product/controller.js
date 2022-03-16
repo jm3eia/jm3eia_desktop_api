@@ -102,6 +102,7 @@ module.exports.quantity = async (req, res) => {
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
+	let status = parseInt(data.quantity) > 0 ? true : product.status;
 	if (product.soft_code == req.params.soft_code) {
 		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
 			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
@@ -112,7 +113,8 @@ module.exports.quantity = async (req, res) => {
 		row = {
 			$set: {
 				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update
+				lastUser_update: lastUser_update,
+				status: status,
 			}
 		};
 	} else {
@@ -130,7 +132,8 @@ module.exports.quantity = async (req, res) => {
 		row = {
 			$set: {
 				variants: variants,
-				lastUser_update: lastUser_update
+				lastUser_update: lastUser_update,
+				status: status,
 			}
 		};
 	}
