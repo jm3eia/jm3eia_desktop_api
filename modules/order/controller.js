@@ -217,6 +217,21 @@ module.exports.list = (req, res) => {
 		req.custom.clean_filter['status'] = parseInt(req.query.status);
 	}
 
+	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
+		req.custom.clean_filter['created'] = {
+			"$gte": new Date(req.query.filter.from_date.toString()),
+			"$lte": new Date(req.query.filter.to_date.toString())
+		};
+	} else {
+		if (req.query.filter && req.query.filter.from_date) {
+			req.custom.clean_filter['created'] = { "$gte": new Date(req.query.filter.from_date.toString()) };
+		}
+
+		if (req.query.filter && req.query.filter.to_date) {
+			req.custom.clean_filter['created'] = { "$lte": new Date(req.query.filter.to_date.toString()) };
+		}
+	}
+
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
