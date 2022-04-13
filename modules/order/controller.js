@@ -159,6 +159,7 @@ module.exports.update_status = async (req, res) => {
 		let promises = [];
 
 		const token = await get_remote_token(req).catch(() => null);
+		const data = req.body;
 
 		for (const product of the_products) {
 
@@ -219,7 +220,7 @@ module.exports.update_status = async (req, res) => {
 			}
 
 			const update = prod_collection.updateOne({
-				_id: ObjectID(p._id.toString())
+				_id: ObjectID(product._id.toString())
 			}, {
 				$set: { prod_n_storeArr: prod_n_storeArr }
 			});
