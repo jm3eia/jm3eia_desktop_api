@@ -3,6 +3,7 @@
 // Load required modules
 const mainController = require("../../libraries/mainController");
 const common = require("../../libraries/common");
+const axios = require('axios');
 const ObjectID = require('mongodb').ObjectID;
 const collectionName = "order";
 
@@ -156,8 +157,15 @@ module.exports.update_status = async (req, res) => {
 			.toArray() || [];
 		let promises = [];
 
+		const token = await get_remote_token(req).catch(() => null);
+
 		for (const product of the_products) {
 
+			const remote_product = {
+				store_id: null,
+				quantity: 0,
+				soft_code: null,
+			};
 
 			const lastUser_update = ObjectID(req.custom.authUser.userId);
 			let row = {};
@@ -166,6 +174,13 @@ module.exports.update_status = async (req, res) => {
 				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
 					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 						s.quantity += parseInt(data.quantity);
+
+						// Start setting remote product
+						remote_product.store_id = s.store_id;
+						remote_product.quantity = parseInt(s.quantity);
+						remote_product.soft_code = product.soft_code;
+						// End setting remote product
+
 					}
 					return s;
 				});
@@ -181,6 +196,13 @@ module.exports.update_status = async (req, res) => {
 						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
 							if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 								s.quantity += parseInt(data.quantity);
+
+								// Start setting remote product
+								remote_product.store_id = s.store_id;
+								remote_product.quantity = parseInt(s.quantity);
+								remote_product.soft_code = v.soft_code;
+								// End setting remote product
+
 							}
 							return s;
 						});
@@ -200,6 +222,7 @@ module.exports.update_status = async (req, res) => {
 			}, {
 				$set: { prod_n_storeArr: prod_n_storeArr }
 			});
+			promises.push(update_remote_quantity(req, remote_product, token));
 			promises.push(update);
 		}
 
@@ -271,3 +294,65 @@ module.exports.read = (req, res) => {
 		res.out(doc);
 	});
 };
+
+
+
+function get_remote_token(req) {
+	if (
+		!req.custom.config.desktop.app_id ||
+		!req.custom.config.desktop.app_secret ||
+		!req.custom.config.desktop.email ||
+		!req.custom.config.desktop.password
+	) {
+		return false;
+	}
+	var data = JSON.stringify({
+		"appId": req.custom.config.desktop.app_id,
+		"appSecret": req.custom.config.desktop.app_secret,
+		"email": req.custom.config.desktop.email,
+		"password": req.custom.config.desktop.password,
+	});
+
+	var config = {
+		method: 'post',
+		url: `${req.custom.config.desktop.base_url}/auth/login`,
+		headers: {
+			'Content-Type': 'application/json',
+			'Language': 'ar'
+		},
+		data: data
+	};
+
+	return axios(config)
+		.then(function (response) {
+			return response.data && response.data.results && response.data.results.token;
+		})
+		.catch(function (error) {
+			console.log(error);
+		});
+
+}
+
+function update_remote_quantity(req, p, token) {
+	var data = JSON.stringify({
+		"store_id": p.store_id,
+		"quantity": p.quantity
+	});
+
+	var config = {
+		method: 'put',
+		url: `${req.custom.config.desktop.base_url}/product/${p.soft_code}/decrease_quantity`,
+		headers: {
+			'Accept': 'application/json',
+			'Language': 'en',
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`
+		},
+		data: data
+	};
+
+	return axios(config)
+		.catch(function (error) {
+			console.log(error);
+		});
+}

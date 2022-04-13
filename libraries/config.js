@@ -14,14 +14,21 @@ module.exports = {
         admindb: process.env.DB_ADMIN_DB,
         limit: parseInt(process.env.DB_LIMIT)
     },
-	redis: {
-		host: process.env.REDIS_HOST,
-		port: process.env.REDIS_PORT,
-		password: process.env.REDIS_PASS
-	},
+    redis: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+        password: process.env.REDIS_PASS
+    },
     test: {
         username: process.env.TEST_USERNAME,
         password: process.env.TEST_PASSWORD
+    },
+    desktop: {
+        app_id: process.env.DESKTOP_APP_ID,
+        app_secret: process.env.DESKTOP_APP_SECRET,
+        email: process.env.DESKTOP_EMAIL,
+        password: process.env.DESKTOP_PASSWORD,
+        base_url: process.env.DESKTOP_BASE_URL,
     },
     env: process.env.APP_ENV,
     denied_agents: process.env.DENIED_AGENTS,
