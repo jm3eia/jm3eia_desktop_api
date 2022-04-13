@@ -17,6 +17,7 @@ module.exports.update_status = async (req, res) => {
 	const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
 
 	const collection = req.custom.db.client().collection(collectionName);
+	// original order
 	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
 	const member_collection = req.custom.db.client().collection('member');
@@ -140,17 +141,17 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
-		order = await collection.findOne({
+		const updated_order = await collection.findOne({
 			_id: ObjectID(req.params.Id)
 		})
 			.then((o) => o)
 			.catch(() => null);
 
-		if (!order || update_quantity_arr.indexOf(order.status) > -1) {
+		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
 			return false;
 		}
 
-		const skus = order.products.map((p) => p.sku.toString());
+		const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
 		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
 		const the_products = await prod_collection.find(filter)
