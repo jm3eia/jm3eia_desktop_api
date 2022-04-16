@@ -5,6 +5,7 @@ const mainController = require("../../libraries/mainController");
 const common = require("../../libraries/common");
 const axios = require('axios');
 const ObjectID = require('mongodb').ObjectID;
+const enums = require("../../libraries/enums");
 const collectionName = "order";
 
 /**
@@ -19,6 +20,12 @@ module.exports.update_status = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order
 	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
 
 	const member_collection = req.custom.db.client().collection('member');
 	const user_info = order && order.user_data && order.user_data._id ?
@@ -158,10 +165,10 @@ module.exports.update_status = async (req, res) => {
 			.toArray() || [];
 		let promises = [];
 
-		const token = await get_remote_token(req).catch(() => null);
+		const token = await get_remote_token(req);
 		const data = req.body;
 
-		for (const product of the_products) {
+		for (const _sku of skus) {
 
 			const remote_product = {
 				store_id: null,
@@ -172,10 +179,12 @@ module.exports.update_status = async (req, res) => {
 			const lastUser_update = ObjectID(req.custom.authUser.userId);
 			let row = {};
 			let prod_n_storeArr = [];
+			const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
 			if (skus.indexOf(product.sku) > -1) {
 				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity += parseInt(data.quantity);
+					const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
+					if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+						s.quantity += parseInt(ordered_product.quantity);
 
 						// Start setting remote product
 						remote_product.store_id = s.store_id;
@@ -196,8 +205,9 @@ module.exports.update_status = async (req, res) => {
 				const variants = product.variants.map((v) => {
 					if (skus.indexOf(v.sku) > -1) {
 						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-							if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-								s.quantity += parseInt(data.quantity);
+							const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
+							if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+								s.quantity += parseInt(ordered_product.quantity);
 
 								// Start setting remote product
 								remote_product.store_id = s.store_id;
@@ -336,6 +346,9 @@ function get_remote_token(req) {
 }
 
 function update_remote_quantity(req, p, token) {
+	if (!token) {
+		return Promise.resolve(false);
+	}
 	var data = JSON.stringify({
 		"store_id": p.store_id,
 		"quantity": p.quantity
