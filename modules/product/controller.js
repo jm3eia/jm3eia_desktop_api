@@ -423,3 +423,12 @@ module.exports.update_status = async (req, res) => {
 	}, enums.status_message.UPDATED);
 
 };
+
+/**
+ * List all stores
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.list = (req, res) => {
+	mainController.list(req, res, collectionName);
+};

@@ -49,4 +49,9 @@ router.put('/:soft_code/weight', controller.weight);
  */
 router.put('/update_status', controller.update_status);
 
+/**
+ * GET /product
+ */
+ router.get('/', controller.list);
+
 module.exports = router;
