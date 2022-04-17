@@ -104,6 +104,9 @@ module.exports.quantity = async (req, res) => {
 	let prod_n_storeArr = [];
 	let status = parseInt(data.quantity) > 0 ? true : product.status;
 	if (product.soft_code == req.params.soft_code) {
+		if (status == true) {
+			status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
+		}
 		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
 			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
 				s.quantity = parseInt(data.quantity);
