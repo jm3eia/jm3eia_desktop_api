@@ -17,4 +17,8 @@ module.exports = {
         "updateOnly": true,
         "auto": true
     },
+     "status": {
+        "type": Boolean,
+        "required": false
+    }
 };
