@@ -272,8 +272,13 @@ module.exports.list = (req, res) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
 					console.log(curr);
-					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-					prod[curr.supplier_id].push(curr);
+					if(curr.supplier){
+						prod[curr.supplier.name] = prod[curr.supplier.name] || [];
+						prod[curr.supplier.name].push(curr);
+					}else{
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
 					return prod;
 				}, {});
 			} catch (error) {
