@@ -271,6 +271,7 @@ module.exports.list = (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
+					console.log(curr);
 					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 					prod[curr.supplier_id].push(curr);
 					return prod;
