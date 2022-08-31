@@ -273,8 +273,8 @@ module.exports.list = (req, res) => {
 				doc.products = doc.products.reduce((prod, curr) => {
 					console.log(curr);
 					if(curr.supplier){
-						prod[curr.supplier.name] = prod[curr.supplier.name] || [];
-						prod[curr.supplier.name].push(curr);
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
 					}else{
 						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 						prod[curr.supplier_id].push(curr);
