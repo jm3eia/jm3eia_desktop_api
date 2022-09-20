@@ -117,7 +117,7 @@ module.exports.quantity = async (req, res) => {
 			$set: {
 				prod_n_storeArr: prod_n_storeArr,
 				lastUser_update: lastUser_update,
-				status: status,
+				status: parseInt(data.quantity) > 0 ? true : false,
 			}
 		};
 	} else {
@@ -136,7 +136,7 @@ module.exports.quantity = async (req, res) => {
 			$set: {
 				variants: variants,
 				lastUser_update: lastUser_update,
-				status: status,
+				status: parseInt(data.quantity) > 0 ? true : false,
 			}
 		};
 	}
