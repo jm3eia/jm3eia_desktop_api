@@ -302,9 +302,12 @@ module.exports.read = (req, res) => {
 
 		try {
 			doc.products = doc.products.reduce((prod, curr) => {
+					var keyName = curr.supplier.name.en;
+					keyName = keyName.replace(' ', '_');
+
 					if(curr.supplier){
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
+						prod[keyName] = prod[curr.supplier.name.en] || [];
+						prod[keyName].push(curr);
 					}
 					else{
 						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
