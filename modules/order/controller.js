@@ -4,6 +4,7 @@
 const mainController = require("../../libraries/mainController");
 const common = require("../../libraries/common");
 const axios = require('axios');
+const moment = require('moment');
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
 const collectionName = "order";
@@ -48,6 +49,15 @@ module.exports.update_status = async (req, res) => {
 						wallet = user_info.wallet - wallet2money;
 					} else {
 						points += parseInt(new_points);
+						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
+						await point_transactions_collection.insertOne({
+							member_id: ObjectID(order.user_data._id.toString()),
+							points: parseInt(new_points),
+							createdAt: common.getDate(),
+							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+							used: false,
+							trashed: false
+						}).catch((err) => { console.log('Points transaction error: ', err) });
 					}
 
 					await member_collection.updateOne({

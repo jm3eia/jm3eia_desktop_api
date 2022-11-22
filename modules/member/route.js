@@ -13,4 +13,9 @@ router.put('/points', controller.points);
  */
 router.put('/wallet', controller.wallet);
 
+/**
+ * 
+ */
+ router.get('/', controller.list);
+
 module.exports = router;
