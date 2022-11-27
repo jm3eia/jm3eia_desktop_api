@@ -56,6 +56,7 @@ module.exports.points = async (req, res) => {
 					"old_wallet": common.getFixedPrice(doc.wallet),
 					"new_wallet": common.getFixedPrice(doc.wallet),
 					"notes": req.body.notes,
+					"type": "updated",
 					"created": new Date(),
 				};
 				_promise = points_history_collection.insertOne(points_data);
@@ -119,6 +120,7 @@ module.exports.wallet = async (req, res) => {
 					"old_wallet": common.getFixedPrice(doc.wallet),
 					"new_wallet": common.getFixedPrice(req.body.wallet),
 					"notes": req.body.notes,
+					"type": "updated",
 					"created": new Date(),
 				};
 				_promise = wallet_history_collection.insertOne(wallet_data);
