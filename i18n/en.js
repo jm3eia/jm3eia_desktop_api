@@ -7,6 +7,7 @@ module.exports = {
 	id_not_valid: 'Id is not valid',
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
+	not_exists: (doc, field) => 'No ' + doc + ' associated with the given ' + field,
 
 	"order_notification_body_2": "Order Status",
 	"order_notification_title_2": "Your order is now being processed",

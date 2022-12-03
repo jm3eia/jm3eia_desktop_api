@@ -14,8 +14,18 @@ router.put('/points', controller.points);
 router.put('/wallet', controller.wallet);
 
 /**
- * 
+ * GET /member
  */
- router.get('/', controller.list);
+router.get('/', controller.list);
+
+/**
+ * GET /member/:mobile
+ */
+ router.get('/:mobile', controller.read);
+
+ /**
+  * PUT /member/:Id
+  */
+ router.put('/:Id', controller.update);
 
 module.exports = router;

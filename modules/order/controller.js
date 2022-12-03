@@ -62,8 +62,8 @@ module.exports.update_status = async (req, res) => {
 						const point_history_collection = req.custom.db.client().collection('point_history');
 						await point_history_collection.insertOne({
 							member_id: ObjectID(order.user_data._id.toString()),
-							old_points: common.getFixedPrice(user_info.points || 0),
-							new_points: common.getFixedPrice(points),
+							old_points: user_info.points || 0,
+							new_points: points,
 							old_wallet: common.getFixedPrice(user_info.wallet || 0),
 							new_wallet: common.getFixedPrice(wallet),
 							notes: "Bonus from order",
