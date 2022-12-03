@@ -4,6 +4,7 @@
 const mainController = require("../../libraries/mainController");
 const common = require("../../libraries/common");
 const axios = require('axios');
+const moment = require('moment');
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
 const collectionName = "order";
@@ -48,6 +49,27 @@ module.exports.update_status = async (req, res) => {
 						wallet = user_info.wallet - wallet2money;
 					} else {
 						points += parseInt(new_points);
+						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
+						await point_transactions_collection.insertOne({
+							member_id: ObjectID(order.user_data._id.toString()),
+							points: parseInt(new_points),
+							createdAt: common.getDate(),
+							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+							used: false,
+							trashed: false
+						}).catch((err) => { console.log('Points transaction error: ', err) });
+
+						const point_history_collection = req.custom.db.client().collection('point_history');
+						await point_history_collection.insertOne({
+							member_id: ObjectID(order.user_data._id.toString()),
+							old_points: user_info.points || 0,
+							new_points: points,
+							old_wallet: common.getFixedPrice(user_info.wallet || 0),
+							new_wallet: common.getFixedPrice(wallet),
+							notes: "Bonus from order",
+							type: "bonus",
+							created: new Date(),
+						}).catch((err) => { console.log('Points history error: ', err) });
 					}
 
 					await member_collection.updateOne({
@@ -272,11 +294,11 @@ module.exports.list = (req, res) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
 					console.log(curr);
-					if(curr.supplier){
+					if (curr.supplier) {
 						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
 						prod[curr.supplier.name.en].push(curr);
 					}
-					else{
+					else {
 						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 						prod[curr.supplier_id].push(curr);
 					}
@@ -302,17 +324,17 @@ module.exports.read = (req, res) => {
 
 		try {
 			doc.products = doc.products.reduce((prod, curr) => {
-					var keyName = curr.supplier.name.en;
-					keyName = keyName.replace(' ', '_');
+				var keyName = curr.supplier.name.en;
+				keyName = keyName.replace(' ', '_');
 
-					if(curr.supplier){
-						prod[keyName] = prod[curr.supplier.name.en] || [];
-						prod[keyName].push(curr);
-					}
-					else{
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}				
+				if (curr.supplier) {
+					prod[keyName] = prod[curr.supplier.name.en] || [];
+					prod[keyName].push(curr);
+				}
+				else {
+					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+					prod[curr.supplier_id].push(curr);
+				}
 				return prod;
 			}, {});
 		} catch (error) {
