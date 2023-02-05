@@ -30,6 +30,10 @@ module.exports = {
 	"order_notification_body_8": "تم رد طلبكم لعدم الرد على السائق يرجى التواصل مع خدمة العملاء بالشات",
 	"order_notification_title_8": "حالة الطلب",
 
+	"order_notification_body_10": "تم تحميل طلبك مع السائق وجاري التوصيل",
+	"order_notification_title_10": "حالة الطلب",
+
+
 	"order_notification_body_12": "تم تجهيز طلبك وبانتظار السائق للتوصيل",
 	"order_notification_title_12": "حالة الطلب",
 

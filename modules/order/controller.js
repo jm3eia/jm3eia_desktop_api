@@ -263,6 +263,54 @@ module.exports.update_status = async (req, res) => {
 		Promise.all(promises).catch((err) => console.log(err));
 	});
 };
+module.exports.update_driver_details = async (req, res) => {
+
+	const collection = req.custom.db.client().collection(collectionName);
+	// original order
+	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	const member_collection = req.custom.db.client().collection('member');
+	const user_info = order && order.user_data && order.user_data._id ?
+	await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
+	req.body['status'] = 10;
+	req.custom.model = require('./models/update_driver_and_status');
+	mainController.update(req, res, collectionName, async () => {
+		let message_body = null;
+		let message_title = null;
+		let is_wallet_notification = false;
+
+		if (user_info && user_info.device_token) {
+			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
+				req.custom.local = require(`../../i18n/${user_info.language}`);
+			}
+			// Order is on delivery
+			if (parseInt(req.body.status) === 10 && order.status != 10) {
+				message_body = req.custom.local.order_notification_body_10;
+				message_title = req.custom.local.order_notification_title_10;
+			}
+
+			if (message_body) {
+				const device_tokens = [user_info.device_token];
+				const message = {
+					title: message_title,
+					body: message_body,
+					url: null,
+				};
+				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
+			}
+		}
+
+		// const token = await get_remote_token(req);
+		// const data = req.body;
+
+	});
+};
 
 /**
  * List all orders

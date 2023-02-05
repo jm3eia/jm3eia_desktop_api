@@ -30,6 +30,9 @@ module.exports = {
 	"order_notification_body_8": "Order Status",
 	"order_notification_title_8": "Your request has been rejected for not responding to the driver. Please contact customer service via chat",
 
+	"order_notification_body_10": "Order Status",
+	"order_notification_title_10": "Your order is now being processed",
+
 	"order_notification_body_12": "Order Status",
 	"order_notification_title_12": "Your order has been processed and waiting for driver to delivery",
 

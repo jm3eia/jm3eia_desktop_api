@@ -19,4 +19,8 @@ router.get('/:Id', controller.read);
  */
 router.put('/:Id/status', controller.update_status);
 
+/**
+ * Post /order/:Id/driver_details
+ */
+router.post('/:Id/driver_details', controller.update_driver_details);
 module.exports = router;
