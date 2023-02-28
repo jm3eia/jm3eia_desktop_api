@@ -13,6 +13,10 @@ module.exports = {
         "type": String,
         "required": true
     },
+    "driver_track_id":{
+        "type": String,
+        "required": false
+    },
     "modified": {
         "type": Date,
         "default": new Date(),
