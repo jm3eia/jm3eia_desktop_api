@@ -9,259 +9,311 @@ const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
 const collectionName = "order";
 
+const SITE_ID = "Jm3eia";
+
 /**
  * Update order status
  * @param {Object} req
  * @param {Object} res
  */
 module.exports.update_status = async (req, res) => {
+	try {
+		if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
+			return res.out({
+				'message': req.custom.local.id_not_valid
+			}, enums.status_message.INVALID_URL_PARAMETER);
+		}
 
-	const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
+		const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
 
-	const collection = req.custom.db.client().collection(collectionName);
-	// original order
-	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+		const collection = req.custom.db.client().collection(collectionName);
+		// original order
+		let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
 
-	if (!order) {
-		return res.out({
-			message: req.custom.local.item_not_exists
-		}, enums.status_message.NOT_FOUND);
-	}
+		if (!order) {
+			return res.out({
+				message: req.custom.local.item_not_exists
+			}, enums.status_message.NOT_FOUND);
+		}
 
-	const member_collection = req.custom.db.client().collection('member');
-	const user_info = order && order.user_data && order.user_data._id ?
-		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
+		const member_collection = req.custom.db.client().collection('member');
+		const user_info = order && order.user_data && order.user_data._id ?
+			await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 
-	req.custom.model = require('./models/update_status')
-	mainController.update(req, res, collectionName, async () => {
+		req.custom.model = require('./models/update_status');
 
-		// Order Completed 4
-		if (parseInt(req.body.status) === 4 && order.status != 4) {
 
-			if (order.user_data && order.user_data._id && user_info) {
+		const isSupplierGlobal = !req.body.supplier_id || req.body.supplier_id === SITE_ID || !ObjectID.isValid(req.body.supplier_id);
 
-				let points = parseInt(user_info.points || 0);
-				let wallet = parseFloat(user_info.wallet || 0);
+		let update_by = {
+			_id: ObjectID(req.params.Id),
+			'data.supplier._id': isSupplierGlobal ? SITE_ID : ObjectID(req.body.supplier_id)
+		};
 
-				const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : 0;
-				if (new_points > 0) {
-					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
-						wallet = user_info.wallet - wallet2money;
-					} else {
-						points += parseInt(new_points);
-						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-						await point_transactions_collection.insertOne({
-							member_id: ObjectID(order.user_data._id.toString()),
-							points: parseInt(new_points),
-							createdAt: common.getDate(),
-							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
-							used: false,
-							trashed: false
-						}).catch((err) => { console.log('Points transaction error: ', err) });
 
-						const point_history_collection = req.custom.db.client().collection('point_history');
-						await point_history_collection.insertOne({
-							member_id: ObjectID(order.user_data._id.toString()),
-							old_points: user_info.points || 0,
-							new_points: points,
-							old_wallet: common.getFixedPrice(user_info.wallet || 0),
-							new_wallet: common.getFixedPrice(wallet),
-							notes: "Bonus from order",
-							type: "bonus",
-							created: new Date(),
-						}).catch((err) => { console.log('Points history error: ', err) });
-					}
+		const local = req.custom.local;
+		const {
+			data,
+			unset,
+			error
+		} = await req.custom.getValidData(req);
+		if (error) {
+			return res.out(error, enums.status_message.VALIDATION_ERROR);
+		}
+		data.lastUser_update = ObjectID(req.custom.authUser.userId);
+		data['data.$.status'] = data.status;
+		if (!isSupplierGlobal) {
+			delete data.status;
+		}
+		const row = {
+			$set: data
+		};
+		if (Object.keys(unset).length > 0) {
+			row["$unset"] = unset;
+		}
+		req.custom.cache.unset(collectionName).catch(() => { });
 
-					await member_collection.updateOne({
-						_id: ObjectID(order.user_data._id.toString())
-					}, {
-						$set: {
-							points: points,
-							wallet: wallet
+		const response = await collection.updateOne(update_by, row);
+
+		if (response) {
+			res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+
+			// Order Completed 4
+			if (parseInt(req.body.status) === 4 && order.status != 4) {
+
+				if (order.user_data && order.user_data._id && user_info) {
+
+					let points = parseInt(user_info.points || 0);
+					let wallet = parseFloat(user_info.wallet || 0);
+
+					const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : 0;
+					if (new_points > 0) {
+						if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
+							wallet = user_info.wallet - wallet2money;
+						} else {
+							points += parseInt(new_points);
+							const point_transactions_collection = req.custom.db.client().collection('point_transactions');
+							await point_transactions_collection.insertOne({
+								member_id: ObjectID(order.user_data._id.toString()),
+								points: parseInt(new_points),
+								createdAt: common.getDate(),
+								expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+								used: false,
+								trashed: false
+							}).catch((err) => { console.log('Points transaction error: ', err) });
+
+							const point_history_collection = req.custom.db.client().collection('point_history');
+							await point_history_collection.insertOne({
+								member_id: ObjectID(order.user_data._id.toString()),
+								old_points: user_info.points || 0,
+								new_points: points,
+								old_wallet: common.getFixedPrice(user_info.wallet || 0),
+								new_wallet: common.getFixedPrice(wallet),
+								notes: "Bonus from order",
+								type: "bonus",
+								created: new Date(),
+							}).catch((err) => { console.log('Points history error: ', err) });
 						}
-					})
-						.catch((error) => { });
+
+						await member_collection.updateOne({
+							_id: ObjectID(order.user_data._id.toString())
+						}, {
+							$set: {
+								points: points,
+								wallet: wallet
+							}
+						})
+							.catch((error) => { });
+					}
 				}
-			}
-		}
-		// Order Canceled 5
-		else if (parseInt(req.body.status) === 5 && order.status != 5 && parseFloat(order.discount_by_wallet_value) > 0) {
-			const wallet = parseFloat(user_info.wallet) + parseFloat(order.discount_by_wallet_value);
-			await member_collection.updateOne({
-				_id: ObjectID(order.user_data._id.toString())
-			}, {
-				$set: {
-					wallet: wallet
-				}
-			})
-				.catch((error) => { });
-		}
-
-		let message_body = null;
-		let message_title = null;
-		let is_wallet_notification = false;
-
-		if (user_info && user_info.device_token) {
-
-			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
-				req.custom.local = require(`../../i18n/${user_info.language}`);
-			}
-
-			// Order Processing 2
-			if (parseInt(req.body.status) === 2 && order.status != 2) {
-				message_body = req.custom.local.order_notification_body_2;
-				message_title = req.custom.local.order_notification_title_2;
-			}
-			// Order On the way 3
-			else if (parseInt(req.body.status) === 3 && order.status != 3) {
-				message_body = req.custom.local.order_notification_body_3;
-				message_title = req.custom.local.order_notification_title_3;
-			}
-			// Order Delivered 4
-			else if (parseInt(req.body.status) === 4 && order.status != 4) {
-				message_body = req.custom.local.order_notification_body_4;
-				message_title = req.custom.local.order_notification_title_4;
-				is_wallet_notification = true;
 			}
 			// Order Canceled 5
-			else if (parseInt(req.body.status) === 5 && order.status != 5) {
-				message_body = req.custom.local.order_notification_body_5;
-				message_title = req.custom.local.order_notification_title_5;
-			}
-			// Order Disapproved 6
-			else if (parseInt(req.body.status) === 6 && order.status != 6) {
-				message_body = req.custom.local.order_notification_body_6;
-				message_title = req.custom.local.order_notification_title_6;
-			}
-			// Order Confirmed 7
-			else if (parseInt(req.body.status) === 7 && order.status != 7) {
-				message_body = req.custom.local.order_notification_body_7;
-				message_title = req.custom.local.order_notification_title_7;
-			}
-			// Order Returned 8
-			else if (parseInt(req.body.status) === 8 && order.status != 8) {
-				message_body = req.custom.local.order_notification_body_8;
-				message_title = req.custom.local.order_notification_title_8;
-			}
-			// Order Ready to pick 12
-			else if (parseInt(req.body.status) === 12 && order.status != 12) {
-				message_body = req.custom.local.order_notification_body_12;
-				message_title = req.custom.local.order_notification_title_12;
-			}
-			// Order Time is up 13
-			else if (parseInt(req.body.status) === 13 && order.status != 13) {
-				message_body = req.custom.local.order_notification_body_13;
-				message_title = req.custom.local.order_notification_title_13;
-			}
-
-
-			if (message_body) {
-				const device_tokens = [user_info.device_token];
-				const message = {
-					title: message_title,
-					body: message_body,
-					url: null,
-				};
-				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
-			}
-		}
-
-		if (update_quantity_arr.indexOf(req.body.status) === -1) {
-			return false;
-		}
-
-		const updated_order = await collection.findOne({
-			_id: ObjectID(req.params.Id)
-		})
-			.then((o) => o)
-			.catch(() => null);
-
-		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
-			return false;
-		}
-
-		const skus = updated_order.products.map((p) => p.sku.toString());
-		const prod_collection = req.custom.db.client().collection('product');
-		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
-		const the_products = await prod_collection.find(filter)
-			.toArray() || [];
-		let promises = [];
-
-		const token = await get_remote_token(req);
-		const data = req.body;
-
-		for (const _sku of skus) {
-
-			const remote_product = {
-				store_id: null,
-				quantity: 0,
-				soft_code: null,
-			};
-
-			const lastUser_update = ObjectID(req.custom.authUser.userId);
-			let row = {};
-			let prod_n_storeArr = [];
-			const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
-			if (skus.indexOf(product.sku) > -1) {
-				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-					const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
-					if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-						s.quantity += parseInt(ordered_product.quantity);
-
-						// Start setting remote product
-						remote_product.store_id = s.store_id;
-						remote_product.quantity = parseInt(s.quantity);
-						remote_product.soft_code = product.soft_code;
-						// End setting remote product
-
-					}
-					return s;
-				});
-				row = {
+			else if (parseInt(req.body.status) === 5 && order.status != 5 && parseFloat(order.discount_by_wallet_value) > 0) {
+				const wallet = parseFloat(user_info.wallet) + parseFloat(order.discount_by_wallet_value);
+				await member_collection.updateOne({
+					_id: ObjectID(order.user_data._id.toString())
+				}, {
 					$set: {
-						prod_n_storeArr: prod_n_storeArr,
-						lastUser_update: lastUser_update
+						wallet: wallet
 					}
-				};
-			} else {
-				const variants = product.variants.map((v) => {
-					if (skus.indexOf(v.sku) > -1) {
-						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-							const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
-							if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-								s.quantity += parseInt(ordered_product.quantity);
-
-								// Start setting remote product
-								remote_product.store_id = s.store_id;
-								remote_product.quantity = parseInt(s.quantity);
-								remote_product.soft_code = v.soft_code;
-								// End setting remote product
-
-							}
-							return s;
-						});
-					}
-					return v;
-				});
-				row = {
-					$set: {
-						variants: variants,
-						lastUser_update: lastUser_update
-					}
-				};
+				})
+					.catch((error) => { });
 			}
 
-			const update = prod_collection.updateOne({
-				_id: ObjectID(product._id.toString())
-			}, {
-				$set: { prod_n_storeArr: prod_n_storeArr }
-			});
-			promises.push(update_remote_quantity(req, remote_product, token));
-			promises.push(update);
-		}
+			let message_body = null;
+			let message_title = null;
+			let is_wallet_notification = false;
 
-		Promise.all(promises).catch((err) => console.log(err));
-	});
+			if (user_info && user_info.device_token) {
+
+				if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
+					req.custom.local = require(`../../i18n/${user_info.language}`);
+				}
+
+				// Order Processing 2
+				if (parseInt(req.body.status) === 2 && order.status != 2) {
+					message_body = req.custom.local.order_notification_body_2;
+					message_title = req.custom.local.order_notification_title_2;
+				}
+				// Order On the way 3
+				else if (parseInt(req.body.status) === 3 && order.status != 3) {
+					message_body = req.custom.local.order_notification_body_3;
+					message_title = req.custom.local.order_notification_title_3;
+				}
+				// Order Delivered 4
+				else if (parseInt(req.body.status) === 4 && order.status != 4) {
+					message_body = req.custom.local.order_notification_body_4;
+					message_title = req.custom.local.order_notification_title_4;
+					is_wallet_notification = true;
+				}
+				// Order Canceled 5
+				else if (parseInt(req.body.status) === 5 && order.status != 5) {
+					message_body = req.custom.local.order_notification_body_5;
+					message_title = req.custom.local.order_notification_title_5;
+				}
+				// Order Disapproved 6
+				else if (parseInt(req.body.status) === 6 && order.status != 6) {
+					message_body = req.custom.local.order_notification_body_6;
+					message_title = req.custom.local.order_notification_title_6;
+				}
+				// Order Confirmed 7
+				else if (parseInt(req.body.status) === 7 && order.status != 7) {
+					message_body = req.custom.local.order_notification_body_7;
+					message_title = req.custom.local.order_notification_title_7;
+				}
+				// Order Returned 8
+				else if (parseInt(req.body.status) === 8 && order.status != 8) {
+					message_body = req.custom.local.order_notification_body_8;
+					message_title = req.custom.local.order_notification_title_8;
+				}
+				// Order Ready to pick 12
+				else if (parseInt(req.body.status) === 12 && order.status != 12) {
+					message_body = req.custom.local.order_notification_body_12;
+					message_title = req.custom.local.order_notification_title_12;
+				}
+				// Order Time is up 13
+				else if (parseInt(req.body.status) === 13 && order.status != 13) {
+					message_body = req.custom.local.order_notification_body_13;
+					message_title = req.custom.local.order_notification_title_13;
+				}
+
+
+				if (message_body) {
+					const device_tokens = [user_info.device_token];
+					const message = {
+						title: message_title,
+						body: message_body,
+						url: null,
+					};
+					await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
+				}
+			}
+
+			if (update_quantity_arr.indexOf(req.body.status) === -1) {
+				return false;
+			}
+
+			const updated_order = await collection.findOne({
+				_id: ObjectID(req.params.Id)
+			})
+				.then((o) => o)
+				.catch(() => null);
+
+			if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
+				return false;
+			}
+
+			const skus = updated_order.products.map((p) => p.sku.toString());
+			const prod_collection = req.custom.db.client().collection('product');
+			const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
+			const the_products = await prod_collection.find(filter)
+				.toArray() || [];
+			let promises = [];
+
+			const token = await get_remote_token(req);
+			//const data = req.body;
+
+			for (const _sku of skus) {
+
+				const remote_product = {
+					store_id: null,
+					quantity: 0,
+					soft_code: null,
+				};
+
+				const lastUser_update = ObjectID(req.custom.authUser.userId);
+				let row = {};
+				let prod_n_storeArr = [];
+				const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
+				if (skus.indexOf(product.sku) > -1) {
+					prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+						const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
+						if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+							s.quantity += parseInt(ordered_product.quantity);
+
+							// Start setting remote product
+							remote_product.store_id = s.store_id;
+							remote_product.quantity = parseInt(s.quantity);
+							remote_product.soft_code = product.soft_code;
+							// End setting remote product
+
+						}
+						return s;
+					});
+					row = {
+						$set: {
+							prod_n_storeArr: prod_n_storeArr,
+							lastUser_update: lastUser_update
+						}
+					};
+				} else {
+					const variants = product.variants.map((v) => {
+						if (skus.indexOf(v.sku) > -1) {
+							v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+								const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
+								if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+									s.quantity += parseInt(ordered_product.quantity);
+
+									// Start setting remote product
+									remote_product.store_id = s.store_id;
+									remote_product.quantity = parseInt(s.quantity);
+									remote_product.soft_code = v.soft_code;
+									// End setting remote product
+
+								}
+								return s;
+							});
+						}
+						return v;
+					});
+					row = {
+						$set: {
+							variants: variants,
+							lastUser_update: lastUser_update
+						}
+					};
+				}
+
+				console.log('I AM HERE OSAMA');
+				const update = prod_collection.updateOne({
+					_id: ObjectID(product._id.toString())
+				}, {
+					$set: { prod_n_storeArr: prod_n_storeArr }
+				});
+				promises.push(update_remote_quantity(req, remote_product, token));
+				promises.push(update);
+			}
+			Promise.all(promises).catch((err) => console.log(err));
+		}
+	} catch (err) {
+		console.log(err);
+		res.out({
+			message: err.message
+		}, enums.status_message.UNEXPECTED_ERROR);
+	}
+
 };
 
 /**
@@ -293,7 +345,6 @@ module.exports.list = (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
-					console.log(curr);
 					if (curr.supplier) {
 						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
 						prod[curr.supplier.name.en].push(curr);
