@@ -42,12 +42,8 @@ module.exports.update_status = async (req, res) => {
 
 		req.custom.model = require('./models/update_status');
 
-
-		const isSupplierGlobal = !req.body.supplier_id || req.body.supplier_id === SITE_ID || !ObjectID.isValid(req.body.supplier_id);
-
 		let update_by = {
 			_id: ObjectID(req.params.Id),
-			'data.supplier._id': isSupplierGlobal ? SITE_ID : ObjectID(req.body.supplier_id)
 		};
 
 
@@ -61,10 +57,18 @@ module.exports.update_status = async (req, res) => {
 			return res.out(error, enums.status_message.VALIDATION_ERROR);
 		}
 		data.lastUser_update = ObjectID(req.custom.authUser.userId);
-		data['data.$.status'] = data.status;
-		if (!isSupplierGlobal) {
-			delete data.status;
+
+		if (req.body.supplier_id) {
+			const isSupplierGlobal = !req.body.supplier_id || req.body.supplier_id === SITE_ID || !ObjectID.isValid(req.body.supplier_id);
+			const foundOrderSupplier = order.data && order.data.length > 0 ? order.data.findIndex(sup => sup.supplier._id.toString == req.body.supplier_id) : -1;
+			if (foundOrderSupplier > -1) {
+				update_by['data.supplier._id'] = isSupplierGlobal ? SITE_ID : ObjectID(req.body.supplier_id);
+				data['data.$.status'] = data.status;
+			}
+			if (!isSupplierGlobal)
+				delete data.status;
 		}
+
 		const row = {
 			$set: data
 		};
@@ -296,7 +300,6 @@ module.exports.update_status = async (req, res) => {
 					};
 				}
 
-				console.log('I AM HERE OSAMA');
 				const update = prod_collection.updateOne({
 					_id: ObjectID(product._id.toString())
 				}, {
