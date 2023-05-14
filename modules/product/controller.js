@@ -121,6 +121,7 @@ module.exports.quantity = async (req, res) => {
 			}
 		};
 	} else {
+		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
 			if (v.soft_code == req.params.soft_code) {
 				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
@@ -130,13 +131,21 @@ module.exports.quantity = async (req, res) => {
 					return s;
 				});
 			}
+			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
 			return v;
+		});
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = totalQuantity;
+			}
+			return s;
 		});
 		row = {
 			$set: {
 				variants: variants,
 				lastUser_update: lastUser_update,
-				status: parseInt(data.quantity) > 0 ? true : false,
+				prod_n_storeArr,
+				status: totalQuantity > 0 ? true : false,
 			}
 		};
 	}
@@ -228,6 +237,7 @@ module.exports.increase_quantity = async (req, res) => {
 			}
 		};
 	} else {
+		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
 			if (v.soft_code == req.params.soft_code) {
 				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
@@ -237,12 +247,20 @@ module.exports.increase_quantity = async (req, res) => {
 					return s;
 				});
 			}
+			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
 			return v;
+		});
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = totalQuantity;
+			}
+			return s;
 		});
 		row = {
 			$set: {
 				variants: variants,
 				lastUser_update: lastUser_update,
+				prod_n_storeArr,
 				status: true,
 			}
 		};
@@ -309,6 +327,7 @@ module.exports.decrease_quantity = async (req, res) => {
 			}
 		};
 	} else {
+		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
 			if (v.soft_code == req.params.soft_code) {
 				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
@@ -319,12 +338,21 @@ module.exports.decrease_quantity = async (req, res) => {
 					return s;
 				});
 			}
+			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
 			return v;
+		});
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = totalQuantity;
+			}
+			return s;
 		});
 		row = {
 			$set: {
 				variants: variants,
-				lastUser_update: lastUser_update
+				prod_n_storeArr,
+				lastUser_update: lastUser_update,
+				status: totalQuantity > 0 ? true : false
 			}
 		};
 	}
