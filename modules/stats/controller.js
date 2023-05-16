@@ -1,4 +1,5 @@
 // Stats Controller
+const moment = require('moment');
 const { status_message } = require("../../libraries/enums");
 
 /**
@@ -21,7 +22,6 @@ module.exports.list = async (req, res) => {
       delivery_time: { $gte: fromDate, $lte: toDate },
     };
 
-    console.log(process.env.DATE_UTC, query);
 
     const collection = req.custom.db.client().collection('order');
 
@@ -47,8 +47,6 @@ module.exports.list = async (req, res) => {
         }
       }
     ]).toArray();
-
-    //console.log(productsCount);
 
     return res.out({ orders: ordersCount, products: productsCount.length > 0 ? productsCount[0].count : 0 });
   } catch (err) {
