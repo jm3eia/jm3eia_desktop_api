@@ -22,6 +22,9 @@ module.exports.list = async (req, res) => {
       delivery_time: { $gte: fromDate, $lte: toDate },
     };
 
+    console.log('//////////////////////////////////////////////////////////////////////////');
+    console.log('QUERY: ', req.query, query);
+    console.log('//////////////////////////////////////////////////////////////////////////');
 
     const collection = req.custom.db.client().collection('order');
 

@@ -341,7 +341,7 @@ module.exports.list = (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				doc.products = doc.products.reduce((prod, curr) => {
-					console.log(curr);
+					//console.log(curr);
 					if (curr.supplier) {
 						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
 						prod[curr.supplier.name.en].push(curr);
