@@ -1,4 +1,5 @@
 // Stats Controller
+const { status_message } = require("../../libraries/enums");
 
 /**
  * List stats
@@ -47,7 +48,7 @@ module.exports.list = async (req, res) => {
       }
     ]).toArray();
 
-    console.log(productsCount);
+    //console.log(productsCount);
 
     return res.out({ orders: ordersCount, products: productsCount.length > 0 ? productsCount[0].count : 0 });
   } catch (err) {
