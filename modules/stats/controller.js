@@ -15,8 +15,8 @@ module.exports.list = async (req, res) => {
 
     const { date_from, date_to } = req.query;
 
-    const fromDate = new Date(moment(date_from).add(parseInt(process.env.DATE_UTC), 'hours'));
-    const toDate = new Date(moment(date_to).add(parseInt(process.env.DATE_UTC), 'hours'));
+    const fromDate = new Date(moment(date_from));
+    const toDate = new Date(moment(date_to));
 
     const query = {
       delivery_time: { $gte: fromDate, $lte: toDate },
