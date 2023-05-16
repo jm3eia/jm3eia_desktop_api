@@ -49,7 +49,7 @@ module.exports.list = async (req, res) => {
 
     console.log(productsCount);
 
-    return res.out({ orders: ordersCount, products: productsCount[0]?.count || 0 });
+    return res.out({ orders: ordersCount, products: productsCount.length > 0 ? productsCount[0].count : 0 });
   } catch (err) {
     console.error('Error retrieving statistics', err);
     return res.out({ error: 'Failed to retrieve statistics' });
