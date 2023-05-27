@@ -408,6 +408,9 @@ module.exports.update_status = async (req, res) => {
 
 	const skus = [];
 	for (const doc of products) {
+		if (!doc) {
+			continue;
+		}
 		let has_quantity = false;
 		if (doc.variants) {
 
