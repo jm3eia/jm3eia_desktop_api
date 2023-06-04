@@ -400,6 +400,25 @@ module.exports.read = (req, res) => {
 };
 
 
+/**
+ * Return product from order
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.delete_product = (req, res) => {
+	req.body.quantity = 0;
+	update_product_quantity_in_order(req, res);
+};
+
+/**
+ * Update product quantity in order
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.update_product_quantity = (req, res) => {
+	update_product_quantity_in_order(req, res);
+};
+
 module.exports.update_order_number = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order
@@ -486,4 +505,88 @@ function update_remote_quantity(req, p, token) {
 		.catch(function (error) {
 			console.log(error);
 		});
+}
+
+
+function update_product_quantity_in_order(req, res) {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, status_message.UNAUTHENTICATED);
+	}
+	if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
+		res.out({
+			'message': req.custom.local.id_not_valid
+		}, status_message.INVALID_URL_PARAMETER);
+	}
+	if (Number(req.body.quantity) < 0 || Number(req.body.quantity) == NaN) {
+		res.out({
+			'message': req.custom.local.quantity_not_valid
+		}, status_message.VALIDATION_ERROR);
+	}
+	const collection = req.custom.db.client().collection(collectionName);
+	const local = req.custom.local;
+
+	collection.findOne({
+		_id: ObjectID(req.params.Id)
+	}, function (err, doc) {
+		if (!doc) {
+			return res.out({
+				"message": local.item_not_exists
+			}, status_message.VALIDATION_ERROR);
+		}
+
+		const order_str = JSON.stringify(doc);
+		if (!order_str.includes(req.params.productId)) {
+			return res.out({
+				"message": local.item_not_exists
+			}, status_message.VALIDATION_ERROR);
+		}
+
+		let total = doc.total;
+		let subtotal = doc.subtotal;
+		let products = [];
+
+		for (const p of doc.products) {
+			if (p._id.toString() == req.params.productId.toString()) {
+				total -= p.price * p.quantity;
+				total = parseInt(total > 0 ? total : 0);
+
+				subtotal -= p.price * p.quantity;
+				subtotal = parseInt(subtotal > 0 ? subtotal : 0);
+				req.body.quantity = parseInt(req.body.quantity);
+				p.quantity = parseInt(p.quantity);
+				p.price = parseFloat(p.price);
+
+				total += p.price * req.body.quantity;
+				subtotal += p.price * req.body.quantity;
+
+				p.quantity = parseInt(req.body.quantity || 0);
+				p.modified = new Date();
+			}
+			products.push(p);
+		}
+
+		req.custom.db.client().collection('adminmember').findOne({
+			_id: doc.lastupdate_user
+		}, function (err, usr) {
+
+			const update_by = req.custom.update_by != undefined ? req.custom.update_by : {
+				_id: ObjectID(req.params.Id)
+			};
+			const row = {
+				$set: {
+					products: products,
+					subtotal: subtotal,
+					total: total,
+					lastupdate_user_name: usr ? usr.username : ''
+				}
+			};
+			collection.updateOne(update_by, row)
+				.then((response) => res.out({
+					message: local.saved_done
+				}, status_message.UPDATED))
+				.catch((error) => res.out({
+					message: error.message
+				}, status_message.UNEXPECTED_ERROR));
+		});
+	});
 }
