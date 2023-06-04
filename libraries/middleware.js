@@ -181,7 +181,7 @@ function checkpolicy(req, res) {
 			});
 		}
 		jwt.verify(token, config.secret, function (err, decoded) {
-			if (err) {
+			if (err || decoded.employee === true) {
 				reject({
 					success: false,
 					auth: false,
