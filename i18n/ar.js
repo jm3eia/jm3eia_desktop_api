@@ -45,6 +45,7 @@ module.exports = {
 	unexpected_error: 'Unexpected error',
 	unauthorized_user: "You don't have permission to access this page",
 	unsupported_file_types: "Error: File upload only supports the following filetypes",
+	order_not_confirmed: "لم يتم تأكيد هذا الطلب بعد.",
 
 	order_status_list: {
 		"0": 'لم يتم التأكيد',

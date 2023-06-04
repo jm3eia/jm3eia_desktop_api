@@ -17,6 +17,11 @@ router.get('/:Id', controller.read);
 /**
  * PUT /order/:Id/status
  */
+router.put('/:Id/number', controller.update_order_number);
+
+/**
+ * PUT /order/:Id/status
+ */
 router.put('/:Id/status', controller.update_status);
 
 /**

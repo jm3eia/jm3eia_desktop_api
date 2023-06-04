@@ -263,6 +263,12 @@ module.exports.update_status = async (req, res) => {
 		Promise.all(promises).catch((err) => console.log(err));
 	});
 };
+
+/**
+ * Update driver details
+ * @param {Object} req 
+ * @param {Object} res 
+ */
 module.exports.update_driver_details = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
@@ -277,7 +283,7 @@ module.exports.update_driver_details = async (req, res) => {
 
 	const member_collection = req.custom.db.client().collection('member');
 	const user_info = order && order.user_data && order.user_data._id ?
-	await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
+		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 	req.body['status'] = 10;
 	req.custom.model = require('./models/update_driver_and_status');
 	mainController.update(req, res, collectionName, async () => {
@@ -392,6 +398,30 @@ module.exports.read = (req, res) => {
 		res.out(doc);
 	});
 };
+
+
+module.exports.update_order_number = async (req, res) => {
+	const collection = req.custom.db.client().collection(collectionName);
+	// original order
+	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	if (order.status != 7) {
+		return res.out({
+			message: req.custom.local.order_not_confirmed
+		}, enums.status_message.VALIDATION_ERROR);
+	}
+
+	req.custom.model = require('./models/update_order_number');
+
+	mainController.update(req, res, collectionName);
+
+}
 
 
 
