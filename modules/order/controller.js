@@ -343,6 +343,10 @@ module.exports.list = (req, res) => {
 		}
 	}
 
+	req.custom.clean_sort = {
+		created: -1
+	};
+
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
