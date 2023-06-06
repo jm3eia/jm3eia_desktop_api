@@ -181,7 +181,7 @@ function checkpolicy(req, res) {
 			});
 		}
 		jwt.verify(token, config.secret, function (err, decoded) {
-			if (err || decoded.employee === true) {
+			if (err || (decoded.employee === true && req.custom.action !== 'logs' && (req.custom.class !== 'order' || (req.custom.class === 'order' && !req.originalUrl.includes('product'))))) {
 				reject({
 					success: false,
 					auth: false,

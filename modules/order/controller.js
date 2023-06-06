@@ -406,8 +406,12 @@ module.exports.read = (req, res) => {
  * @param {Object} res
  */
 module.exports.delete_product = (req, res) => {
+	if (!req.custom.authUser.employee) {
+		const local = req.custom.local;
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
 	req.body.quantity = 0;
-	update_product_quantity_in_order(req, res);
+	update_product_quantity_in_order(req, res, 'product_delete');
 };
 
 /**
@@ -416,7 +420,11 @@ module.exports.delete_product = (req, res) => {
  * @param {Object} res
  */
 module.exports.update_product_quantity = (req, res) => {
-	update_product_quantity_in_order(req, res);
+	if (!req.custom.authUser.employee) {
+		const local = req.custom.local;
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
+	update_product_quantity_in_order(req, res, 'product_update_quantity');
 };
 
 module.exports.update_order_number = async (req, res) => {
@@ -508,19 +516,19 @@ function update_remote_quantity(req, p, token) {
 }
 
 
-function update_product_quantity_in_order(req, res) {
+function update_product_quantity_in_order(req, res, action) {
 	if (req.custom.isAuthorized === false) {
-		return res.out(req.custom.UnauthorizedObject, status_message.UNAUTHENTICATED);
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 	if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
-		res.out({
+		return res.out({
 			'message': req.custom.local.id_not_valid
-		}, status_message.INVALID_URL_PARAMETER);
+		}, enums.status_message.INVALID_URL_PARAMETER);
 	}
 	if (Number(req.body.quantity) < 0 || Number(req.body.quantity) == NaN) {
-		res.out({
+		return res.out({
 			'message': req.custom.local.quantity_not_valid
-		}, status_message.VALIDATION_ERROR);
+		}, enums.status_message.VALIDATION_ERROR);
 	}
 	const collection = req.custom.db.client().collection(collectionName);
 	const local = req.custom.local;
@@ -531,14 +539,14 @@ function update_product_quantity_in_order(req, res) {
 		if (!doc) {
 			return res.out({
 				"message": local.item_not_exists
-			}, status_message.VALIDATION_ERROR);
+			}, enums.status_message.VALIDATION_ERROR);
 		}
 
 		const order_str = JSON.stringify(doc);
 		if (!order_str.includes(req.params.productId)) {
 			return res.out({
 				"message": local.item_not_exists
-			}, status_message.VALIDATION_ERROR);
+			}, enums.status_message.VALIDATION_ERROR);
 		}
 
 		let total = doc.total;
@@ -577,16 +585,22 @@ function update_product_quantity_in_order(req, res) {
 					products: products,
 					subtotal: subtotal,
 					total: total,
+					data: doc.data ? doc.data.map(d => {
+						return d.products.findIndex(p => p._id.toString() == req.params.productId.toString()) > -1 ? { ...d, products: d.products.map(p => p._id.toString() == req.params.productId.toString() ? products.find(np => np._id.toString() == p._id.toString()) : p) } : d
+					}) : null,
 					lastupdate_user_name: usr ? usr.username : ''
 				}
 			};
 			collection.updateOne(update_by, row)
-				.then((response) => res.out({
-					message: local.saved_done
-				}, status_message.UPDATED))
+				.then(async (response) => {
+					await common.saveLog(req, action, 'order', ObjectID(req.params.Id), row['$set'], doc, { quantity: req.body.quantity });
+					return res.out({
+						message: local.saved_done
+					}, enums.status_message.UPDATED)
+				})
 				.catch((error) => res.out({
 					message: error.message
-				}, status_message.UNEXPECTED_ERROR));
+				}, enums.status_message.UNEXPECTED_ERROR));
 		});
 	});
 }

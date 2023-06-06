@@ -14,6 +14,11 @@ router.post('/login', controller.login);
 router.get('/me', controller.me);
 
 /**
+ * GET /employee/logs
+ */
+router.get('/logs', controller.logs);
+
+/**
  * GET /employee
  */
 router.get('/', controller.list);

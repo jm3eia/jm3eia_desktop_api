@@ -2,6 +2,7 @@
 const moment = require('moment');
 const request = require("request");
 const Decimal = require('mongodb').Decimal128;
+const ObjectID = require('mongodb').ObjectID;
 
 const parseArabicNumbers = function (str) {
 	return str ? (str.toString().replace(/[٠١٢٣٤٥٦٧٨٩]/g, function (d) {
@@ -40,6 +41,29 @@ module.exports.group_products_by_suppliers = (products, req) => {
 
 module.exports.is_numeric = function (str) {
 	return /^-?\d+$/.test(str);
+}
+
+module.exports.saveLog = async (req, action, model, document_id, newData = {}, oldData = {}, body = {}, username = null) => {
+	try {
+		const log_collection = req.custom.db.client().collection('employee_logs');
+		const logRecord = {
+			action: action,
+			url: req.originalUrl,
+			collection: model,
+			user_id: ObjectID(req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.userId : document_id.toString()),
+			employee_username: req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : username,
+			document_id: document_id || null,
+			old_data: Object.keys(oldData).length > 0 ? oldData : null,
+			new_data: Object.keys(newData).length > 0 ? newData : null,
+			body: Object.keys(body).length > 0 ? body : null,
+			created: this.getDate()
+		};
+
+		await log_collection.insertOne(logRecord);
+	} catch (err) {
+		console.error('Error logging update: ', err);
+	}
+
 }
 
 function send_to_multiple(message, device_tokens, wallet = false) {

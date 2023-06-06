@@ -3,6 +3,7 @@ const sha1 = require("sha1");
 const jwt = require('jsonwebtoken');
 const ObjectID = require("mongodb").ObjectID;
 const enums = require('../../libraries/enums');
+const common = require("../../libraries/common");
 const mainController = require("../../libraries/mainController");
 const collectionName = "employee";
 
@@ -81,14 +82,14 @@ module.exports.read = async (req, res) => {
  * @param {Object} res
  */
 module.exports.login = function (req, res) {
-    const cpllection = req.custom.db.client().collection(collectionName);
+    const collection = req.custom.db.client().collection(collectionName);
     const config = req.custom.config;
     const local = req.custom.local;
     const query = {
         username: req.body.username,
         password: sha1(md5(req.body.password)),
     };
-    cpllection.findOne(query).then((theuser) => {
+    collection.findOne(query).then(async (theuser) => {
 
         if (!theuser) {
             return res.out({
@@ -99,12 +100,16 @@ module.exports.login = function (req, res) {
         var token = jwt.sign({
             userId: theuser._id,
             employee: true,
+            username: theuser.username,
             country_id: ObjectID(theuser.country_id)
         }, config.secret, {
             expiresIn: 3600 // expires in 1 hour
         });
         delete theuser.password;
         theuser.hash_username = md5(theuser.username);
+
+        await common.saveLog(req, 'login', 'employee', theuser._id, undefined, undefined, undefined, theuser.username);
+
         res.out({
             auth: true,
             token: token,
@@ -140,7 +145,7 @@ module.exports.me = function (req, res) {
             }, status_message.UNEXPECTED_ERROR);
 
         if (!decoded.employee) {
-            return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHENTICATED);
+            return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
         }
 
         res.out(decoded);
@@ -148,11 +153,47 @@ module.exports.me = function (req, res) {
 };
 
 /**
- * Generate random integer id
- * @param {Number} min
- * @param {Number} max
- * @returns {string}
+ * List Employee Logs
+ * @param {Object} req
+ * @param {Object} res
  */
-function randId(min, max) {
-    return (new Date().getTime()).toString() + (Math.floor(Math.random() * (max - min + 1)) + min).toString();
-}
+module.exports.logs = (req, res) => {
+    if (req.custom.authUser.employee) {
+        req.custom.clean_filter['user_id'] = ObjectID(req.custom.authUser.userId);
+    }
+
+    if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
+        req.custom.clean_filter['created'] = {
+            "$gte": new Date(req.query.filter.from_date.toString()),
+            "$lte": new Date(req.query.filter.to_date.toString())
+        };
+    } else {
+        if (req.query.filter && req.query.filter.from_date) {
+            req.custom.clean_filter['created'] = { "$gte": new Date(req.query.filter.from_date.toString()) };
+        }
+
+        if (req.query.filter && req.query.filter.to_date) {
+            req.custom.clean_filter['created'] = { "$lte": new Date(req.query.filter.to_date.toString()) };
+        }
+    }
+
+    if (req.query.action) {
+        req.custom.clean_filter['action'] = req.query.action;
+    }
+
+    if (req.query.username) {
+        req.custom.clean_filter['employee_username'] = req.query.username;
+    }
+
+    mainController.list(req, res, 'employee_logs', {
+        "action": 1,
+        "url": 1,
+        "collection": 1,
+        "user_id": 1,
+        "employee_username": 1,
+        "document_id": 1,
+        "old_data": 1,
+        "new_data": 1,
+        "created": 1
+    })
+};
