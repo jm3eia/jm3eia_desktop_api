@@ -86,7 +86,7 @@ module.exports.login = function (req, res) {
     const config = req.custom.config;
     const local = req.custom.local;
     const query = {
-        username: req.body.username,
+        username: { $regex: new RegExp('^' + req.body.username + '$', 'i') },
         password: sha1(md5(req.body.password)),
     };
     collection.findOne(query).then(async (theuser) => {
@@ -123,6 +123,45 @@ module.exports.login = function (req, res) {
 };
 
 /**
+ * Logout
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.logout = (req, res) => {
+    const config = req.custom.config;
+    const local = req.custom.local;
+    const token = req.headers['authorization'] ? req.headers['authorization'].replace('Bearer ', '') : null;
+    if (!token)
+        return res.out({
+            auth: false,
+            message: local.no_token
+        }, enums.status_message.UNAUTHENTICATED);
+
+
+    jwt.verify(token, config.secret, function (err, decoded) {
+        if (err)
+            return res.out({
+                auth: false,
+                message: local.failed_auth
+            }, status_message.UNEXPECTED_ERROR);
+
+        if (!decoded.employee) {
+            return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+        }
+
+        common.saveLog(req, 'logout', 'employee', ObjectID(decoded.userId), undefined, undefined, undefined, decoded.username).then(_response => {
+            return res.out({
+                message: local.logout_done
+            });
+        }).catch(err => {
+            console.log(err);
+            return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
+        });
+    });
+
+};
+
+/**
  * Get auth
  * @param {Object} req
  * @param {Object} res
@@ -135,7 +174,7 @@ module.exports.me = function (req, res) {
         return res.out({
             auth: false,
             message: local.no_token
-        }, status_message.UNAUTHENTICATED);
+        }, enums.status_message.UNAUTHENTICATED);
 
     jwt.verify(token, config.secret, function (err, decoded) {
         if (err)

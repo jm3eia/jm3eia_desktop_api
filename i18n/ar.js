@@ -7,6 +7,7 @@ module.exports = {
 	id_not_valid: 'Id is not valid',
 	item_not_exists: 'Item is not exists',
 	no_token: 'No token provided.',
+	logout_done: 'تم تسجيل الخروج بنجاح',
 	not_exists: (doc, field) => 'No ' + doc + ' associated with the given ' + field,
 
 	"order_notification_body_2": "جاري تجهيز طلبكم الان",

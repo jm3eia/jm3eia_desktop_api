@@ -9,6 +9,11 @@ const controller = require('./controller');
 router.post('/login', controller.login);
 
 /**
+ * POST /employee/logout
+ */
+router.post('/logout', controller.logout);
+
+/**
  * GET /employee/me
  */
 router.get('/me', controller.me);
