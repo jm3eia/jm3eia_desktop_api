@@ -82,6 +82,9 @@ module.exports.read = async (req, res) => {
  * @param {Object} res
  */
 module.exports.login = function (req, res) {
+    if (req.custom.isAuthorized === false) {
+        return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+    }
     const collection = req.custom.db.client().collection(collectionName);
     const config = req.custom.config;
     const local = req.custom.local;
