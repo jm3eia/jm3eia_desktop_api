@@ -177,17 +177,22 @@ module.exports.me = function (req, res) {
         }, enums.status_message.UNAUTHENTICATED);
 
     jwt.verify(token, config.secret, function (err, decoded) {
-        if (err)
+        if (err) {
             return res.out({
                 auth: false,
                 message: local.failed_auth
             }, status_message.UNEXPECTED_ERROR);
+        }
 
         if (!decoded.employee) {
             return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
         }
 
-        res.out(decoded);
+        req.params.Id = decoded.userId;
+        mainController.read(req, res, collectionName, (doc) => {
+            delete doc.password;
+            return res.out(doc);
+        });
     });
 };
 
