@@ -99,6 +99,8 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
+	console.log('product: ', product);
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
@@ -120,6 +122,7 @@ module.exports.quantity = async (req, res) => {
 				status: parseInt(data.quantity) > 0 ? true : false,
 			}
 		};
+		console.log('prod in store: ', prod_n_storeArr);
 	} else {
 		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
