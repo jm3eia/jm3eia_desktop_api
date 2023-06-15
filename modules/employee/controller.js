@@ -208,18 +208,19 @@ module.exports.logs = (req, res) => {
 
     if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
         req.custom.clean_filter['created'] = {
-            "$gte": new Date(req.query.filter.from_date.toString()),
-            "$lte": new Date(req.query.filter.to_date.toString())
+            "$gte": common.getAdjustedDate(req.query.filter.from_date),
+            "$lte": common.getAdjustedDate(req.query.filter.to_date)
         };
     } else {
         if (req.query.filter && req.query.filter.from_date) {
-            req.custom.clean_filter['created'] = { "$gte": new Date(req.query.filter.from_date.toString()) };
+            req.custom.clean_filter['created'] = { "$gte": common.getAdjustedDate(req.query.filter.from_date) };
         }
 
         if (req.query.filter && req.query.filter.to_date) {
-            req.custom.clean_filter['created'] = { "$lte": new Date(req.query.filter.to_date.toString()) };
+            req.custom.clean_filter['created'] = { "$lte": common.getAdjustedDate(req.query.filter.to_date) };
         }
     }
+
 
     if (req.query.action) {
         req.custom.clean_filter['action'] = req.query.action;

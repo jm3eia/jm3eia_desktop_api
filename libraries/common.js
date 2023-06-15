@@ -66,6 +66,13 @@ module.exports.saveLog = async (req, action, model, document_id, newData = {}, o
 
 }
 
+module.exports.getAdjustedDate = (dateStr) => {
+	const date = new Date(dateStr);
+	const timezoneOffset = date.getTimezoneOffset() * 60000;
+	const adjusted_date = new Date(date.getTime() - timezoneOffset);
+	return adjusted_date;
+}
+
 function send_to_multiple(message, device_tokens, wallet = false) {
 	const body = {
 		"registration_ids": device_tokens,
