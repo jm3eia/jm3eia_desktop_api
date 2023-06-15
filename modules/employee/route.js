@@ -24,6 +24,11 @@ router.get('/me', controller.me);
 router.get('/logs', controller.logs);
 
 /**
+ * GET /employee/stats
+ */
+router.get('/stats', controller.stats);
+
+/**
  * GET /employee
  */
 router.get('/', controller.list);

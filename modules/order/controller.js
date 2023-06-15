@@ -166,23 +166,28 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
-		if (update_quantity_arr.indexOf(req.body.status) === -1) {
+		if (req.custom.authUser.employee ? [2, 12].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
 			return false;
 		}
-
 		const updated_order = await collection.findOne({
 			_id: ObjectID(req.params.Id)
 		})
 			.then((o) => o)
 			.catch(() => null);
 
+		if (req.custom.authUser.employee) {
+			let action = 'update_status';
+
+			if (parseInt(req.body.status) === 2) action = 'pickup';
+			if (parseInt(req.body.status) === 12) action = 'done';
+
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
+		}
+
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
 			return false;
 		}
 
-		if (req.custom.authUser.employee) {
-			await common.saveLog(req, 'update_status', 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
-		}
 
 		const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');

@@ -242,3 +242,53 @@ module.exports.logs = (req, res) => {
         "created": 1
     })
 };
+
+
+
+module.exports.stats = async (req, res) => {
+    const filter = {};
+    if (req.custom.authUser && req.custom.authUser.employee) {
+        filter['user_id'] = ObjectID(req.custom.authUser.userId);
+    }
+
+    if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
+        filter['created'] = {
+            "$gte": common.getAdjustedDate(req.query.filter.from_date),
+            "$lte": common.getAdjustedDate(req.query.filter.to_date)
+        };
+    } else {
+        if (req.query.filter && req.query.filter.from_date) {
+            filter['created'] = { "$gte": common.getAdjustedDate(req.query.filter.from_date) };
+        }
+
+        if (req.query.filter && req.query.filter.to_date) {
+            filter['created'] = { "$lte": common.getAdjustedDate(req.query.filter.to_date) };
+        }
+    }
+
+    if (req.query.username) {
+        filter['employee_username'] = req.query.username;
+    }
+
+    const collection = req.custom.db.client().collection('employee_logs');
+
+    filter['action'] = { $in: ['pickup', 'done'] };
+
+    const pipeline = [
+        { $match: filter },
+        { $unwind: '$old_data' },
+        {
+            $group: {
+                _id: '$action',
+                totalProducts: { $sum: { $size: '$old_data.products' } }
+            }
+        },
+        { $match: { _id: { $in: ['pickup', 'done'] } } },
+        { $project: { _id: 0, action: '$_id', totalProducts: 1 } }
+    ];
+
+    const result = await collection.aggregate(pipeline).toArray();
+
+    return res.out(result);
+
+}
