@@ -180,6 +180,10 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
+		if (req.custom.authUser.employee) {
+			await common.saveLog(req, 'update_status', 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
+		}
+
 		const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
 		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
