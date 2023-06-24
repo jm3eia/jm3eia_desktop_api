@@ -40,4 +40,11 @@ router.delete('/:Id/product/:productId', controller.delete_product);
  */
 router.put('/:Id/product/:productId', controller.update_product_quantity);
 
+
+/**
+ * PUT /order/status/report
+ */
+router.get('/status/report', controller.status_report);
+
+
 module.exports = router;

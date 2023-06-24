@@ -464,6 +464,34 @@ module.exports.update_order_number = async (req, res) => {
 }
 
 
+/**
+ * List all orders
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.status_report = async (req, res) => {
+	if (req.query.filter && req.query.filter.date) {
+		let startDate = new Date(req.query.filter.date.toString());
+		let endDate = new Date(moment(startDate).utc().add(1, 'd'));
+		
+		req.custom.clean_filter['delivery_time'] = {
+			"$gte": startDate,
+			"$lte": endDate
+		};
+	} 
+
+	mainController.list(req, res, collectionName, {"status":1,"delivery_time":1}, (out) => {
+		let data=[];
+		for (let i = 0; i < 24; i++) {
+			data[i]=[];
+			for (let ii = 0; ii <= 14; ii++) {
+				data[i].push(out.data.filter(o => moment(o.delivery_time).utc().hours() == i && o.status==ii).length);
+			}
+		}
+		out.data=data;
+		res.out(out);
+	});
+};
 
 function get_remote_token(req) {
 	if (
