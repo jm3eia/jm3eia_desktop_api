@@ -584,7 +584,7 @@ function update_product_quantity_in_order(req, res, action) {
 		}
 
 		const order_str = JSON.stringify(doc);
-		if (!order_str.includes(req.params.productId)) {
+		if (!order_str.includes(req.params.soft_code)) {
 			return res.out({
 				"message": local.item_not_exists
 			}, enums.status_message.VALIDATION_ERROR);
@@ -595,7 +595,7 @@ function update_product_quantity_in_order(req, res, action) {
 		let products = [];
 
 		for (const p of doc.products) {
-			if (p._id.toString() == req.params.productId.toString()) {
+			if (p.soft_code.toString() == req.params.soft_code.toString()) {
 				total -= p.price * p.quantity;
 				total = parseInt(total > 0 ? total : 0);
 
@@ -627,7 +627,7 @@ function update_product_quantity_in_order(req, res, action) {
 					subtotal: subtotal,
 					total: total,
 					data: doc.data ? doc.data.map(d => {
-						return d.products.findIndex(p => p._id.toString() == req.params.productId.toString()) > -1 ? { ...d, products: d.products.map(p => p._id.toString() == req.params.productId.toString() ? products.find(np => np._id.toString() == p._id.toString()) : p) } : d
+						return d.products.findIndex(p => p.soft_code.toString() == req.params.soft_code.toString()) > -1 ? { ...d, products: d.products.map(p => p.soft_code.toString() == req.params.soft_code.toString() ? products.find(np => np.soft_code.toString() == p.soft_code.toString()) : p) } : d
 					}) : null,
 					lastupdate_user_name: usr ? usr.username : ''
 				}

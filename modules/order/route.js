@@ -33,12 +33,12 @@ router.post('/:Id/driver_details', controller.update_driver_details);
 /**
  * DELETE /order/:Id/product
  */
-router.delete('/:Id/product/:productId', controller.delete_product);
+router.delete('/:Id/product/:soft_code', controller.delete_product);
 
 /**
  * PUT /order/:Id/product
  */
-router.put('/:Id/product/:productId', controller.update_product_quantity);
+router.put('/:Id/product/:soft_code', controller.update_product_quantity);
 
 
 /**
