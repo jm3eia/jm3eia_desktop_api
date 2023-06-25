@@ -406,7 +406,7 @@ module.exports.read = (req, res) => {
 			}, {});
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
-				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) });
+				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
 				doc.user_data.address.city = city;
 			}
 		} catch (error) {
