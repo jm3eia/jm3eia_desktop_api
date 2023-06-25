@@ -176,6 +176,19 @@ module.exports.barcode = (req, res) => {
 };
 
 /**
+ * Update rack zone
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.rack_zone = (req, res) => {
+	req.custom.model = require('./models/rack_zone')
+	req.custom.update_by = {
+		soft_code: req.params.soft_code
+	}
+	mainController.update(req, res, collectionName);
+};
+
+/**
  * Update weight
  * @param {Object} req
  * @param {Object} res
