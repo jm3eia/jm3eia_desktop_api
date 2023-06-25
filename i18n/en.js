@@ -67,6 +67,8 @@ module.exports = {
 	product_floors: {
 		"1": "Besment",
 		"2": "Groung",
-		"3": "Firt"
+		"3": "First",
+		"4": "Extenal supplier",
+		"5": "Refresh"
 	}
 };

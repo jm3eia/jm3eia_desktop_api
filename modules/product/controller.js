@@ -25,7 +25,7 @@ module.exports.info = (req, res) => {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
-		if (doc.floor && [1,2,3].includes(doc.floor)) {
+		if (doc.floor && [1, 2, 3, 4, 5].includes(doc.floor)) {
 			const local = req.custom.local;
 			doc.floor = local.product_floors[doc.floor];
 		}
@@ -199,7 +199,7 @@ module.exports.barcode_2 = (req, res) => {
  */
 module.exports.floor = (req, res) => {
 	req.custom.model = require('./models/floor');
-	if (![1, 2, 3].includes(parseInt(req.body.floor))) {
+	if (![1, 2, 3, 4, 5].includes(parseInt(req.body.floor))) {
 		return res.out({
 		}, enums.status_message.VALIDATION_ERROR);
 	}
