@@ -387,7 +387,7 @@ module.exports.list = (req, res) => {
  * @param {Object} res
  */
 module.exports.read = (req, res) => {
-	mainController.read(req, res, collectionName, (doc) => {
+	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {
 			doc.products = doc.products.reduce((prod, curr) => {
@@ -404,6 +404,11 @@ module.exports.read = (req, res) => {
 				}
 				return prod;
 			}, {});
+			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
+				const city_collection = req.custom.db.client().collection('city');
+				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) });
+				doc.user_data.address.city = city;
+			}
 		} catch (error) {
 			//	doc.products = [];
 		}
@@ -473,22 +478,22 @@ module.exports.status_report = async (req, res) => {
 	if (req.query.filter && req.query.filter.date) {
 		let startDate = new Date(req.query.filter.date.toString());
 		let endDate = new Date(moment(startDate).utc().add(1, 'd'));
-		
+
 		req.custom.clean_filter['delivery_time'] = {
 			"$gte": startDate,
 			"$lte": endDate
 		};
-	} 
+	}
 
-	mainController.list(req, res, collectionName, {"status":1,"delivery_time":1}, (out) => {
-		let data=[];
+	mainController.list(req, res, collectionName, { "status": 1, "delivery_time": 1 }, (out) => {
+		let data = [];
 		for (let i = 0; i < 24; i++) {
-			data[i]=[];
+			data[i] = [];
 			for (let ii = 0; ii <= 14; ii++) {
-				data[i].push(out.data.filter(o => moment(o.delivery_time).utc().hours() == i && o.status==ii).length);
+				data[i].push(out.data.filter(o => moment(o.delivery_time).utc().hours() == i && o.status == ii).length);
 			}
 		}
-		out.data=data;
+		out.data = data;
 		res.out(out);
 	});
 };
