@@ -597,10 +597,10 @@ function update_product_quantity_in_order(req, res, action) {
 		for (const p of doc.products) {
 			if (p.soft_code.toString() == req.params.soft_code.toString()) {
 				total -= p.price * p.quantity;
-				total = parseInt(total > 0 ? total : 0);
+				total = parseFloat(total > 0 ? total : 0);
 
 				subtotal -= p.price * p.quantity;
-				subtotal = parseInt(subtotal > 0 ? subtotal : 0);
+				subtotal = parseFloat(subtotal > 0 ? subtotal : 0);
 				req.body.quantity = parseInt(req.body.quantity);
 				p.quantity = parseInt(p.quantity);
 				p.price = parseFloat(p.price);
