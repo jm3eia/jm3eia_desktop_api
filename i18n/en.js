@@ -63,5 +63,10 @@ module.exports = {
 		"12": 'Ready to pick', //
 		"13": 'Time is up',
 		"14": 'Request is invalid',
+	},
+	product_floors: {
+		"1": "Besment",
+		"2": "Groung",
+		"3": "Firt"
 	}
 };

@@ -40,6 +40,16 @@ router.put('/:soft_code/decrease_quantity', controller.decrease_quantity);
 router.put('/:soft_code/barcode', controller.barcode);
 
 /**
+ * PUT /product/:soft_code/barcode_2
+ */
+router.put('/:soft_code/barcode_2', controller.barcode_2);
+
+/**
+ * PUT /product/:soft_code/floor
+ */
+router.put('/:soft_code/floor', controller.floor);
+
+/**
  * PUT /product/:soft_code/rack_zone
  */
 router.put('/:soft_code/rack_zone', controller.rack_zone);

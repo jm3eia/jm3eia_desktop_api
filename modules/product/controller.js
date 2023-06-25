@@ -25,6 +25,10 @@ module.exports.info = (req, res) => {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
+		if (doc.floor && [1,2,3].includes(doc.floor)) {
+			const local = req.custom.local;
+			doc.floor = local.product_floors[doc.floor];
+		}
 		res.out(doc);
 	});
 };
@@ -169,6 +173,36 @@ module.exports.quantity = async (req, res) => {
  */
 module.exports.barcode = (req, res) => {
 	req.custom.model = require('./models/barcode')
+	req.custom.update_by = {
+		soft_code: req.params.soft_code
+	}
+	mainController.update(req, res, collectionName);
+};
+
+/**
+ * Update barcode 2
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.barcode_2 = (req, res) => {
+	req.custom.model = require('./models/barcode_2')
+	req.custom.update_by = {
+		soft_code: req.params.soft_code
+	}
+	mainController.update(req, res, collectionName);
+};
+
+/**
+ * Update floor
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.floor = (req, res) => {
+	req.custom.model = require('./models/floor');
+	if (![1, 2, 3].includes(parseInt(req.body.floor))) {
+		return res.out({
+		}, enums.status_message.VALIDATION_ERROR);
+	}
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
 	}
