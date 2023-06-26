@@ -224,7 +224,11 @@ module.exports.logs = (req, res) => {
 
 
     if (req.query.action) {
-        req.custom.clean_filter['action'] = req.query.action;
+        if (Array.isArray(req.query.action)) {
+            req.custom.clean_filter['action'] = { "$in": req.query.action };
+        } else {
+            req.custom.clean_filter['action'] = req.query.action;
+        }
     }
 
     if (req.query.username) {
