@@ -31,7 +31,7 @@ module.exports.info = (req, res) => {
 			doc.floor = local.product_floors[doc.floor];
 		}
 		if (doc.picture) {
-			doc.picture = process.env.MEDIA_URL + doc.picture;
+			doc.picture_with_base = process.env.MEDIA_URL + doc.picture;
 		}
 		res.out(doc);
 	});
