@@ -30,6 +30,9 @@ module.exports.info = (req, res) => {
 			const local = req.custom.local;
 			doc.floor = local.product_floors[doc.floor];
 		}
+		if (doc.picture) {
+			doc.picture = process.env.MEDIA_URL + doc.picture;
+		}
 		res.out(doc);
 	});
 };

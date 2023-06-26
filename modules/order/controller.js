@@ -475,13 +475,23 @@ module.exports.update_order_number = async (req, res) => {
  * @param {Object} res
  */
 module.exports.status_report = async (req, res) => {
-	if (req.query.filter && req.query.filter.date) {
+	/* if (req.query.filter && req.query.filter.date) {
 		let startDate = new Date(req.query.filter.date.toString());
 		let endDate = new Date(moment(startDate).utc().add(1, 'd'));
 
 		req.custom.clean_filter['delivery_time'] = {
 			"$gte": startDate,
 			"$lte": endDate
+		};
+	} */
+
+	if (req.query.filter && req.query.filter.date) {
+		let startDate = req.query.filter.date;
+		let endDate = moment(startDate).add(1, 'day').toString();
+
+		req.custom.clean_filter['delivery_time'] = {
+			"$gte": common.getAdjustedDate(startDate),
+			"$lte": common.getAdjustedDate(endDate)
 		};
 	}
 
