@@ -96,6 +96,27 @@ function send_to_multiple(message, device_tokens, wallet = false) {
 	return call_api(`https://fcm.googleapis.com/fcm/send`, 'POST', body, headers);
 }
 
+
+function notify_store_managers(message, device_tokens, softcode) {
+	const body = {
+		"registration_ids": device_tokens,
+		"notification": {
+			"body": message.body,
+			"title": message.title
+		},
+		"priority": "high",
+		"data": {
+			"click_action": "FLUTTER_NOTIFICATION_CLICK",
+			"softcode": softcode
+		}
+	};
+	const headers = {
+		'Content-Type': 'application/json',
+		Authorization: `key=${process.env.SECOND_FIREBASE_API_KEY}`
+	}
+	return call_api(`https://fcm.googleapis.com/fcm/send`, 'POST', body, headers);
+}
+
 function call_api(url, method = 'GET', body = {}, headers = {}) {
 	headers = headers || {}
 	headers['User-Agent'] = 'Notification Services';
@@ -125,3 +146,4 @@ function call_api(url, method = 'GET', body = {}, headers = {}) {
 }
 
 module.exports.send_to_multiple = send_to_multiple;
+module.exports.notify_store_managers = notify_store_managers;

@@ -100,6 +100,7 @@ module.exports.login = function (req, res) {
         var token = jwt.sign({
             userId: theuser._id,
             employee: true,
+            department: theuser.department,
             username: theuser.username,
             country_id: ObjectID(theuser.country_id)
         }, config.secret, {
@@ -290,5 +291,24 @@ module.exports.stats = async (req, res) => {
     const result = await collection.aggregate(pipeline).toArray();
 
     return res.out(result);
-
 }
+
+
+/**
+ * Add new device
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.add_device = async function (req, res) {
+    if (!req.custom.authUser || !req.custom.authUser.employee) {
+        const local = req.custom.local;
+        return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+    }
+    req.custom.model = require('./models/add_device_token');
+
+    req.custom.update_by = {
+        _id: ObjectID(req.custom.authUser.userId.toString()),
+    }
+
+    mainController.update(req, res, collectionName);
+};

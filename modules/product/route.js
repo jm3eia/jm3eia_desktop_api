@@ -60,6 +60,16 @@ router.put('/:soft_code/rack_zone', controller.rack_zone);
 router.put('/:soft_code/weight', controller.weight);
 
 /**
+ * PUT /product/:soft_code/weight
+ */
+router.put('/:soft_code/skip', controller.skip);
+
+/**
+ * PUT /product/:soft_code/refuse
+ */
+router.put('/:soft_code/refuse', controller.refuse);
+
+/**
  * POST /product/update_status
  */
 router.put('/update_status', controller.update_status);

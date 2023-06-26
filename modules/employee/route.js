@@ -44,6 +44,11 @@ router.post('/', controller.create);
 router.get('/:Id', controller.read);
 
 /**
+ * PUT /employee/add_device
+ */
+router.put('/add_device', controller.add_device);
+
+/**
  * PUT /employee/:Id
  */
 router.put('/:Id', controller.update);

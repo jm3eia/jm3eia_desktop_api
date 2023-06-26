@@ -2,6 +2,7 @@
 
 // Load required modules
 const ObjectID = require('mongodb').ObjectID;
+const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
 const collectionName = "product";
@@ -184,12 +185,24 @@ module.exports.barcode = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.barcode_2 = (req, res) => {
+module.exports.barcode_2 = async (req, res) => {
+	if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
+		const local = req.custom.local;
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
 	req.custom.model = require('./models/barcode_2')
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
 	}
-	mainController.update(req, res, collectionName);
+
+	const product_collection = req.custom.db.client().collection(collectionName);
+	const product_before = await product_collection.findOne(req.custom.update_by);
+
+	mainController.update(req, res, collectionName, async (response) => {
+		const local = req.custom.local;
+		const product = await product_collection.findOne(req.custom.update_by);
+		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 });
+	});
 };
 
 /**
@@ -197,7 +210,11 @@ module.exports.barcode_2 = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.floor = (req, res) => {
+module.exports.floor = async (req, res) => {
+	if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
+		const local = req.custom.local;
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
 	req.custom.model = require('./models/floor');
 	if (![1, 2, 3, 4, 5].includes(parseInt(req.body.floor))) {
 		return res.out({
@@ -206,7 +223,15 @@ module.exports.floor = (req, res) => {
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
 	}
-	mainController.update(req, res, collectionName);
+
+	const product_collection = req.custom.db.client().collection(collectionName);
+	const product_before = await product_collection.findOne(req.custom.update_by);
+
+	mainController.update(req, res, collectionName, async (response) => {
+		const local = req.custom.local;
+		const product = await product_collection.findOne(req.custom.update_by);
+		await common.saveLog(req, 'update_floor', 'product', ObjectID(product._id.toString()), product, product_before, { floor: req.body.floor });
+	});
 };
 
 /**
@@ -214,12 +239,31 @@ module.exports.floor = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.rack_zone = (req, res) => {
-	req.custom.model = require('./models/rack_zone')
+module.exports.rack_zone = async (req, res) => {
+	if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
+		const local = req.custom.local;
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
+	req.custom.model = require('./models/rack_zone');
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
-	}
-	mainController.update(req, res, collectionName);
+	};
+	const local = req.custom.local;
+	const product_collection = req.custom.db.client().collection(collectionName);
+	const product_before = await product_collection.findOne(req.custom.update_by);
+
+	mainController.update(req, res, collectionName, async (response) => {
+		const product = await product_collection.findOne(req.custom.update_by);
+		await common.saveLog(
+			req,
+			'update_rack_zone',
+			'product',
+			ObjectID(product._id.toString()),
+			product,
+			product_before,
+			{ rack_zone: req.body.rack_zone }
+		);
+	});
 };
 
 /**
@@ -233,6 +277,80 @@ module.exports.weight = (req, res) => {
 		soft_code: req.params.soft_code
 	}
 	mainController.update(req, res, collectionName);
+};
+
+/**
+ * Skip product
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.skip = async (req, res) => {
+	const local = req.custom.local;
+	if (!req.custom.authUser || !req.custom.authUser.employee) {
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
+
+	const employee_collection = req.custom.db.client().collection('employee');
+	const employees = await employee_collection.find({ department: 3 }).toArray();
+
+	const softcode = req.params.soft_code;
+	const product_collection = req.custom.db.client().collection(collectionName);
+	const product = await product_collection.findOne({ soft_code: softcode });
+
+	if (!product || !employees) {
+		return res.out({}, enums.status_message.VALIDATION_ERROR);
+	}
+
+	await common.saveLog(
+		req,
+		'skip',
+		'product',
+		ObjectID(product._id.toString()),
+		product,
+		product
+	);
+
+	const device_tokens = employees.filter(e => e.device_token).map(e => e.device_token);
+	const message = {
+		title: 'تنبيه عاجل!',
+		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
+	};
+
+	await common.notify_store_managers(message, device_tokens, softcode).catch(() => null);
+
+	return res.out({
+		message: local.saved_done
+	}, enums.status_message.UPDATED)
+
+};
+
+/**
+ * Refuse product
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.refuse = async (req, res) => {
+	const local = req.custom.local;
+	if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
+		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+	}
+
+	const product_collection = req.custom.db.client().collection(collectionName);
+	const product = await product_collection.findOne({ soft_code: req.params.soft_code });
+
+	await common.saveLog(
+		req,
+		'refuse',
+		'product',
+		ObjectID(product._id.toString()),
+		product,
+		product
+	);
+
+	return res.out({
+		message: local.saved_done
+	}, enums.status_message.UPDATED)
+
 };
 
 /**
