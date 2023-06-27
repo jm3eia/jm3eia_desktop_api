@@ -310,7 +310,8 @@ module.exports.skip = async (req, res) => {
 		'product',
 		ObjectID(product._id.toString()),
 		product,
-		product
+		product,
+		req.body
 	);
 
 	const device_tokens = employees.filter(e => e.device_token).map(e => e.device_token);

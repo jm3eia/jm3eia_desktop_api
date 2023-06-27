@@ -166,116 +166,116 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
-		if (req.custom.authUser.employee ? [2, 12, 14].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
-			return false;
-		}
-		const updated_order = await collection.findOne({
+		if (!req.custom.authUser.employee && /* ? [2, 12, 14].indexOf(req.body.status) === -1 : */ update_quantity_arr.indexOf(req.body.status) === -1) {
+		return false;
+	}
+	const updated_order = await collection.findOne({
+		_id: ObjectID(req.params.Id)
+	})
+		.then((o) => o)
+		.catch(() => null);
+
+	if (req.custom.authUser.employee) {
+		let action = 'update_status';
+
+		/* if (parseInt(req.body.status) === 2) action = 'pickup';
+		if (parseInt(req.body.status) === 12) action = 'done'; */
+
+		await collection.updateOne({
 			_id: ObjectID(req.params.Id)
-		})
-			.then((o) => o)
-			.catch(() => null);
+		}, {
+			$set: { employee_username: req.custom.authUser.username }
+		});
 
-		if (req.custom.authUser.employee) {
-			let action = 'update_status';
+		await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
+	}
 
-			/* if (parseInt(req.body.status) === 2) action = 'pickup';
-			if (parseInt(req.body.status) === 12) action = 'done'; */
+	if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
+		return false;
+	}
 
-			await collection.updateOne({
-				_id: ObjectID(req.params.Id)
-			}, {
-				$set: { employee_username: req.custom.authUser.username }
+	const skus = updated_order.products.map((p) => p.sku.toString());
+	const prod_collection = req.custom.db.client().collection('product');
+	const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
+	const the_products = await prod_collection.find(filter)
+		.toArray() || [];
+	let promises = [];
+
+	const token = await get_remote_token(req);
+	const data = req.body;
+
+	for (const _sku of skus) {
+
+		const remote_product = {
+			store_id: null,
+			quantity: 0,
+			soft_code: null,
+		};
+
+		const lastUser_update = ObjectID(req.custom.authUser.userId);
+		let row = {};
+		let prod_n_storeArr = [];
+		const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
+		if (skus.indexOf(product.sku) > -1) {
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
+				if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+					s.quantity += parseInt(ordered_product.quantity);
+
+					// Start setting remote product
+					remote_product.store_id = s.store_id;
+					remote_product.quantity = parseInt(s.quantity);
+					remote_product.soft_code = product.soft_code;
+					// End setting remote product
+
+				}
+				return s;
 			});
-
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
-		}
-
-		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
-			return false;
-		}
-
-		const skus = updated_order.products.map((p) => p.sku.toString());
-		const prod_collection = req.custom.db.client().collection('product');
-		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
-		const the_products = await prod_collection.find(filter)
-			.toArray() || [];
-		let promises = [];
-
-		const token = await get_remote_token(req);
-		const data = req.body;
-
-		for (const _sku of skus) {
-
-			const remote_product = {
-				store_id: null,
-				quantity: 0,
-				soft_code: null,
+			row = {
+				$set: {
+					prod_n_storeArr: prod_n_storeArr,
+					lastUser_update: lastUser_update
+				}
 			};
+		} else {
+			const variants = product.variants.map((v) => {
+				if (skus.indexOf(v.sku) > -1) {
+					v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+						const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
+						if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
+							s.quantity += parseInt(ordered_product.quantity);
 
-			const lastUser_update = ObjectID(req.custom.authUser.userId);
-			let row = {};
-			let prod_n_storeArr = [];
-			const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
-			if (skus.indexOf(product.sku) > -1) {
-				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-					const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
-					if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-						s.quantity += parseInt(ordered_product.quantity);
+							// Start setting remote product
+							remote_product.store_id = s.store_id;
+							remote_product.quantity = parseInt(s.quantity);
+							remote_product.soft_code = v.soft_code;
+							// End setting remote product
 
-						// Start setting remote product
-						remote_product.store_id = s.store_id;
-						remote_product.quantity = parseInt(s.quantity);
-						remote_product.soft_code = product.soft_code;
-						// End setting remote product
-
-					}
-					return s;
-				});
-				row = {
-					$set: {
-						prod_n_storeArr: prod_n_storeArr,
-						lastUser_update: lastUser_update
-					}
-				};
-			} else {
-				const variants = product.variants.map((v) => {
-					if (skus.indexOf(v.sku) > -1) {
-						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-							const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
-							if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-								s.quantity += parseInt(ordered_product.quantity);
-
-								// Start setting remote product
-								remote_product.store_id = s.store_id;
-								remote_product.quantity = parseInt(s.quantity);
-								remote_product.soft_code = v.soft_code;
-								// End setting remote product
-
-							}
-							return s;
-						});
-					}
-					return v;
-				});
-				row = {
-					$set: {
-						variants: variants,
-						lastUser_update: lastUser_update
-					}
-				};
-			}
-
-			const update = prod_collection.updateOne({
-				_id: ObjectID(product._id.toString())
-			}, {
-				$set: { prod_n_storeArr: prod_n_storeArr }
+						}
+						return s;
+					});
+				}
+				return v;
 			});
-			promises.push(update_remote_quantity(req, remote_product, token));
-			promises.push(update);
+			row = {
+				$set: {
+					variants: variants,
+					lastUser_update: lastUser_update
+				}
+			};
 		}
 
-		Promise.all(promises).catch((err) => console.log(err));
-	});
+		const update = prod_collection.updateOne({
+			_id: ObjectID(product._id.toString())
+		}, {
+			$set: { prod_n_storeArr: prod_n_storeArr }
+		});
+		promises.push(update_remote_quantity(req, remote_product, token));
+		promises.push(update);
+	}
+
+	Promise.all(promises).catch((err) => console.log(err));
+});
 };
 
 /**
