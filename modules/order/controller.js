@@ -166,7 +166,7 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
-		if (req.custom.authUser.employee ? [2, 12].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
+		if (req.custom.authUser.employee ? [2, 12, 14].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
 			return false;
 		}
 		const updated_order = await collection.findOne({
@@ -178,8 +178,14 @@ module.exports.update_status = async (req, res) => {
 		if (req.custom.authUser.employee) {
 			let action = 'update_status';
 
-			if (parseInt(req.body.status) === 2) action = 'pickup';
-			if (parseInt(req.body.status) === 12) action = 'done';
+			/* if (parseInt(req.body.status) === 2) action = 'pickup';
+			if (parseInt(req.body.status) === 12) action = 'done'; */
+
+			await collection.updateOne({
+				_id: ObjectID(req.params.Id)
+			}, {
+				$set: { employee_username: req.custom.authUser.username }
+			});
 
 			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
 		}
@@ -187,7 +193,6 @@ module.exports.update_status = async (req, res) => {
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
 			return false;
 		}
-
 
 		const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
@@ -334,7 +339,11 @@ module.exports.update_driver_details = async (req, res) => {
  */
 module.exports.list = (req, res) => {
 	if (req.query.status) {
-		req.custom.clean_filter['status'] = parseInt(req.query.status);
+		if (Array.isArray(req.query.status)) {
+			req.custom.clean_filter['status'] = { "$in": req.query.status.map(s => parseInt(s)) };
+		} else {
+			req.custom.clean_filter['status'] = parseInt(req.query.status);
+		}
 	}
 
 	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {

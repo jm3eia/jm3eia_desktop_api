@@ -40,7 +40,6 @@ router.delete('/:Id/product/:soft_code', controller.delete_product);
  */
 router.put('/:Id/product/:soft_code', controller.update_product_quantity);
 
-
 /**
  * PUT /order/status/report
  */

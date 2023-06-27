@@ -56,13 +56,13 @@ module.exports = {
 		"5": 'Canceled',
 		"6": 'Disapproved',
 		"7": 'Confirmed', //
-		"8": 'Returned', //
+		"8": 'Successfully prepared', //
 		"9": 'Request reversed',
 		"10": 'Return part of the amount',
-		"11": 'Full refund',
+		"11": 'Successfully configured',
 		"12": 'Ready to pick', //
 		"13": 'Time is up',
-		"14": 'Request is invalid',
+		"14": 'Processing your order',
 	},
 	product_floors: {
 		"1": "Besment",
