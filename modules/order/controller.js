@@ -396,6 +396,7 @@ module.exports.list = (req, res) => {
  * @param {Object} res
  */
 module.exports.read = (req, res) => {
+	req.custom.where_property = "order_id";
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {

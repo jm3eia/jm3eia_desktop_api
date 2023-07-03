@@ -15,6 +15,11 @@ router.get('/', controller.list);
 router.get('/:Id', controller.read);
 
 /**
+ * GET /order/:Id/order_i
+ */
+router.get('/:Id/number', controller.read);
+
+/**
  * PUT /order/:Id/status
  */
 router.put('/:Id/number', controller.update_order_number);
