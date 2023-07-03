@@ -97,7 +97,7 @@ function send_to_multiple(message, device_tokens, wallet = false) {
 }
 
 
-function notify_store_managers(message, device_tokens, softcode) {
+function notify_store_managers(message, device_tokens, data) {
 	const body = {
 		"registration_ids": device_tokens,
 		"notification": {
@@ -107,7 +107,7 @@ function notify_store_managers(message, device_tokens, softcode) {
 		"priority": "high",
 		"data": {
 			"click_action": "FLUTTER_NOTIFICATION_CLICK",
-			"softcode": softcode
+			...data
 		}
 	};
 	const headers = {

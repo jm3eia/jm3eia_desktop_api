@@ -320,7 +320,9 @@ module.exports.skip = async (req, res) => {
 		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
 	};
 
-	await common.notify_store_managers(message, device_tokens, softcode).catch(() => null);
+	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : username;
+
+	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
 
 	return res.out({
 		message: local.saved_done
