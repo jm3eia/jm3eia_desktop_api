@@ -235,6 +235,10 @@ module.exports.logs = (req, res) => {
         req.custom.clean_filter['employee_username'] = req.query.username;
     }
 
+    if (req.query.order_id) {
+        req.custom.clean_filter['old_data.order_id'] = req.query.order_id;
+    }
+
     mainController.list(req, res, 'employee_logs', {
         "action": 1,
         "url": 1,
