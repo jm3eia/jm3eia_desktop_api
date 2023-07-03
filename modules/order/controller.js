@@ -329,11 +329,12 @@ module.exports.update_driver_details = async (req, res) => {
 	}
 
 	if (!req.query.read_only) {
-		mainController.update(req, res, collectionName, async () => {
+		await mainController.update(req, res, collectionName, async () => {
 			await send_notify();
 		});
 	} else {
 		await send_notify();
+		return res.out(order);
 	}
 };
 
