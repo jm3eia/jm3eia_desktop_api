@@ -59,6 +59,11 @@ module.exports.saveLog = async (req, action, model, document_id, newData = {}, o
 			created: this.getDate()
 		};
 
+		if (req.custom.authUser && req.custom.authUser.employee && username) {
+			logRecord.store_manager_username = logRecord.employee_username;
+			logRecord.employee_username = username;
+		}
+
 		await log_collection.insertOne(logRecord);
 	} catch (err) {
 		console.error('Error logging update: ', err);

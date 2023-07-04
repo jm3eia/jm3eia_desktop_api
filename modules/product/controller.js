@@ -204,7 +204,7 @@ module.exports.barcode_2 = async (req, res) => {
 	mainController.update(req, res, collectionName, async (response) => {
 		const local = req.custom.local;
 		const product = await product_collection.findOne(req.custom.update_by);
-		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 });
+		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 }, req.body.employee_username);
 	});
 };
 
@@ -264,7 +264,8 @@ module.exports.rack_zone = async (req, res) => {
 			ObjectID(product._id.toString()),
 			product,
 			product_before,
-			{ rack_zone: req.body.rack_zone }
+			{ rack_zone: req.body.rack_zone },
+			req.body.employee_username
 		);
 	});
 };
@@ -350,7 +351,9 @@ module.exports.refuse = async (req, res) => {
 		'product',
 		ObjectID(product._id.toString()),
 		product,
-		product
+		product,
+		{},
+		req.body.employee_username
 	);
 
 	return res.out({
