@@ -43,7 +43,7 @@ module.exports.is_numeric = function (str) {
 	return /^-?\d+$/.test(str);
 }
 
-module.exports.saveLog = async (req, action, model, document_id, newData = {}, oldData = {}, body = {}, username = null) => {
+module.exports.saveLog = async (req, action, model, document_id, newData = {}, oldData = {}, body = {}, username = null, query = {}) => {
 	try {
 		const log_collection = req.custom.db.client().collection('employee_logs');
 		const logRecord = {
@@ -56,6 +56,7 @@ module.exports.saveLog = async (req, action, model, document_id, newData = {}, o
 			old_data: Object.keys(oldData).length > 0 ? oldData : null,
 			new_data: Object.keys(newData).length > 0 ? newData : null,
 			body: Object.keys(body).length > 0 ? body : null,
+			query: Object.keys(query).length > 0 ? query : null,
 			created: this.getDate()
 		};
 

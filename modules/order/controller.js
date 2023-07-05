@@ -187,7 +187,7 @@ module.exports.update_status = async (req, res) => {
 				$set: { employee_username: req.custom.authUser.username }
 			});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status });
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, req.query);
 		}
 
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
@@ -665,7 +665,7 @@ function update_product_quantity_in_order(req, res, action) {
 			};
 			collection.updateOne(update_by, row)
 				.then(async (response) => {
-					await common.saveLog(req, action, 'order', ObjectID(req.params.Id), row['$set'], doc, { quantity: req.body.quantity }, req.body.employee_username);
+					await common.saveLog(req, action, 'order', ObjectID(req.params.Id), row['$set'], doc, { quantity: req.body.quantity }, req.body.employee_username, req.query);
 					return res.out({
 						message: local.saved_done
 					}, enums.status_message.UPDATED)
