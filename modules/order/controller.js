@@ -501,8 +501,8 @@ module.exports.status_report = async (req, res) => {
 		};
 	} */
 
-	if (req.query.filter && req.query.filter.date) {
-		let startDate = req.query.filter.date;
+	if (req.query.date) {
+		let startDate = req.query.date;
 		let endDate = moment(startDate).add(1, 'day').toString();
 
 		req.custom.clean_filter['delivery_time'] = {
