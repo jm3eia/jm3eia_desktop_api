@@ -512,6 +512,7 @@ module.exports.status_report = async (req, res) => {
 	}
 
 	mainController.list(req, res, collectionName, { "status": 1, "delivery_time": 1 }, (out) => {
+		console.log('Results count: ', out.data.length);
 		let data = [];
 		for (let i = 0; i < 24; i++) {
 			data[i] = [];

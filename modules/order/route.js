@@ -15,7 +15,7 @@ router.get('/', controller.list);
 router.get('/:Id', controller.read);
 
 /**
- * GET /order/:Id/order_i
+ * GET /order/:Id/order_id
  */
 router.get('/:Id/number', controller.read);
 
