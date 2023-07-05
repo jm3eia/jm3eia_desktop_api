@@ -511,6 +511,9 @@ module.exports.status_report = async (req, res) => {
 		};
 	}
 
+	console.log('start date: ', common.getAdjustedDate(startDate));
+	console.log('end date: ', common.getAdjustedDate(endDate));
+
 	mainController.list(req, res, collectionName, { "status": 1, "delivery_time": 1 }, (out) => {
 		console.log('Results count: ', out.data.length);
 		let data = [];
