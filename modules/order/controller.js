@@ -509,10 +509,10 @@ module.exports.status_report = async (req, res) => {
 			"$gte": common.getAdjustedDate(startDate),
 			"$lte": common.getAdjustedDate(endDate)
 		};
+		console.log('start date: ', common.getAdjustedDate(startDate));
+		console.log('end date: ', common.getAdjustedDate(endDate));
 	}
 
-	console.log('start date: ', common.getAdjustedDate(startDate));
-	console.log('end date: ', common.getAdjustedDate(endDate));
 
 	mainController.list(req, res, collectionName, { "status": 1, "delivery_time": 1 }, (out) => {
 		console.log('Results count: ', out.data.length);
