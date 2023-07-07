@@ -433,6 +433,104 @@ module.exports.read = (req, res) => {
 	});
 };
 
+/**
+ * Read order by number
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.readByOrderNumber = (req, res) => {
+	req.custom.where_property = "order_number";
+	mainController.read(req, res, collectionName, async (doc) => {
+
+		const member_collection = req.custom.db.client().collection('member');
+		const member = await member_collection.findOne({ mobile: doc.user_data.mobile });
+
+		if (member) doc.user_data.has_account = true;
+		else doc.user_data.has_account = false;
+
+		return res.out(doc);
+	});
+};
+
+module.exports.refundToWallet = async (req, res) => {
+	// 1) get the original order
+	const collection = req.custom.db.client().collection(collectionName);
+	const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	// 2) Check if the user data exist
+	if (!order.user_data || (!order.user_data._id && !order.user_data.mobile)) {
+		return res.out({}, enums.status_message.UNEXPECTED_ERROR);
+	}
+
+	// 3) Get the member
+	const member_collection = req.custom.db.client().collection('member');
+	let where = order.user_data._id ? { _id: ObjectID(order.user_data._id.toString()) } : { mobile: order.user_data.mobile };
+	const member = await member_collection.findOne(where).catch(() => null);
+
+	if (!member) {
+		return res.out({
+			message: 'member does not exist',
+		}, enums.status_message.VALIDATION_ERROR);
+	}
+
+
+	// 4) Get validated data
+	req.custom.model = require('./models/refund_to_wallet');
+
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	let totalToTransfer = 0;
+	const productsSkus = data.products.map(p => p.sku);
+
+	for (const product of order.products) {
+		if (productsSkus.includes(product.sku)) {
+			const p = data.products.find(i => i.sku === product.sku);
+			totalToTransfer += product.price * p.quantity;
+		}
+	}
+
+	if (data.include_shipping_cost) {
+		totalToTransfer += order.shipping_cost;
+	}
+
+
+	const wallet_history_collection = req.custom.db.client().collection('wallet_history');
+	let _promise = Promise.resolve(true);
+
+	const newWallet = totalToTransfer + parseFloat(member.wallet || 0);
+	const wallet_data = {
+		"member_id": ObjectID(member._id.toString()),
+		"old_wallet": common.getFixedPrice(member.wallet),
+		"new_wallet": common.getFixedPrice(newWallet),
+		"notes": `Refund ${totalToTransfer} from order items`,
+		"type": "refunded",
+		"created": new Date(),
+	};
+	_promise = wallet_history_collection.insertOne(wallet_data);
+
+	await member_collection.updateOne(where, {
+		$set: {
+			wallet: newWallet
+		}
+	});
+
+	_promise.catch(() => null).then(() => res.out({
+		message: req.custom.local.saved_done
+	}, enums.status_message.UPDATED));
+}
+
 
 /**
  * Return product from order
