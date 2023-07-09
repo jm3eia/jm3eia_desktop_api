@@ -526,6 +526,8 @@ module.exports.refundToWallet = async (req, res) => {
 		}
 	});
 
+	await common.saveLog(req, 'refund_to_wallet', 'member', member._id, { ...member, wallet: newWallet }, member, data);
+
 	_promise.catch(() => null).then(() => res.out({
 		message: req.custom.local.saved_done
 	}, enums.status_message.UPDATED));

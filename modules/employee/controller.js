@@ -104,7 +104,7 @@ module.exports.login = function (req, res) {
             username: theuser.username,
             country_id: ObjectID(theuser.country_id)
         }, config.secret, {
-            expiresIn: 3600 // expires in 1 hour
+            expiresIn: 3600 * 24
         });
         delete theuser.password;
         theuser.hash_username = md5(theuser.username);
@@ -203,9 +203,9 @@ module.exports.me = function (req, res) {
  * @param {Object} res
  */
 module.exports.logs = (req, res) => {
-    if (req.custom.authUser.employee) {
+    /* if (req.custom.authUser.employee) {
         req.custom.clean_filter['user_id'] = ObjectID(req.custom.authUser.userId);
-    }
+    } */
 
     if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
         req.custom.clean_filter['created'] = {
@@ -237,6 +237,14 @@ module.exports.logs = (req, res) => {
 
     if (req.query.order_id && ObjectID.isValid(req.query.order_id)) {
         req.custom.clean_filter['document_id'] = ObjectID(req.query.order_id);
+    }
+
+    if (req.query.order_number) {
+        req.custom.clean_filter['$or'] = [
+            { 'body.order_number': parseInt(req.query.order_number) },
+            { 'new_data.order_number': parseInt(req.query.order_number) },
+            { 'old_data.order_number': parseInt(req.query.order_number) }
+        ];
     }
 
     mainController.list(req, res, 'employee_logs', {
