@@ -367,6 +367,10 @@ module.exports.list = (req, res) => {
 		}
 	}
 
+	if (req.query.payment_method) {
+		req.custom.clean_filter['payment_method.id'] = req.query.payment_method;
+	}
+
 	req.custom.clean_sort = {
 		created: -1
 	};
