@@ -243,7 +243,8 @@ module.exports.logs = (req, res) => {
         req.custom.clean_filter['$or'] = [
             { 'body.order_number': parseInt(req.query.order_number) },
             { 'new_data.order_number': parseInt(req.query.order_number) },
-            { 'old_data.order_number': parseInt(req.query.order_number) }
+            { 'old_data.order_number': parseInt(req.query.order_number) },
+            { 'query.order_number': parseInt(req.query.order_number) }
         ];
     }
 
