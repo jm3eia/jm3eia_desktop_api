@@ -244,7 +244,8 @@ module.exports.logs = (req, res) => {
             { 'body.order_number': parseInt(req.query.order_number) },
             { 'new_data.order_number': parseInt(req.query.order_number) },
             { 'old_data.order_number': parseInt(req.query.order_number) },
-            { 'query.order_number': parseInt(req.query.order_number) }
+            { 'query.order_number': parseInt(req.query.order_number) },
+            { 'query.order_number': req.query.order_number }
         ];
     }
 
@@ -257,6 +258,8 @@ module.exports.logs = (req, res) => {
         "document_id": 1,
         "old_data": 1,
         "new_data": 1,
+        'body': 1,
+        'query': 1,
         "created": 1
     })
 };
