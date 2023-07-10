@@ -3,7 +3,9 @@ const ObjectID = require("mongodb").ObjectID;
 module.exports = {
     "order_number": {
         "type": Number,
-        "required": true
+        "required": true,
+        "unique": true,
+        "collection": "order"
     },
     "modified": {
         "type": Date,

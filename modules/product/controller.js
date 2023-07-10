@@ -348,6 +348,8 @@ module.exports.refuse = async (req, res) => {
 	const product_collection = req.custom.db.client().collection(collectionName);
 	const product = await product_collection.findOne({ soft_code: req.params.soft_code });
 
+	console.log('this is the query: ', Object.keys(req.query), req.query);
+
 	await common.saveLog(
 		req,
 		'refuse',
