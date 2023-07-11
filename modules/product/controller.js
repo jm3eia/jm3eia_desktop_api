@@ -205,6 +205,7 @@ module.exports.barcode_2 = async (req, res) => {
 		const local = req.custom.local;
 		const product = await product_collection.findOne(req.custom.update_by);
 		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 }, req.body.employee_username, req.query);
+		await common.updateOrderEmployee(req, req.query.order_id);
 	});
 };
 
@@ -268,6 +269,7 @@ module.exports.rack_zone = async (req, res) => {
 			req.body.employee_username,
 			req.query
 		);
+		await common.updateOrderEmployee(req, req.query.order_id);
 	});
 };
 
@@ -324,9 +326,12 @@ module.exports.skip = async (req, res) => {
 		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
 	};
 
+
 	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : username;
 
 	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
+
+	await common.updateOrderEmployee(req, req.query.order_id);
 
 	return res.out({
 		message: local.saved_done
@@ -359,6 +364,8 @@ module.exports.refuse = async (req, res) => {
 		req.body.employee_username,
 		req.query
 	);
+
+	await common.updateOrderEmployee(req, req.query.order_id);
 
 	return res.out({
 		message: local.saved_done

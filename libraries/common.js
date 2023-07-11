@@ -79,6 +79,24 @@ module.exports.getAdjustedDate = (dateStr) => {
 	return adjusted_date;
 }
 
+module.exports.updateOrderEmployee = async (req, orderId) => {
+	if (!orderId || !ObjectID.isValid(orderId)) return;
+	const data = {};
+	if (req.custom.authUser && req.custom.authUser.employee) {
+		if (req.custom.authUser.department === 3)
+			data.store_manager_username = req.custom.authUser.username;
+		else
+			data.employee_username = req.custom.authUser.username;
+
+	}
+	if (Object.keys(data).length > 0) {
+		const collection = req.custom.db.client().collection('order');
+		await collection.updateOne({ _id: ObjectID(orderId) }, {
+			$set: data
+		})
+	}
+}
+
 function send_to_multiple(message, device_tokens, wallet = false) {
 	const body = {
 		"registration_ids": device_tokens,
