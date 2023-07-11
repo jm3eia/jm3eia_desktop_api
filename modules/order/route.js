@@ -44,7 +44,6 @@ router.put('/:Id/status', controller.update_status);
  */
 router.post('/:Id/driver_details', controller.update_driver_details);
 
-
 /**
  * DELETE /order/:Id/product
  */
