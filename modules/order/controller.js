@@ -298,10 +298,10 @@ module.exports.update_driver_details = async (req, res) => {
 	const member_collection = req.custom.db.client().collection('member');
 	const user_info = order && order.user_data && order.user_data._id ?
 		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
-	req.body['status'] = 10;
+	//req.body['status'] = 10;
 	req.custom.model = require('./models/update_driver_and_status');
 
-	const send_notify = async function () {
+	/* const send_notify = async function () {
 		let message_body = null;
 		let message_title = null;
 		let is_wallet_notification = false;
@@ -326,14 +326,14 @@ module.exports.update_driver_details = async (req, res) => {
 				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
 			}
 		}
-	}
+	} */
 
 	if (!req.query.read_only) {
-		await mainController.update(req, res, collectionName, async () => {
+		/* await  */mainController.update(req, res, collectionName/* , async () => {
 			await send_notify();
-		});
+		} */);
 	} else {
-		await send_notify();
+		//await send_notify();
 		return res.out(order);
 	}
 };
