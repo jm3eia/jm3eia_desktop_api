@@ -1,10 +1,10 @@
 const ObjectID = require("mongodb").ObjectID;
 // Product model
 module.exports = {
-    "status": {
+    /* "status": {
         "type": Number,
         "default": 10
-    },
+    }, */
     "driver_name":{
         "type": String,
         "required": true

@@ -173,12 +173,14 @@ module.exports.read = function (req, res, collectionName, callback) {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
-	let where = {
-		_id: ObjectID(req.params.Id)
-	};
-	if (!ObjectID.isValid(req.params.Id) && req.custom.where_property) {
+	let where = {};
+	if (req.custom.where_property) {
 		where = {
 			[req.custom.where_property]: req.params.Id
+		}
+	} else if (ObjectID.isValid(req.params.Id)) {
+		where = {
+			_id: ObjectID(req.params.Id)
 		}
 	} else {
 		return res.out({

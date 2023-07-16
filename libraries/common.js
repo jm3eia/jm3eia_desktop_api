@@ -43,7 +43,7 @@ module.exports.is_numeric = function (str) {
 	return /^-?\d+$/.test(str);
 }
 
-module.exports.saveLog = async (req, action, model, document_id, newData = {}, oldData = {}, body = {}, username = null) => {
+module.exports.saveLog = async (req, action, model, document_id, newData = {}, oldData = {}, body = {}, username = null, query = {}) => {
 	try {
 		const log_collection = req.custom.db.client().collection('employee_logs');
 		const logRecord = {
@@ -56,8 +56,14 @@ module.exports.saveLog = async (req, action, model, document_id, newData = {}, o
 			old_data: Object.keys(oldData).length > 0 ? oldData : null,
 			new_data: Object.keys(newData).length > 0 ? newData : null,
 			body: Object.keys(body).length > 0 ? body : null,
+			query: Object.keys(query).length > 0 ? query : null,
 			created: this.getDate()
 		};
+
+		if (req.custom.authUser && req.custom.authUser.employee && username) {
+			logRecord.store_manager_username = logRecord.employee_username;
+			logRecord.employee_username = username;
+		}
 
 		await log_collection.insertOne(logRecord);
 	} catch (err) {
@@ -71,6 +77,24 @@ module.exports.getAdjustedDate = (dateStr) => {
 	const timezoneOffset = date.getTimezoneOffset() * 60000;
 	const adjusted_date = new Date(date.getTime() - timezoneOffset);
 	return adjusted_date;
+}
+
+module.exports.updateOrderEmployee = async (req, orderId) => {
+	if (!orderId || !ObjectID.isValid(orderId)) return;
+	const data = {};
+	if (req.custom.authUser && req.custom.authUser.employee) {
+		if (req.custom.authUser.department === 3)
+			data.store_manager_username = req.custom.authUser.username;
+		else
+			data.employee_username = req.custom.authUser.username;
+
+	}
+	if (Object.keys(data).length > 0) {
+		const collection = req.custom.db.client().collection('order');
+		await collection.updateOne({ _id: ObjectID(orderId) }, {
+			$set: data
+		})
+	}
 }
 
 function send_to_multiple(message, device_tokens, wallet = false) {
@@ -97,7 +121,7 @@ function send_to_multiple(message, device_tokens, wallet = false) {
 }
 
 
-function notify_store_managers(message, device_tokens, softcode) {
+function notify_store_managers(message, device_tokens, data) {
 	const body = {
 		"registration_ids": device_tokens,
 		"notification": {
@@ -107,7 +131,7 @@ function notify_store_managers(message, device_tokens, softcode) {
 		"priority": "high",
 		"data": {
 			"click_action": "FLUTTER_NOTIFICATION_CLICK",
-			"softcode": softcode
+			...data
 		}
 	};
 	const headers = {

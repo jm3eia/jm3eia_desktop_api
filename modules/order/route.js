@@ -15,9 +15,19 @@ router.get('/', controller.list);
 router.get('/:Id', controller.read);
 
 /**
- * GET /order/:Id/order_i
+ * GET /order/:Id/order_id
  */
-router.get('/:Id/number', controller.read);
+router.get('/:Id/order_id', controller.read);
+
+/**
+ * GET /order/:Id/number
+ */
+router.get('/:Id/number', controller.readByOrderNumber);
+
+/**
+ * PUT /order/:Id/refund
+ */
+router.put('/:Id/refund', controller.refundToWallet);
 
 /**
  * PUT /order/:Id/status
@@ -33,7 +43,6 @@ router.put('/:Id/status', controller.update_status);
  * Post /order/:Id/driver_details
  */
 router.post('/:Id/driver_details', controller.update_driver_details);
-
 
 /**
  * DELETE /order/:Id/product

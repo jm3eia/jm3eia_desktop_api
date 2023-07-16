@@ -204,7 +204,8 @@ module.exports.barcode_2 = async (req, res) => {
 	mainController.update(req, res, collectionName, async (response) => {
 		const local = req.custom.local;
 		const product = await product_collection.findOne(req.custom.update_by);
-		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 });
+		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 }, req.body.employee_username, req.query);
+		await common.updateOrderEmployee(req, req.query.order_id);
 	});
 };
 
@@ -233,7 +234,7 @@ module.exports.floor = async (req, res) => {
 	mainController.update(req, res, collectionName, async (response) => {
 		const local = req.custom.local;
 		const product = await product_collection.findOne(req.custom.update_by);
-		await common.saveLog(req, 'update_floor', 'product', ObjectID(product._id.toString()), product, product_before, { floor: req.body.floor });
+		await common.saveLog(req, 'update_floor', 'product', ObjectID(product._id.toString()), product, product_before, { floor: req.body.floor }, null, req.query);
 	});
 };
 
@@ -264,8 +265,11 @@ module.exports.rack_zone = async (req, res) => {
 			ObjectID(product._id.toString()),
 			product,
 			product_before,
-			{ rack_zone: req.body.rack_zone }
+			{ rack_zone: req.body.rack_zone },
+			req.body.employee_username,
+			req.query
 		);
+		await common.updateOrderEmployee(req, req.query.order_id);
 	});
 };
 
@@ -311,7 +315,9 @@ module.exports.skip = async (req, res) => {
 		ObjectID(product._id.toString()),
 		product,
 		product,
-		req.body
+		req.body,
+		null,
+		req.query
 	);
 
 	const device_tokens = employees.filter(e => e.device_token).map(e => e.device_token);
@@ -320,7 +326,12 @@ module.exports.skip = async (req, res) => {
 		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
 	};
 
-	await common.notify_store_managers(message, device_tokens, softcode).catch(() => null);
+
+	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : username;
+
+	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
+
+	await common.updateOrderEmployee(req, req.query.order_id);
 
 	return res.out({
 		message: local.saved_done
@@ -348,8 +359,13 @@ module.exports.refuse = async (req, res) => {
 		'product',
 		ObjectID(product._id.toString()),
 		product,
-		product
+		product,
+		{},
+		req.body.employee_username,
+		req.query
 	);
+
+	await common.updateOrderEmployee(req, req.query.order_id);
 
 	return res.out({
 		message: local.saved_done
