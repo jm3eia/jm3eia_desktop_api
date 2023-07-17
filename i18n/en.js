@@ -63,6 +63,8 @@ module.exports = {
 		"12": 'Ready to pick', //
 		"13": 'Time is up',
 		"14": 'Processing your order',
+		"15": 'No answer for the driver',
+		"16": 'Customer asks for rescheduling DT',
 	},
 	product_floors: {
 		"1": "Besment",
