@@ -338,6 +338,59 @@ module.exports.update_driver_details = async (req, res) => {
 	}
 };
 
+
+module.exports.remove_driver_details = async (req, res) => {
+	const collection = req.custom.db.client().collection(collectionName);
+	// original order
+	const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	collection.updateOne({ _id: ObjectID(req.params.Id) },
+		{
+			$unset:
+				{ driver_name: '', driver_mobile: '', driver_track_id: '' }
+		}).then((response) => res.out({
+			message: req.custom.local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+
+}
+
+module.exports.update_delivery_time = async (req, res) => {
+	if (!req.body.delivery_time || !moment(req.body.delivery_time).isValid()) {
+		return res.out({ message: 'Delivery time not valid' }, enums.status_message.VALIDATION_ERROR);;
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	// original order
+	const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	collection.updateOne({ _id: ObjectID(req.params.Id) },
+		{
+			$set: { delivery_time: common.getDate(req.body.delivery_time), status: 8 },
+			$unset:
+				{ driver_name: '', driver_mobile: '', driver_track_id: '' }
+		}).then((response) => res.out({
+			message: req.custom.local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));;
+}
+
 /**
  * List all orders
  * @param {Object} req
@@ -350,6 +403,10 @@ module.exports.list = (req, res) => {
 		} else {
 			req.custom.clean_filter['status'] = parseInt(req.query.status);
 		}
+	}
+
+	if (req.query.driver_mobile) {
+		req.custom.clean_filter['driver_mobile'] = req.query.driver_mobile;
 	}
 
 	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {

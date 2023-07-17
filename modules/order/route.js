@@ -45,6 +45,16 @@ router.put('/:Id/status', controller.update_status);
 router.post('/:Id/driver_details', controller.update_driver_details);
 
 /**
+ * PUT /order/:Id/driver_details/remove
+ */
+router.put('/:Id/driver_details/remove', controller.remove_driver_details);
+
+/**
+ * PUT /order/:Id/delivery_time
+ */
+router.put('/:Id/delivery_time', controller.update_delivery_time);
+
+/**
  * DELETE /order/:Id/product
  */
 router.delete('/:Id/product/:soft_code', controller.delete_product);
