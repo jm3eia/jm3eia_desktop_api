@@ -79,7 +79,7 @@ module.exports.getAdjustedDate = (dateStr) => {
 	return adjusted_date;
 }
 
-module.exports.updateOrderEmployee = async (req, orderId) => {
+module.exports.updateOrderEmployee = async (req, orderId, sku, action) => {
 	if (!orderId || !ObjectID.isValid(orderId)) return;
 	const data = {};
 	if (req.custom.authUser && req.custom.authUser.employee) {
@@ -89,11 +89,32 @@ module.exports.updateOrderEmployee = async (req, orderId) => {
 			data.employee_username = req.custom.authUser.username;
 
 	}
-	if (Object.keys(data).length > 0) {
+	try {
 		const collection = req.custom.db.client().collection('order');
-		await collection.updateOne({ _id: ObjectID(orderId) }, {
-			$set: data
-		})
+		if (sku) {
+			const order = await collection.findOne({ _id: ObjectID(orderId), 'data.products.soft_code': sku });
+
+			if (!order) {
+				return;
+			}
+
+			order.data.forEach((orderData) => {
+				const productToUpdate = orderData.products.find((product) => product.soft_code === sku);
+				if (productToUpdate) {
+					if (req.custom.authUser.department === 3) productToUpdate.store_manager = req.custom.authUser.username;
+					if (action) productToUpdate.action = action;
+				}
+			});
+
+			await collection.updateOne({ _id: ObjectID(orderId) }, { $set: { data: order.data, ...data } });
+		} else {
+			const collection = req.custom.db.client().collection('order');
+			await collection.updateOne({ _id: ObjectID(orderId) }, {
+				$set: data
+			})
+		}
+	} catch (error) {
+		console.error('Error updating order employee:', error);
 	}
 }
 

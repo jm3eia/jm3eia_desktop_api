@@ -39,6 +39,11 @@ router.get('/', controller.list);
 router.post('/', controller.create);
 
 /**
+ * GET /employee/product
+ */
+router.get('/product', controller.getSkippedProducts);
+
+/**
  * GET /employee/:Id
  */
 router.get('/:Id', controller.read);

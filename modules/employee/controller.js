@@ -332,3 +332,30 @@ module.exports.add_device = async function (req, res) {
 
     mainController.update(req, res, collectionName);
 };
+
+
+module.exports.getSkippedProducts = async (req, res) => {
+    const query = {
+        'data.products.store_manager': { $exists: false, $eq: null },
+        'data.products.action': 'skip',
+        status: 14
+    };
+
+    const projection = {
+        _id: 0,
+        'data.products': 1
+    };
+
+    req.custom.clean_filter = query;
+    req.custom.limit = 10000;
+
+    mainController.list(req, res, 'order', projection, (out) => {
+        const orders = out.data;
+        const orderProducts = orders.filter(o => o.data && o.data.length > 0).map((order) => order.data.map((orderData) => orderData.products));
+        let allProducts = [].concat(...orderProducts);
+        allProducts = allProducts.length === 1 ? allProducts[0] : allProducts;
+        const filteredProducts = allProducts.filter(p => !p.store_manager && p.action === 'skip');
+        out.data = filteredProducts;
+        return res.out(out);
+    });
+}

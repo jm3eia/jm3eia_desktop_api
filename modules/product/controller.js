@@ -107,8 +107,6 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	console.log('product: ', product);
-
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
@@ -130,7 +128,7 @@ module.exports.quantity = async (req, res) => {
 				status: parseInt(data.quantity) > 0 ? true : false,
 			}
 		};
-		console.log('prod in store: ', prod_n_storeArr);
+
 	} else {
 		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
@@ -205,7 +203,7 @@ module.exports.barcode_2 = async (req, res) => {
 		const local = req.custom.local;
 		const product = await product_collection.findOne(req.custom.update_by);
 		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 }, req.body.employee_username, req.query);
-		await common.updateOrderEmployee(req, req.query.order_id);
+		await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_barcode_2');
 	});
 };
 
@@ -269,7 +267,7 @@ module.exports.rack_zone = async (req, res) => {
 			req.body.employee_username,
 			req.query
 		);
-		await common.updateOrderEmployee(req, req.query.order_id);
+		await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_rack_zone');
 	});
 };
 
@@ -331,7 +329,7 @@ module.exports.skip = async (req, res) => {
 
 	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
 
-	await common.updateOrderEmployee(req, req.query.order_id);
+	await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'skip');
 
 	return res.out({
 		message: local.saved_done
@@ -365,7 +363,7 @@ module.exports.refuse = async (req, res) => {
 		req.query
 	);
 
-	await common.updateOrderEmployee(req, req.query.order_id);
+	await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'refuse');
 
 	return res.out({
 		message: local.saved_done
