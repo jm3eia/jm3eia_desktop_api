@@ -5,6 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
+const { skipProduct, unskipProduct } = require('./utils');
 const collectionName = "product";
 
 /**
@@ -204,6 +205,7 @@ module.exports.barcode_2 = async (req, res) => {
 		const product = await product_collection.findOne(req.custom.update_by);
 		await common.saveLog(req, 'update_barcode_2', 'product', ObjectID(product._id.toString()), product, product_before, { barcode_2: req.body.barcode_2 }, req.body.employee_username, req.query);
 		await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_barcode_2');
+		await unskipProduct(req, 'update_barcode_2').catch(null);
 	});
 };
 
@@ -268,6 +270,7 @@ module.exports.rack_zone = async (req, res) => {
 			req.query
 		);
 		await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_rack_zone');
+		await unskipProduct(req, 'update_rack_zone').catch(null);
 	});
 };
 
@@ -325,11 +328,13 @@ module.exports.skip = async (req, res) => {
 	};
 
 
-	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : username;
+	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : req.body.employee_username;
 
 	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
 
 	await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'skip');
+
+	await skipProduct(req, res, product);
 
 	return res.out({
 		message: local.saved_done
@@ -364,6 +369,7 @@ module.exports.refuse = async (req, res) => {
 	);
 
 	await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'refuse');
+	await unskipProduct(req, 'update_rack_zone').catch(null);
 
 	return res.out({
 		message: local.saved_done

@@ -7,6 +7,7 @@ const axios = require('axios');
 const moment = require('moment');
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
+const { unskipProduct } = require("../product/utils");
 const collectionName = "order";
 
 /**
@@ -833,6 +834,7 @@ function update_product_quantity_in_order(req, res, action) {
 				.then(async (response) => {
 					await common.saveLog(req, action, 'order', ObjectID(req.params.Id), row['$set'], doc, { quantity: req.body.quantity }, req.body.employee_username, req.query);
 					await common.updateOrderEmployee(req, req.params.Id, req.params.soft_code, action);
+					await unskipProduct(req, action).catch(null);
 					return res.out({
 						message: local.saved_done
 					}, enums.status_message.UPDATED)
