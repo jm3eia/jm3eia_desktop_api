@@ -13,7 +13,7 @@ const ObjectID = require("mongodb").ObjectID;
 
 
 
-module.exports.skipProduct = async (req, res, product) => {
+/* module.exports.skipProduct = async (req, res, product) => {
     const collection = req.custom.db.client().collection('order_products_actions');
     req.custom.model = require('./models/skip_product');
     const {
@@ -27,14 +27,8 @@ module.exports.skipProduct = async (req, res, product) => {
     data.action = 'skip';
     data.product = product;
 
-    const foundProduct = await collection.findOne({ order_id: ObjectID(data.order_id), 'product.soft_code': product.soft_code });
-
-    if (foundProduct) {
-        return res.out({ message: 'This product is already skipped' }, enums.status_message.UNEXPECTED_ERROR);
-    }
-
     await collection.insertOne(data);
-}
+} */
 
 module.exports.unskipProduct = async (req, action) => {
     if (req.custom.authUser.department !== 3) return;

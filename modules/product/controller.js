@@ -318,7 +318,28 @@ module.exports.skip = async (req, res) => {
 
 	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : req.body.employee_username;
 
-	await skipProduct(req, res, product);
+	const order_products_actions_collection = req.custom.db.client().collection('order_products_actions');
+
+	req.custom.model = require('./models/skip_product');
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const foundProduct = await order_products_actions_collection.findOne({ order_id: ObjectID(data.order_id), 'product.soft_code': product.soft_code });
+
+
+	if (foundProduct) {
+		return res.out({ message: 'This product is already skipped' }, enums.status_message.UNEXPECTED_ERROR);
+	}
+
+	data.action = 'skip';
+	data.product = product;
+
+	await order_products_actions_collection.insertOne(data);
 
 	await common.saveLog(
 		req,
