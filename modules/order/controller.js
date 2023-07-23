@@ -340,6 +340,25 @@ module.exports.update_driver_details = async (req, res) => {
 };
 
 
+/**
+ * Update driver details
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+module.exports.listDriverOrders = async (req, res) => {
+	const collection = req.custom.db.client().collection('employee');
+
+	const employee = await collection.findOne({ _id: ObjectID(req.custom.authUser.userId.toString()) });
+
+	if (req.custom.authUser.employee && employee) {
+		req.custom.clean_filter['driver_mobile'] = employee.mobile;
+	}
+
+	mainController.list(req, res, collectionName);
+
+};
+
+
 module.exports.remove_driver_details = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order

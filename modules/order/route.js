@@ -10,6 +10,11 @@ const controller = require('./controller');
 router.get('/', controller.list);
 
 /**
+ * GET /order/driver
+ */
+router.get('/', controller.listDriverOrders);
+
+/**
  * GET /order/:Id
  */
 router.get('/:Id', controller.read);

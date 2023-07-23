@@ -656,5 +656,11 @@ module.exports.update_status = async (req, res) => {
  * @param {Object} res
  */
 module.exports.list = (req, res) => {
-	mainController.list(req, res, collectionName);
+	mainController.list(req, res, collectionName, (out) => {
+		out.data = out.data.map(p => {
+			if (p.picture) {
+				p.picture = i.picture.includes(req.custom.config.media_url) ? i.picture : (req.custom.config.media_url + i.picture);
+			}
+		})
+	});
 };
