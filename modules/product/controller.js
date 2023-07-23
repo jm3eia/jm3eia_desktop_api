@@ -329,12 +329,12 @@ module.exports.skip = async (req, res) => {
 		return res.out(error, enums.status_message.VALIDATION_ERROR);
 	}
 
-	const foundProduct = await order_products_actions_collection.findOne({ order_id: ObjectID(data.order_id), 'product.soft_code': product.soft_code });
+	/* const foundProduct = await order_products_actions_collection.findOne({ order_id: ObjectID(data.order_id), 'product.soft_code': product.soft_code });
 
 
 	if (foundProduct) {
 		return res.out({ message: 'This product is already skipped' }, enums.status_message.UNEXPECTED_ERROR);
-	}
+	} */
 
 	data.action = 'skip';
 	data.product = product;
