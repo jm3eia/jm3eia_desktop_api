@@ -661,6 +661,7 @@ module.exports.list = (req, res) => {
 			if (p.picture) {
 				p.picture = i.picture.includes(req.custom.config.media_url) ? i.picture : (req.custom.config.media_url + i.picture);
 			}
-		})
+		});
+		return res.out(out);
 	});
 };
