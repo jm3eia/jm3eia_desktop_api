@@ -338,5 +338,13 @@ module.exports.getSkippedProducts = async (req, res) => {
     req.custom.clean_filter = { action: 'skip' };
     req.custom.limit = 10000;
 
-    mainController.list(req, res, 'order_products_actions');
+    mainController.list(req, res, 'order_products_actions', {}, (out) => {
+        out.data = out.data.map(d => {
+            if (d.product.picture) {
+                d.product.picture = p.product.picture.includes(req.custom.config.media_url) ? p.product.picture : (req.custom.config.media_url + p.product.picture);
+            }
+        });
+
+        return res.out(out);
+    });
 }
