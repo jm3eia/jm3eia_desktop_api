@@ -306,8 +306,19 @@ module.exports.skip = async (req, res) => {
 	const product = await product_collection.findOne({ soft_code: softcode });
 
 	if (!product || !employees) {
-		return res.out({}, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'Product or employee not found' }, enums.status_message.NOT_FOUND);
 	}
+
+	const device_tokens = employees.filter(e => e.device_token).map(e => e.device_token);
+	const message = {
+		title: 'تنبيه عاجل!',
+		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
+	};
+
+
+	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : req.body.employee_username;
+
+	await skipProduct(req, res, product);
 
 	await common.saveLog(
 		req,
@@ -321,20 +332,10 @@ module.exports.skip = async (req, res) => {
 		req.query
 	);
 
-	const device_tokens = employees.filter(e => e.device_token).map(e => e.device_token);
-	const message = {
-		title: 'تنبيه عاجل!',
-		body: `يرجى التوجه الى المحضر ${req.custom.authUser.username} ${product.rack_zone ? '(' + product.rack_zone + ')' : ''}`,
-	};
-
-
-	req.body.employee_username = req.custom.authUser && req.custom.authUser.employee ? req.custom.authUser.username : req.body.employee_username;
-
 	await common.notify_store_managers(message, device_tokens, req.body).catch(() => null);
 
 	await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'skip');
 
-	await skipProduct(req, res, product);
 
 	return res.out({
 		message: local.saved_done
