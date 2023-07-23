@@ -12,7 +12,7 @@ router.get('/', controller.list);
 /**
  * GET /order/driver
  */
-router.get('/', controller.listDriverOrders);
+router.get('/driver', controller.listDriverOrders);
 
 /**
  * GET /order/:Id
