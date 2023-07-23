@@ -356,6 +356,8 @@ module.exports.listDriverOrders = async (req, res) => {
 
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }];
 
+	req.custom.clean_filter['delivery_time'] = { "$gte": common.getAdjustedDate(new Date().toString()), };
+
 	mainController.list(req, res, collectionName);
 
 };
