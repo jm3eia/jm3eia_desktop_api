@@ -362,10 +362,10 @@ module.exports.update_driver_details = async (req, res) => {
 module.exports.listDriverOrders = async (req, res) => {
 	const collection = req.custom.db.client().collection('employee');
 
-	const employee = await collection.findOne({ _id: ObjectID(req.custom.authUser.userId.toString()) });
+	//const employee = await collection.findOne({ _id: ObjectID(req.custom.authUser.userId.toString()) });
 
-	if (req.custom.authUser.employee && employee) {
-		req.custom.clean_filter['driver_mobile'] = employee.mobile;
+	if (req.custom.authUser.employee) {
+		req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 	}
 
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }, { status: 18 }];
