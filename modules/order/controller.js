@@ -658,7 +658,7 @@ module.exports.update_order_number = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	if (order.status != 7) {
+	if (order.status !== 7 && order.status !== 6 && order.status !== 11) {
 		return res.out({
 			message: req.custom.local.order_not_confirmed
 		}, enums.status_message.VALIDATION_ERROR);

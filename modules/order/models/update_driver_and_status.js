@@ -5,15 +5,15 @@ module.exports = {
         "type": Number,
         "default": 10
     }, */
-    "driver_name":{
+    "driver_name": {
         "type": String,
         "required": true
     },
-    "driver_mobile":{
+    "driver_mobile": {
         "type": String,
         "required": true
     },
-    "driver_track_id":{
+    "driver_track_id": {
         "type": String,
         "required": false
     },
