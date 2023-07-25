@@ -182,10 +182,24 @@ module.exports.update_status = async (req, res) => {
 			/* if (parseInt(req.body.status) === 2) action = 'pickup';
 			if (parseInt(req.body.status) === 12) action = 'done'; */
 
+			let toUpdate = {};
+
+			if (req.custom.authUser.department === 1) {
+				toUpdate = { employee_username: req.custom.authUser.username }
+			}
+
+			if (req.custom.authUser.department === 2) {
+				toUpdate = { driver_username: req.custom.authUser.username }
+			}
+
+			if (req.custom.authUser.department === 3) {
+				toUpdate = { store_manager_username: req.custom.authUser.username }
+			}
+
 			await collection.updateOne({
 				_id: ObjectID(req.params.Id)
 			}, {
-				$set: { employee_username: req.custom.authUser.username }
+				$set: toUpdate
 			});
 
 			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, req.query);

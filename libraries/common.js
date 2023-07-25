@@ -85,6 +85,8 @@ module.exports.updateOrderEmployee = async (req, orderId, sku, action) => {
 	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
 			data.store_manager_username = req.custom.authUser.username;
+		else if (req.custom.authUser.department === 2)
+			data.driver_username = req.custom.authUser.username;
 		else
 			data.employee_username = req.custom.authUser.username;
 
