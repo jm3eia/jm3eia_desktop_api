@@ -612,7 +612,7 @@ module.exports.refundToWallet = async (req, res) => {
 	}
 
 
-	const wallet_history_collection = req.custom.db.client().collection('wallet_history');
+	/* const wallet_history_collection = req.custom.db.client().collection('wallet_history');
 	let _promise = Promise.resolve(true);
 
 	const newWallet = totalToTransfer + parseFloat(member.wallet || 0);
@@ -630,13 +630,13 @@ module.exports.refundToWallet = async (req, res) => {
 		$set: {
 			wallet: newWallet
 		}
-	});
+	}); */
 
-	await common.saveLog(req, 'refund_to_wallet', 'member', member._id, { ...member, wallet: newWallet }, member, data);
+	await common.saveLog(req, 'refund_order', 'order', order._id, order, order, { ...data, total_to_transfer: totalToTransfer });
 
-	_promise.catch(() => null).then(() => res.out({
+	return res.out({
 		message: req.custom.local.saved_done
-	}, enums.status_message.UPDATED));
+	}, enums.status_message.UPDATED);
 }
 
 

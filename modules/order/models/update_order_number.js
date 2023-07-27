@@ -2,7 +2,7 @@ const ObjectID = require("mongodb").ObjectID;
 // Product model
 module.exports = {
     "order_number": {
-        "type": Number,
+        "type": String,
         "required": true,
         "unique": true,
         "collection": "order"
