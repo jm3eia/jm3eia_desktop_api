@@ -360,22 +360,15 @@ module.exports.update_driver_details = async (req, res) => {
  * @param {Object} res 
  */
 module.exports.listDriverOrders = async (req, res) => {
-	const collection = req.custom.db.client().collection('employee');
-
-	//const employee = await collection.findOne({ _id: ObjectID(req.custom.authUser.userId.toString()) });
-
 	if (req.custom.authUser.employee) {
 		req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 	}
 
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }, { status: 18 }];
 
-	//req.custom.clean_filter['delivery_time'] = { "$gte": common.getAdjustedDate(new Date().toString()), };
-
-	//console.log('========================= CURRENT TIME ========================== ', common.getAdjustedDate(new Date().toString()));
+	req.custom.clean_filter['delivery_time'] = { "$gt": common.getAdjustedDate(new Date().toString()) - 24 * 60 * 60 * 1000, };
 
 	mainController.list(req, res, collectionName);
-
 };
 
 
