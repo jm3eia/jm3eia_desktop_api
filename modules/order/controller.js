@@ -397,9 +397,10 @@ module.exports.listDriverOrders = async (req, res) => {
 		},
 		{
 			$match: {
+				...req.custom.clean_filter,
 				delivery_time: { $lt: '$delivery_time_plus_24h' }
 			}
-		}]).toArray(/* async */ (err, results) => {
+		}]).toArray(/* async */(err, results) => {
 			if (err) {
 				return res.out({
 					'message': err.message
