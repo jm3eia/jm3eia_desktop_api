@@ -8,6 +8,7 @@ const moment = require('moment');
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
+const { promisify } = require('util');
 const collectionName = "order";
 
 /**
@@ -537,16 +538,17 @@ module.exports.read = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
+const readAsync = promisify(mainController.read);
 module.exports.readByOrderNumber = async (req, res) => {
-	req.custom.where_property = "order_number";
-	//if (req.params.Id) req.params.Id = parseInt(req.params.Id);
-	mainController.read(req, res, collectionName, async (doc) => {
+	try {
+		req.custom.where_property = "order_number";
+		//if (req.params.Id) req.params.Id = parseInt(req.params.Id);
+		const doc = await readAsync(req, res, collectionName);
 
 		const member_collection = req.custom.db.client().collection('member');
 		const member = await member_collection.findOne({ mobile: doc.user_data.mobile });
 
-		if (member) doc.user_data.has_account = true;
-		else doc.user_data.has_account = false;
+		doc.user_data.has_account = !!member;
 
 		if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 			const city_collection = req.custom.db.client().collection('city');
@@ -555,7 +557,10 @@ module.exports.readByOrderNumber = async (req, res) => {
 		}
 
 		return res.out(doc);
-	});
+	} catch (err) {
+		console.error('Error occurred:', err);
+		return res.out({}, enums.status_message.SERVER_ERROR);
+	}
 };
 
 module.exports.refundToWallet = async (req, res) => {

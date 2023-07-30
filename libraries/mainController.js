@@ -169,7 +169,7 @@ module.exports.list = function (req, res, collectionName, projection = {}, callb
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.read = function (req, res, collectionName, callback) {
+module.exports.read = function (req, res, collectionName) {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
@@ -177,11 +177,11 @@ module.exports.read = function (req, res, collectionName, callback) {
 	if (req.custom.where_property) {
 		where = {
 			[req.custom.where_property]: req.params.Id
-		}
+		};
 	} else if (ObjectID.isValid(req.params.Id)) {
 		where = {
 			_id: ObjectID(req.params.Id)
-		}
+		};
 	} else {
 		return res.out({
 			message: req.custom.local.id_not_valid
@@ -189,19 +189,21 @@ module.exports.read = function (req, res, collectionName, callback) {
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.findOne(where, function (err, doc) {
-		if (!doc) {
-			return res.out({}, enums.status_message.NO_DATA);
-		}
-		req.custom.db.client().collection('adminmember').findOne({
-			_id: doc.lastupdate_user
-		}, function (err, usr) {
-			doc.lastupdate_user_name = usr ? usr.username : '';
-			if (callback) {
-				callback(doc);
-			} else {
-				res.out(doc);
+	return collection.findOne(where)
+		.then(doc => {
+			if (!doc) {
+				return res.out({}, enums.status_message.NO_DATA);
 			}
+			return req.custom.db.client().collection('adminmember').findOne({
+				_id: doc.lastupdate_user
+			});
+		})
+		.then(usr => {
+			doc.lastupdate_user_name = usr ? usr.username : '';
+			res.out(doc);
+		})
+		.catch(err => {
+			console.error('Error occurred:', err);
+			res.out({}, enums.status_message.SERVER_ERROR);
 		});
-	});
 };
