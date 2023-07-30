@@ -407,7 +407,7 @@ module.exports.listDriverOrders = async (req, res) => {
 		} */
 
 		const out = {
-			total: total,
+			total: results.length,
 			count: results.length,
 			per_page: req.custom.limit,
 			current_page: req.query.skip || 1,
