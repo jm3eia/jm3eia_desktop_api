@@ -366,9 +366,57 @@ module.exports.listDriverOrders = async (req, res) => {
 
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }, { status: 18 }];
 
-	req.custom.clean_filter['delivery_time'] = { "$lt": common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString()) };
+	/* req.custom.clean_filter['delivery_time'] = { "$lt": common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString()) };
 
-	console.log('================================= CURRENT DATE =================================== ', common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString()));
+	console.log('================================= CURRENT DATE =================================== ', common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString())); */
+
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+	const collection = req.custom.db.client().collection(collectionName);
+	collection.count(req.custom.clean_filter, (err, total) => {
+		if (err) {
+			return res.out({
+				message: err.message
+			}, enums.status_message.UNEXPECTED_ERROR);
+		}
+		if (total === 0) {
+			return res.out({
+				count: 0,
+				total: 0,
+				links: [],
+				data: []
+			}, enums.status_message.NO_DATA);
+		}
+		collection.aggregate([{
+			$addFields: {
+				delivery_time_plus_24h: {
+					$add: ['$delivery_time', 86400000]
+				}
+			}
+		},
+		{
+			$match: {
+				delivery_time: { $lt: '$delivery_time_plus_24h' }
+			}
+		}]).toArray((err, results) => {
+			if (err) {
+				return res.out({
+					'message': err.message
+				}, status_message.UNEXPECTED_ERROR);
+			}
+
+			const out = {
+				total: total,
+				count: results.length,
+				per_page: req.custom.limit,
+				current_page: req.query.skip || 1,
+				data: results
+			};
+			const message = results.length > 0 ? status_message.DATA_LOADED : status_message.NO_DATA;
+			res.out(out, message);
+		});
+	});
 
 	mainController.list(req, res, collectionName);
 };
