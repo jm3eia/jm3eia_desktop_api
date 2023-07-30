@@ -393,7 +393,7 @@ module.exports.listDriverOrders = (req, res) => {
 				count: { $sum: 1 }
 			}
 		}
-	], (err, countResults) => {
+	]).toArray((err, countResults) => {
 		if (err) {
 			return res.out({
 				message: err.message
