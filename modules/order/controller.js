@@ -537,27 +537,24 @@ module.exports.read = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.readByOrderNumber = (req, res) => {
+module.exports.readByOrderNumber = async (req, res) => {
 	req.custom.where_property = "order_number";
 	//if (req.params.Id) req.params.Id = parseInt(req.params.Id);
-	mainController.read(req, res, collectionName, (doc) => {
+	mainController.read(req, res, collectionName, async (doc) => {
 
 		const member_collection = req.custom.db.client().collection('member');
-		const member = member_collection.findOne({ mobile: doc.user_data.mobile }).then(member => {
-			if (member) doc.user_data.has_account = true;
-			else doc.user_data.has_account = false;
+		const member = await member_collection.findOne({ mobile: doc.user_data.mobile });
 
-			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
-				const city_collection = req.custom.db.client().collection('city');
-				city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 }).then(city => {
-					doc.user_data.address.city = city;
-				}).catch(() => res.out(doc));
-			}
+		if (member) doc.user_data.has_account = true;
+		else doc.user_data.has_account = false;
 
-			return res.out(doc);
+		if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
+			const city_collection = req.custom.db.client().collection('city');
+			const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
+			doc.user_data.address.city = city;
+		}
 
-		}).catch(() => res.out(doc));
-
+		return res.out(doc);
 	});
 };
 
