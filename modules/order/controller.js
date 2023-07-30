@@ -537,9 +537,9 @@ module.exports.read = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.readByOrderNumber = (req, res) => {
+module.exports.readByOrderNumber = async (req, res) => {
 	req.custom.where_property = "order_number";
-	if (req.params.Id) req.params.Id = parseInt(req.params.Id);
+	//if (req.params.Id) req.params.Id = parseInt(req.params.Id);
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		const member_collection = req.custom.db.client().collection('member');
