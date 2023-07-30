@@ -385,33 +385,37 @@ module.exports.listDriverOrders = async (req, res) => {
 		},
 		{
 			$match: {
-				delivery_time: { $lt: '$delivery_time_plus_24h' }
-			}
-		}]).toArray(/* async */(err, results) => {
-			if (err) {
-				return res.out({
-					'message': err.message
-				}, status_message.UNEXPECTED_ERROR);
-			}
-
-			/* const city_collection = req.custom.db.client().collection('city');
-			for (let doc of results) {
-				if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
-					const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
-					doc.user_data.address.city = city;
+				$expr: {
+					$lt: ['$delivery_time', '$delivery_time_plus_24h']
 				}
-			} */
+			}
+		}
 
-			const out = {
-				total: total,
-				count: results.length,
-				per_page: req.custom.limit,
-				current_page: req.query.skip || 1,
-				data: results
-			};
-			const message = results.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
-			return res.out(out, message);
-		});
+	]).toArray(/* async */(err, results) => {
+		if (err) {
+			return res.out({
+				'message': err.message
+			}, status_message.UNEXPECTED_ERROR);
+		}
+
+		/* const city_collection = req.custom.db.client().collection('city');
+		for (let doc of results) {
+			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
+				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
+				doc.user_data.address.city = city;
+			}
+		} */
+
+		const out = {
+			total: total,
+			count: results.length,
+			per_page: req.custom.limit,
+			current_page: req.query.skip || 1,
+			data: results
+		};
+		const message = results.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
+		return res.out(out, message);
+	});
 
 	//mainController.list(req, res, collectionName);
 };
