@@ -428,7 +428,7 @@ module.exports.listDriverOrders = async (req, res) => {
 		});
 	});
 
-	mainController.list(req, res, collectionName);
+	//mainController.list(req, res, collectionName);
 };
 
 
