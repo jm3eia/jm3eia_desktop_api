@@ -387,77 +387,30 @@ module.exports.listDriverOrders = (req, res) => {
 				}
 			}
 		},
-		{
-			$group: {
-				_id: null,
-				count: { $sum: 1 }
-			}
-		}
-	]).toArray((err, countResults) => {
+		/* { $skip: req.custom.skip },
+		{ $limit: req.custom.limit }, */
+	]).toArray(async (err, results) => {
 		if (err) {
 			return res.out({
-				message: err.message
-			}, enums.status_message.UNEXPECTED_ERROR);
+				'message': err.message
+			}, status_message.UNEXPECTED_ERROR);
 		}
 
-		console.log('==================================== countResults ================================ ', countResults);
-
-		const total = countResults.length > 0 ? countResults[0].count : 0;
-
-		if (total === 0) {
-			return res.out({
-				count: 0,
-				total: 0,
-				links: [],
-				data: []
-			}, enums.status_message.NO_DATA);
+		const city_collection = req.custom.db.client().collection('city');
+		for (let doc of results) {
+			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
+				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
+				doc.user_data.address.city = city;
+			}
 		}
-		collection.aggregate([
-			{ $match: req.custom.clean_filter },
-			{
-				$addFields: {
-					delivery_time_plus_24h: {
-						$add: ['$delivery_time', 86400000]
-					}
-				}
-			},
-			{
-				$match: {
-					$expr: {
-						$lt: ['$delivery_time', '$delivery_time_plus_24h']
-					}
-				}
-			},
-			{ $skip: req.custom.skip },
-			{ $limit: req.custom.limit },
-		]).toArray(async (err, results) => {
-			if (err) {
-				return res.out({
-					'message': err.message
-				}, status_message.UNEXPECTED_ERROR);
-			}
 
-			const city_collection = req.custom.db.client().collection('city');
-			for (let doc of results) {
-				if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
-					const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
-					doc.user_data.address.city = city;
-				}
-			}
-
-			const out = {
-				total: total,
-				count: results.length,
-				per_page: req.custom.limit,
-				current_page: req.query.skip || 1,
-				data: results
-			};
-			const message = results.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
-			return res.out(out, message);
-		});
+		const out = {
+			count: results.length,
+			data: results
+		};
+		const message = results.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
+		return res.out(out, message);
 	});
-
-	//mainController.list(req, res, collectionName);
 };
 
 
