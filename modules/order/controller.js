@@ -360,6 +360,9 @@ module.exports.update_driver_details = async (req, res) => {
  * @param {Object} res 
  */
 module.exports.listDriverOrders = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
 	if (req.custom.authUser.employee) {
 		req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 	}
@@ -370,25 +373,10 @@ module.exports.listDriverOrders = async (req, res) => {
 
 	console.log('================================= CURRENT DATE =================================== ', common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString())); */
 
-	if (req.custom.isAuthorized === false) {
-		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
-	}
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.count(req.custom.clean_filter, (err, total) => {
-		if (err) {
-			return res.out({
-				message: err.message
-			}, enums.status_message.UNEXPECTED_ERROR);
-		}
-		if (total === 0) {
-			return res.out({
-				count: 0,
-				total: 0,
-				links: [],
-				data: []
-			}, enums.status_message.NO_DATA);
-		}
-		collection.aggregate([{
+	collection.aggregate([
+		{ $match: req.custom.clean_filter },
+		{
 			$addFields: {
 				delivery_time_plus_24h: {
 					$add: ['$delivery_time', 86400000]
@@ -397,7 +385,6 @@ module.exports.listDriverOrders = async (req, res) => {
 		},
 		{
 			$match: {
-				...req.custom.clean_filter,
 				delivery_time: { $lt: '$delivery_time_plus_24h' }
 			}
 		}]).toArray(/* async */(err, results) => {
@@ -425,7 +412,6 @@ module.exports.listDriverOrders = async (req, res) => {
 			const message = results.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
 			return res.out(out, message);
 		});
-	});
 
 	//mainController.list(req, res, collectionName);
 };
