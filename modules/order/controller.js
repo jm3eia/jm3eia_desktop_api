@@ -400,6 +400,8 @@ module.exports.listDriverOrders = (req, res) => {
 			}, enums.status_message.UNEXPECTED_ERROR);
 		}
 
+		console.log('==================================== countResults ================================ ', countResults);
+
 		const total = countResults.length > 0 ? countResults[0].count : 0;
 
 		if (total === 0) {
