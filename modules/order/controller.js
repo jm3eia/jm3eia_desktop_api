@@ -406,23 +406,25 @@ module.exports.listDriverOrders = async (req, res) => {
 				}, status_message.UNEXPECTED_ERROR);
 			}
 
+			const city_collection = req.custom.db.client().collection('city');
+			const orders = [];
 			for (let doc of results) {
 				if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
-					const city_collection = req.custom.db.client().collection('city');
 					const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
 					doc.user_data.address.city = city;
 				}
+				orders.push(doc);
 			}
 
 			const out = {
 				total: total,
-				count: results.length,
+				count: orders.length,
 				per_page: req.custom.limit,
 				current_page: req.query.skip || 1,
-				data: results
+				data: orders
 			};
-			const message = results.length > 0 ? status_message.DATA_LOADED : status_message.NO_DATA;
-			res.out(out, message);
+			const message = orders.length > 0 ? status_message.DATA_LOADED : status_message.NO_DATA;
+			return res.out(out, message);
 		});
 	});
 
