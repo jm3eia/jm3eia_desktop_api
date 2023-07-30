@@ -399,14 +399,14 @@ module.exports.listDriverOrders = async (req, res) => {
 			$match: {
 				delivery_time: { $lt: '$delivery_time_plus_24h' }
 			}
-		}]).toArray((err, results) => {
+		}]).toArray(async (err, results) => {
 			if (err) {
 				return res.out({
 					'message': err.message
 				}, status_message.UNEXPECTED_ERROR);
 			}
 
-			results = results.map(async doc => {
+			results = await results.map(async doc => {
 				if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 					const city_collection = req.custom.db.client().collection('city');
 					const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
