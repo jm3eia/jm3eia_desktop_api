@@ -359,20 +359,17 @@ module.exports.update_driver_details = async (req, res) => {
  * @param {Object} req 
  * @param {Object} res 
  */
-module.exports.listDriverOrders = async (req, res) => {
+module.exports.listDriverOrders = (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
 	if (req.custom.authUser.employee) {
 		req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 	}
 
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }, { status: 18 }];
 
-	/* req.custom.clean_filter['delivery_time'] = { "$lt": common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString()) };
-
-	console.log('================================= CURRENT DATE =================================== ', common.getAdjustedDate(new Date(new Date() - 24 * 60 * 60 * 1000).toString())); */
-
-	if (req.custom.isAuthorized === false) {
-		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
-	}
 	const collection = req.custom.db.client().collection(collectionName);
 	collection.count([
 		{ $match: req.custom.clean_filter },
@@ -389,13 +386,22 @@ module.exports.listDriverOrders = async (req, res) => {
 					$lt: ['$delivery_time', '$delivery_time_plus_24h']
 				}
 			}
+		},
+		{
+			$group: {
+				_id: null,
+				count: { $sum: 1 }
+			}
 		}
-	], (err, total) => {
+	], (err, countResults) => {
 		if (err) {
 			return res.out({
 				message: err.message
 			}, enums.status_message.UNEXPECTED_ERROR);
 		}
+
+		const total = countResults.length > 0 ? countResults[0].count : 0;
+
 		if (total === 0) {
 			return res.out({
 				count: 0,
@@ -419,7 +425,9 @@ module.exports.listDriverOrders = async (req, res) => {
 						$lt: ['$delivery_time', '$delivery_time_plus_24h']
 					}
 				}
-			}
+			},
+			{ $skip: req.custom.skip },
+			{ $limit: req.custom.limit },
 		]).toArray(async (err, results) => {
 			if (err) {
 				return res.out({
