@@ -371,7 +371,7 @@ module.exports.listDriverOrders = (req, res) => {
 	req.custom.clean_filter['$or'] = [{ status: 8 }, { status: 3 }, { status: 18 }];
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.count([
+	collection.aggregate([
 		{ $match: req.custom.clean_filter },
 		{
 			$addFields: {
