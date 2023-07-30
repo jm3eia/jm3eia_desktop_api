@@ -423,7 +423,7 @@ module.exports.listDriverOrders = async (req, res) => {
 				current_page: req.query.skip || 1,
 				data: orders
 			};
-			const message = orders.length > 0 ? status_message.DATA_LOADED : status_message.NO_DATA;
+			const message = orders.length > 0 ? enums.status_message.DATA_LOADED : enums.status_message.NO_DATA;
 			return res.out(out, message);
 		});
 	});
