@@ -484,6 +484,10 @@ module.exports.list = (req, res) => {
 		req.custom.clean_filter['driver_mobile'] = req.query.driver_mobile;
 	}
 
+	if (req.query.driver_username) {
+		req.custom.clean_filter['driver_username'] = req.query.driver_username;
+	}
+
 	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
 		req.custom.clean_filter['created'] = {
 			"$gte": new Date(req.query.filter.from_date.toString()),
