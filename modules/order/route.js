@@ -30,6 +30,11 @@ router.get('/:Id/order_id', controller.read);
 router.get('/:Id/number', controller.readByOrderNumber);
 
 /**
+ * GET /order/:Id/number
+ */
+router.get('/:Id/status', controller.status);
+
+/**
  * PUT /order/:Id/refund
  */
 router.put('/:Id/refund', controller.refundToWallet);

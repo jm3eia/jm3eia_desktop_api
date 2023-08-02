@@ -599,6 +599,26 @@ module.exports.readByOrderNumber = async (req, res) => {
 	});
 };
 
+module.exports.status = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	collection.findOne({ order_number: req.params.Id }, { status: 1 }, async function (err, doc) {
+		if (!doc) {
+			return res.out({}, enums.status_message.NO_DATA);
+		}
+		if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
+			const city_collection = req.custom.db.client().collection('city');
+			const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
+			doc.user_data.address.city = city;
+		}
+
+		return res.out(doc);
+	});
+};
+
 module.exports.refundToWallet = async (req, res) => {
 	// 1) get the original order
 	const collection = req.custom.db.client().collection(collectionName);
