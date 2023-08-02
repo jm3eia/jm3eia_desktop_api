@@ -605,7 +605,7 @@ module.exports.status = async (req, res) => {
 	}
 
 	const collection = req.custom.db.client().collection(collectionName);
-	collection.findOne({ order_number: req.params.Id }, { status: 1 }, async function (err, doc) {
+	collection.findOne({ order_number: req.params.Id }, { projection: { status: 1 } }, async function (err, doc) {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
