@@ -414,6 +414,54 @@ module.exports.listDriverOrders = (req, res) => {
 };
 
 
+module.exports.completed = (req, res) => {
+	const collection = req.custom.db.client().collection(collectionName);
+	const data = {};
+	if (req.custom.authUser && req.custom.authUser.employee) {
+		if (req.custom.authUser.department === 3)
+			data.store_manager_username = req.custom.authUser.username;
+		else if (req.custom.authUser.department === 2)
+			data.driver_username = req.custom.authUser.username;
+		else
+			data.employee_username = req.custom.authUser.username;
+
+	}
+	collection.aggregate([
+		{
+			$match: data
+		},
+		{
+			$project: {
+				month: { $month: "$created" },
+				year: { $year: "$created" }
+			}
+		},
+		{
+			$group: {
+				_id: {
+					month: "$month",
+					year: "$year"
+				},
+				count: { $sum: 1 }
+			}
+		},
+		{
+			$sort: {
+				"_id.year": 1,
+				"_id.month": 1
+			}
+		}
+	]).toArray(async (err, results) => {
+		if (err) {
+			return res.out({
+				'message': err.message
+			}, status_message.UNEXPECTED_ERROR);
+		}
+		return res.out(results);
+	});;
+}
+
+
 module.exports.remove_driver_details = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order
@@ -615,7 +663,7 @@ module.exports.status = async (req, res) => {
 		if (!doc) {
 			return res.out({}, enums.status_message.NO_DATA);
 		}
-		
+
 		return res.out(doc);
 	});
 };

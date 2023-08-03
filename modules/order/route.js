@@ -15,6 +15,11 @@ router.get('/', controller.list);
 router.get('/driver', controller.listDriverOrders);
 
 /**
+ * GET /order/completed
+ */
+router.get('/completed', controller.completed);
+
+/**
  * GET /order/:Id
  */
 router.get('/:Id', controller.read);
