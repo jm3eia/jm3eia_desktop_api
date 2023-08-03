@@ -416,8 +416,9 @@ module.exports.listDriverOrders = (req, res) => {
 
 module.exports.completed = (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
+	const currentDate = new Date();
 	const data = {
-		created: { $lte: new Date() }
+		created: { $lte: currentDate }
 	};
 	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
@@ -459,7 +460,8 @@ module.exports.completed = (req, res) => {
 			}, status_message.UNEXPECTED_ERROR);
 		}
 
-		const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+		const currentMonth = currentDate.getMonth() + 1;
+		const allMonths = Array.from({ length: currentMonth }, (_, i) => i + 1);
 
 		// Generate a sequence of years based on the data
 		const years = [...new Set(result.map((item) => item._id.year))];
