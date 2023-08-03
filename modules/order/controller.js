@@ -457,7 +457,32 @@ module.exports.completed = (req, res) => {
 				'message': err.message
 			}, status_message.UNEXPECTED_ERROR);
 		}
-		return res.out(results);
+
+		const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+
+		// Generate a sequence of years based on the data
+		const years = [...new Set(result.map((item) => item._id.year))];
+
+		// Cross join the months and years
+		const fullMonths = allMonths.reduce((acc, month) => {
+			const monthsData = years.map((year) => ({
+				_id: { month, year },
+				count: 0
+			}));
+			return acc.concat(monthsData);
+		}, []);
+
+		// Merge the full months data with the actual result
+		const mergedResult = fullMonths.map((fullMonth) => {
+			const match = result.find(
+				(item) =>
+					item._id.month === fullMonth._id.month &&
+					item._id.year === fullMonth._id.year
+			);
+			return match || fullMonth;
+		});
+
+		return res.out(mergedResult);
 	});;
 }
 
