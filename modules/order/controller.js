@@ -416,7 +416,9 @@ module.exports.listDriverOrders = (req, res) => {
 
 module.exports.completed = (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
-	const data = {};
+	const data = {
+		created: { $lte: new Date() }
+	};
 	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
 			data.store_manager_username = req.custom.authUser.username;
@@ -424,7 +426,6 @@ module.exports.completed = (req, res) => {
 			data.driver_username = req.custom.authUser.username;
 		else
 			data.employee_username = req.custom.authUser.username;
-
 	}
 	collection.aggregate([
 		{
