@@ -485,7 +485,7 @@ module.exports.completed = (req, res) => {
 			return match || fullMonth;
 		});
 
-		return res.out(mergedResult);
+		return res.out(mergedResult.map(r => ({ month: r._id.month, year: r._id.year, count: r.count })));
 	});;
 }
 
