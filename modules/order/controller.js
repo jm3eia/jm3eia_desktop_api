@@ -434,6 +434,8 @@ module.exports.completed = (req, res) => {
 		},
 		{
 			$project: {
+				order_number: 1,
+				status: 1,
 				month: { $month: "$created" },
 				year: { $year: "$created" }
 			}
@@ -444,7 +446,13 @@ module.exports.completed = (req, res) => {
 					month: "$month",
 					year: "$year"
 				},
-				count: { $sum: 1 }
+				count: { $sum: 1 },
+				orders: {
+					$push: {
+						order_number: "$order_number",
+						status: "$status"
+					}
+				}
 			}
 		},
 		{
@@ -460,32 +468,44 @@ module.exports.completed = (req, res) => {
 			}, status_message.UNEXPECTED_ERROR);
 		}
 
-		const currentMonth = currentDate.getMonth() + 1;
-		const allMonths = Array.from({ length: currentMonth }, (_, i) => i + 1);
-
-		// Generate a sequence of years based on the data
-		const years = [...new Set(result.map((item) => item._id.year))];
-
-		// Cross join the months and years
-		const fullMonths = allMonths.reduce((acc, month) => {
+		const uniqueMonths = result.map((item) => ({
+			month: item._id.month,
+			year: item._id.year
+		  }));
+	  
+		  // Generate a sequence of months from 1 to the current month
+		  const currentMonth = currentDate.getMonth() + 1;
+		  const allMonths = Array.from({ length: currentMonth }, (_, i) => i + 1);
+	  
+		  // Filter the months based on the existing data
+		  const filteredMonths = allMonths.filter((month) =>
+			uniqueMonths.some((m) => m.month === month)
+		  );
+	  
+		  // Generate a sequence of years based on the data
+		  const years = [...new Set(result.map((item) => item._id.year))];
+	  
+		  // Cross join the filtered months and years
+		  const fullMonths = filteredMonths.reduce((acc, month) => {
 			const monthsData = years.map((year) => ({
-				_id: { month, year },
-				count: 0
+			  _id: { month, year },
+			  count: 0,
+			  orders: []
 			}));
 			return acc.concat(monthsData);
-		}, []);
-
-		// Merge the full months data with the actual result
-		const mergedResult = fullMonths.map((fullMonth) => {
+		  }, []);
+	  
+		  // Merge the full months data with the actual result
+		  const mergedResult = fullMonths.map((fullMonth) => {
 			const match = result.find(
-				(item) =>
-					item._id.month === fullMonth._id.month &&
-					item._id.year === fullMonth._id.year
+			  (item) =>
+				item._id.month === fullMonth._id.month &&
+				item._id.year === fullMonth._id.year
 			);
 			return match || fullMonth;
-		});
+		  });
 
-		return res.out(mergedResult.map(r => ({ month: r._id.month, year: r._id.year, count: r.count })));
+		return res.out(mergedResult/* .map(r => ({ month: r._id.month, year: r._id.year, count: r.count })) */);
 	});;
 }
 
