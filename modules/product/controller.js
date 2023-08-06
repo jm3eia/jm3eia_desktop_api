@@ -338,6 +338,7 @@ module.exports.skip = async (req, res) => {
 
 	data.action = 'skip';
 	data.product = product;
+	data.created = new Date();
 
 	await order_products_actions_collection.insertOne(data);
 

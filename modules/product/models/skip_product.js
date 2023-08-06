@@ -21,10 +21,4 @@ module.exports = {
         "type": Number,
         "required": true
     },
-    "created": {
-        "type": Date,
-        "default_value": new Date(),
-        "insertOnly": true,
-        "auto": true
-    },
 };
