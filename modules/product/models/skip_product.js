@@ -20,5 +20,11 @@ module.exports = {
     "order_number": {
         "type": Number,
         "required": true
-    }
+    },
+    "created": {
+        "type": Date,
+        "default_value": new Date(),
+        "insertOnly": true,
+        "auto": true
+    },
 };
