@@ -17,6 +17,19 @@ module.exports.create = (req, res) => {
     if (req.body.password) {
         req.body.password = sha1(md5(req.body.password));
     }
+
+    let isValid = true;
+
+    if (req.body.working_times) {
+        if (req.body.working_times.from && !isValidTime(req.body.working_times.from)) isValid = false;
+        if (req.body.working_times.to && !isValidTime(req.body.working_times.to)) isValid = false;
+
+        if (!isEndTimeAfterStartTime(req.body.working_times.from, req.body.working_times.to)) isValid = false;
+    }
+
+    if (!isValid) {
+        return res.out({ 'message': 'Please enter a valid working times.' }, enums.status_message.VALIDATION_ERROR);
+    }
     mainController.create(req, res, collectionName);
 };
 
@@ -30,6 +43,19 @@ module.exports.update = (req, res) => {
         req.body.password = sha1(md5(req.body.password));
     } else {
         delete req.custom.model.password;
+    }
+
+    let isValid = true;
+
+    if (req.body.working_times) {
+        if (req.body.working_times.from && !isValidTime(req.body.working_times.from)) isValid = false;
+        if (req.body.working_times.to && !isValidTime(req.body.working_times.to)) isValid = false;
+
+        if (!isEndTimeAfterStartTime(req.body.working_times.from, req.body.working_times.to)) isValid = false;
+    }
+
+    if (!isValid) {
+        return res.out({ 'message': 'Please enter a valid working times.' }, enums.status_message.VALIDATION_ERROR);
     }
     mainController.update(req, res, collectionName);
 };
@@ -58,6 +84,7 @@ module.exports.list = async (req, res) => {
         created: 1,
         department: 1,
         store_id: 1,
+        working_times: 1,
         status: 1,
     };
     mainController.list(req, res, collectionName, projection);
@@ -347,4 +374,21 @@ module.exports.getSkippedProducts = async (req, res) => {
 
         return res.out(out);
     });
+}
+
+
+function isValidTime(timeStr) {
+    const timeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/; // HH:mm format regex
+    return timeRegex.test(timeStr);
+}
+
+function isEndTimeAfterStartTime(startTimeStr, endTimeStr) {
+    const startTimeInMinutes = timeToMinutes(startTimeStr);
+    const endTimeInMinutes = timeToMinutes(endTimeStr);
+    return endTimeInMinutes > startTimeInMinutes;
+}
+
+function timeToMinutes(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
 }

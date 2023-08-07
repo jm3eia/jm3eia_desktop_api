@@ -79,4 +79,9 @@ router.put('/update_status', controller.update_status);
  */
  router.get('/', controller.list);
 
+ /**
+ * PUT /product/:soft_code/quantity
+ */
+router.put('/:soft_code/remove', controller.removeProductFromOrders);
+
 module.exports = router;

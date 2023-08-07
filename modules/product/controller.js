@@ -681,3 +681,73 @@ module.exports.update_status = async (req, res) => {
 module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName);
 };
+
+
+
+module.exports.removeProductFromOrders = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const quantity = 0;
+
+	const collection = req.custom.db.client().collection('order');
+	const local = req.custom.local;
+
+	const orders = await collection.find({ 'data.products.soft_code': req.params.soft_code, status: { $in: [1, 11] } }).toArray() || [];
+
+	console.log('ORDERS: ', orders.length);
+
+	const promises = [];
+
+	for (let order of orders) {
+		let total = order.total;
+		let subtotal = order.subtotal;
+		let products = [];
+
+		for (const p of order.products) {
+			if (p.soft_code.toString() == req.params.soft_code.toString()) {
+				total -= p.price * p.quantity;
+				total = parseFloat(total > 0 ? total : 0);
+
+				subtotal -= p.price * p.quantity;
+				subtotal = parseFloat(subtotal > 0 ? subtotal : 0);
+				p.quantity = parseInt(p.quantity);
+				p.price = parseFloat(p.price);
+
+				total += p.price * quantity;
+				subtotal += p.price * quantity;
+
+				p.quantity = parseInt(quantity || 0);
+				p.modified = new Date();
+			}
+			products.push(p);
+		}
+
+
+		const update_by = {
+			_id: ObjectID(order._id.toString())
+		};
+		const row = {
+			$set: {
+				products: products,
+				subtotal: subtotal,
+				total: total,
+				data: order.data ? order.data.map(d => {
+					return d.products.findIndex(p => p.soft_code.toString() == req.params.soft_code.toString()) > -1 ? { ...d, products: d.products.map(p => p.soft_code.toString() == req.params.soft_code.toString() ? products.find(np => np.soft_code.toString() == p.soft_code.toString()) : p) } : d
+				}) : null,
+			}
+		};
+
+		const update = collection.updateOne(update_by, row);
+		promises.push(update);
+	}
+
+	Promise.all(promises)
+		.then(() => res.out({
+			message: local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((err) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+}
