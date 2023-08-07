@@ -696,8 +696,6 @@ module.exports.removeProductFromOrders = async (req, res) => {
 
 	const orders = await collection.find({ 'data.products.soft_code': req.params.soft_code, status: { $in: [1, 11] } }).toArray() || [];
 
-	console.log('ORDERS: ', orders.length);
-
 	const promises = [];
 
 	for (let order of orders) {
@@ -745,9 +743,10 @@ module.exports.removeProductFromOrders = async (req, res) => {
 
 	Promise.all(promises)
 		.then(() => res.out({
-			message: local.saved_done
+			message: local.saved_done,
+			count: promises.length
 		}, enums.status_message.UPDATED))
 		.catch((err) => res.out({
-			message: error.message
+			message: err.message
 		}, enums.status_message.UNEXPECTED_ERROR));
 }
