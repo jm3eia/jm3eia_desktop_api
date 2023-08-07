@@ -28,17 +28,17 @@ module.exports = {
         "collection": "store",
         "required": true
     },
-    "working_times": new Field({
+    "working_times": {
         "type": Object,
         "model": {
-            "from": new Field({
+            "from": {
                 "type": String,
-            }),
-            "to": new Field({
+            },
+            "to": {
                 "type": String,
-            }),
+            },
         }
-    }),
+    },
     "created": {
         "type": Date,
         "default_value": new Date(),
