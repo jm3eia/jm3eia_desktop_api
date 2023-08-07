@@ -744,7 +744,8 @@ module.exports.removeProductFromOrders = async (req, res) => {
 	Promise.all(promises)
 		.then(() => res.out({
 			message: local.saved_done,
-			count: promises.length
+			count: promises.length,
+			orders: orders
 		}, enums.status_message.UPDATED))
 		.catch((err) => res.out({
 			message: err.message
