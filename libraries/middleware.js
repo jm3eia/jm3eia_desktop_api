@@ -9,6 +9,7 @@ const qs = require('qs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const ObjectID = require("mongodb").ObjectID;
+const common = require('../libraries/common');
 
 /**
  * middleware to handle requests and responses
@@ -188,7 +189,30 @@ function checkpolicy(req, res) {
 					message: local.failed_auth
 				});
 			}
-			resolve(decoded);
+
+			if (decoded.employee) {
+				const employee_collection = req.custom.db.client().collection('employee');
+				employee_collection.findOne({ _id: ObjectID(decoded.userId.toString()) }).then(employee => {
+					if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, new Date())) {
+						console.log('THAT IS TRUE');
+						reject({
+							success: false,
+							auth: false,
+							message: `You are outside your working times. ${decoded.working_times.from ? (' Please try again at ' + decoded.working_times.from) : ''})`
+						});
+					} else {
+						resolve(decoded);
+					}
+				}).catch(error => {
+					reject({
+						success: false,
+						auth: false,
+						message: local.failed_auth
+					});
+				});
+			} else {
+				resolve(decoded);
+			}
 		});
 	});
 }

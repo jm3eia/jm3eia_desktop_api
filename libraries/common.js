@@ -120,6 +120,30 @@ module.exports.updateOrderEmployee = async (req, orderId, sku, action) => {
 	}
 }
 
+module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
+	const fromTimeParts = userWorkingTimes.from.split(':');
+	const toTimeParts = userWorkingTimes.to.split(':');
+
+	const fromHour = parseInt(fromTimeParts[0], 10);
+	const fromMinute = parseInt(fromTimeParts[1], 10);
+	const toHour = parseInt(toTimeParts[0], 10);
+	const toMinute = parseInt(toTimeParts[1], 10);
+
+	const startWorkingTime = new Date(currentTime);
+	startWorkingTime.setHours(fromHour, fromMinute, 0, 0);
+
+	const endWorkingTime = new Date(currentTime);
+	endWorkingTime.setHours(toHour, toMinute, 0, 0);
+
+	// Calculate the time difference in minutes
+	const timeDifferenceMinutes = (currentTime - startWorkingTime) / (1000 * 60);
+
+	return (
+		timeDifferenceMinutes >= -10 && // 10 minutes before start time
+		timeDifferenceMinutes <= (toHour - fromHour) * 60 + (toMinute - fromMinute) + 10 // 10 minutes after end time
+	);
+}
+
 function send_to_multiple(message, device_tokens, wallet = false) {
 	const body = {
 		"registration_ids": device_tokens,
