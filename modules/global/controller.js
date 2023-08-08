@@ -2,9 +2,9 @@ const enums = require("../../libraries/enums");
 
 module.exports.deleteAllEmployeeLogs = async (req, res) => {
     try {
-        if (req.custom.isAuthorized === false) {
+        /* if (req.custom.isAuthorized === false) {
             return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
-        }
+        } */
         const el = await req.custom.db.client().dropCollection('employee_logs');
         const opa = await req.custom.db.client().dropCollection('order_products_actions');
         console.log(`Collection 'employee_logs' dropped:`, el);
@@ -14,7 +14,7 @@ module.exports.deleteAllEmployeeLogs = async (req, res) => {
             opa
         })
     } catch (err) {
-        console.log('ERR: ', err);
-        return res.out(err);
+        console.error('ERR: ', err);
+        return res.out(err.message);
     }
 }
