@@ -124,12 +124,43 @@ module.exports.login = function (req, res) {
             }, status_message.UNEXPECTED_ERROR);
         }
 
+        /* const currentTime = moment().format('HH:mm');
+        const workingFrom = employee.working_times.from;
+        const workingTo = employee.working_times.to;
+
+        if (currentTime < workingFrom && currentTime <= workingTo) {
+            return next(); // Proceed with next middleware
+        } */
+
+        if (theuser.working_times) {
+            /* const loginTimeRange = calculateLoginTimeRange(theuser.working_times);
+            const currentTime = new Date();
+
+            const loginAttemptTime = new Date();
+            const timeDifference = loginAttemptTime - currentTime;
+
+            if (
+                loginAttemptTime < loginTimeRange.start ||
+                loginAttemptTime > loginTimeRange.end ||
+                Math.abs(timeDifference) >= 10 * 60 * 1000
+            ) {
+                return res.out({ message: 'You cannot login outside your working times :(' }, enums.status_message.UNAUTHORIZED);
+            } */
+            const currentTime = new Date(); // Replace this with actual current time
+
+            if (!isWithinWorkingTime(theuser.working_times, currentTime)) {
+                return res.out({ message: 'You cannot login outside your working times :(' }, enums.status_message.UNAUTHORIZED);
+            }
+        }
+
+
         var token = jwt.sign({
             userId: theuser._id,
             employee: true,
             department: theuser.department,
             username: theuser.username,
-            country_id: ObjectID(theuser.country_id)
+            country_id: ObjectID(theuser.country_id),
+            working_times: theuser.working_times
         }, config.secret, {
             expiresIn: 3600 * 24
         });
@@ -391,4 +422,50 @@ function isEndTimeAfterStartTime(startTimeStr, endTimeStr) {
 function timeToMinutes(timeStr) {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
+}
+
+function calculateLoginTimeRange(workingTimes) {
+    const currentTime = new Date();
+    const fromTimeParts = workingTimes.from.split(':');
+    const toTimeParts = workingTimes.to.split(':');
+
+    const fromHour = parseInt(fromTimeParts[0], 10);
+    const fromMinute = parseInt(fromTimeParts[1], 10);
+    const toHour = parseInt(toTimeParts[0], 10);
+    const toMinute = parseInt(toTimeParts[1], 10);
+
+    const startLoginTime = new Date(currentTime);
+    startLoginTime.setHours(fromHour, fromMinute, 0, 0);
+
+    const endLoginTime = new Date(currentTime);
+    endLoginTime.setHours(toHour, toMinute, 0, 0);
+
+    return {
+        start: startLoginTime,
+        end: endLoginTime,
+    };
+}
+
+function isWithinWorkingTime(userWorkingTimes, currentTime) {
+    const fromTimeParts = userWorkingTimes.from.split(':');
+    const toTimeParts = userWorkingTimes.to.split(':');
+
+    const fromHour = parseInt(fromTimeParts[0], 10);
+    const fromMinute = parseInt(fromTimeParts[1], 10);
+    const toHour = parseInt(toTimeParts[0], 10);
+    const toMinute = parseInt(toTimeParts[1], 10);
+
+    const startWorkingTime = new Date(currentTime);
+    startWorkingTime.setHours(fromHour, fromMinute, 0, 0);
+
+    const endWorkingTime = new Date(currentTime);
+    endWorkingTime.setHours(toHour, toMinute, 0, 0);
+
+    // Calculate the time difference in minutes
+    const timeDifferenceMinutes = (currentTime - startWorkingTime) / (1000 * 60);
+
+    return (
+        timeDifferenceMinutes >= -10 && // 10 minutes before start time
+        timeDifferenceMinutes <= (toHour - fromHour) * 60 + (toMinute - fromMinute) + 10 // 10 minutes after end time
+    );
 }
