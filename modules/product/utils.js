@@ -35,7 +35,7 @@ module.exports.unskipProduct = async (req, action) => {
     const collection = req.custom.db.client().collection('order_products_actions');
     const orderId = req.params.Id || req.query.order_id;
 
-    await collection.update({ order_id: ObjectID(orderId), 'product.soft_code': req.params.soft_code }, {
+    await collection.updateMany({ order_id: ObjectID(orderId), 'product.soft_code': req.params.soft_code }, {
         $set: {
             action,
             store_manager: req.custom.authUser.username,
