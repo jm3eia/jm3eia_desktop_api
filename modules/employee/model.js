@@ -39,6 +39,9 @@ module.exports = {
             },
         }
     },
+    "max_orders": {
+        "type": Number
+    },
     "created": {
         "type": Date,
         "default_value": new Date(),
