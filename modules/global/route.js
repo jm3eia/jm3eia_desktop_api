@@ -4,6 +4,6 @@ const controller = require('./controller');
 
 router.post('/employee/clear_logs', controller.deleteAllEmployeeLogs);
 
-router.post('/employee/admin/:Id', controller.getAdminById);
+router.get('/employee/admin/:Id', controller.getAdminById);
 
 module.exports = router;
