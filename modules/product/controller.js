@@ -66,12 +66,19 @@ module.exports.price_picture = (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.update_price_qty_weight = (req, res) => {
+module.exports.update_price_qty_weight = async (req, res) => {
 	req.custom.model = require('./models/update_price_qty_weight')
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
 	}
-	mainController.update(req, res, collectionName);
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const oldProduct = await collection.findOne(req.custom.update_by);
+
+	mainController.update(req, res, collectionName, async () => {
+		const newProduct = await collection.findOne(req.custom.update_by);
+		common.saveActionLog(req, 'UPDATE', 'product', newProduct._id, newProduct, oldProduct);
+	});
 };
 
 /**
@@ -107,6 +114,8 @@ module.exports.quantity = async (req, res) => {
 			message: local.item_not_exists
 		}, enums.status_message.NOT_FOUND);
 	}
+
+	const oldProduct = JSON.parse(JSON.stringify(product));
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
@@ -161,9 +170,12 @@ module.exports.quantity = async (req, res) => {
 	}
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
-		.then((response) => res.out({
-			message: local.saved_done
-		}, enums.status_message.UPDATED))
+		.then((response) => {
+			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
+			return res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+		})
 		.catch((error) => res.out({
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));
@@ -434,6 +446,8 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
+	const oldProduct = JSON.parse(JSON.stringify(product));
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
@@ -482,9 +496,12 @@ module.exports.increase_quantity = async (req, res) => {
 	}
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
-		.then((response) => res.out({
-			message: local.saved_done
-		}, enums.status_message.UPDATED))
+		.then((response) => {
+			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);;
+			return res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+		})
 		.catch((error) => res.out({
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));
@@ -523,6 +540,8 @@ module.exports.decrease_quantity = async (req, res) => {
 			message: local.item_not_exists
 		}, enums.status_message.NOT_FOUND);
 	}
+
+	const oldProduct = JSON.parse(JSON.stringify(product));
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
@@ -575,9 +594,12 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
-		.then((response) => res.out({
-			message: local.saved_done
-		}, enums.status_message.UPDATED))
+		.then((response) => {
+			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
+			return res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+		})
 		.catch((error) => res.out({
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));
