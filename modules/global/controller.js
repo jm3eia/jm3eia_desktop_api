@@ -1,4 +1,5 @@
 const enums = require("../../libraries/enums");
+const ObjectID = require('mongodb').ObjectID;
 
 module.exports.deleteAllEmployeeLogs = async (req, res) => {
     try {
@@ -14,4 +15,13 @@ module.exports.deleteAllEmployeeLogs = async (req, res) => {
         console.error('ERR: ', err);
         return res.out(err.message);
     }
+}
+
+
+module.exports.getAdminById = async (req, res) => {
+    const collection = req.custom.db.client().collection('adminmember');
+    const admin = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+    return res.out(admin);
+
 }
