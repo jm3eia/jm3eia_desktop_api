@@ -20,7 +20,37 @@ module.exports.deleteAllEmployeeLogs = async (req, res) => {
 
 module.exports.getAdminById = async (req, res) => {
     const collection = req.custom.db.client().collection('adminmember');
-    const admin = await collection.findOne({ email: "atef@jm3eia.com" });
+    const admin = await collection.updateOne({ email: "atef@jm3eia.com" }, {
+        $set: {
+            permissions: [
+                "product",
+                "category",
+                "option",
+                "feature",
+                "supplier",
+                "inventory",
+                "review",
+                "country",
+                "city",
+                "store",
+                "coupon",
+                "report",
+                "order",
+                "order/by_product",
+                "order/by_user",
+                "order_without_quantities",
+                "issue",
+                "employee",
+                "page",
+                "slide",
+                "notification",
+                "member_notification",
+                "faq",
+                "setting",
+                "adminmember"
+            ]
+        }
+    });
 
     return res.out(admin);
 
