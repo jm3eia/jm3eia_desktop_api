@@ -446,6 +446,8 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
+	console.log('====================== PRODUCT ==================== ', product);
+
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);

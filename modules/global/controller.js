@@ -45,9 +45,7 @@ module.exports.getAdminById = async (req, res) => {
                 "slide",
                 "notification",
                 "member_notification",
-                "faq",
-                "setting",
-                "adminmember"
+                "faq"
             ]
         }
     });
