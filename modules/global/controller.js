@@ -20,7 +20,7 @@ module.exports.deleteAllEmployeeLogs = async (req, res) => {
 
 module.exports.getAdminById = async (req, res) => {
     const collection = req.custom.db.client().collection('adminmember');
-    const admin = await collection.findOne({ _id: ObjectID(req.params.Id) });
+    const admin = await collection.findOne({ email: "atef@jm3eia.com" });
 
     return res.out(admin);
 
