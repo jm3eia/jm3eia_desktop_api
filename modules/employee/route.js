@@ -54,14 +54,14 @@ router.get('/:Id', controller.read);
 router.put('/add_device', controller.add_device);
 
 /**
- * PUT /employee/:Id
- */
-router.put('/:Id', controller.update);
-
-/**
  * PUT /employee/password
  */
 router.put('/password', controller.updatePassword);
+
+/**
+ * PUT /employee/:Id
+ */
+router.put('/:Id', controller.update);
 
 /**
  * DELETE /employee/:Id
