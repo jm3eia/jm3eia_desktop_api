@@ -60,6 +60,29 @@ module.exports.update = (req, res) => {
     mainController.update(req, res, collectionName);
 };
 
+
+/**
+ * Update employee
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.updatePassword = (req, res) => {
+    if (!req.custom.authUser || !req.custom.authUser.employee) {
+        const local = req.custom.local;
+        return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+    }
+
+    if (!req.body.password) {
+        return res.out({ message: 'Password is required.' }, enums.status_message.VALIDATION_ERROR);
+    }
+
+    req.params.Id = req.custom.authUser.userId;
+
+    req.body.password = sha1(md5(req.body.password));
+
+    mainController.update(req, res, collectionName);
+};
+
 /**
  * Delete employee
  * @param {Object} req

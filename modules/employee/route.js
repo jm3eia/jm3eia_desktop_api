@@ -59,6 +59,11 @@ router.put('/add_device', controller.add_device);
 router.put('/:Id', controller.update);
 
 /**
+ * PUT /employee/password
+ */
+router.put('/password', controller.updatePassword);
+
+/**
  * DELETE /employee/:Id
  */
 router.delete('/:Id', controller.delete);
