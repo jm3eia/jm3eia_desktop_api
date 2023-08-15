@@ -76,6 +76,8 @@ module.exports.updatePassword = (req, res) => {
         return res.out({ message: 'Password is required.' }, enums.status_message.VALIDATION_ERROR);
     }
 
+    req.custom.model = require('./models/update_password');
+
     req.params.Id = req.custom.authUser.userId;
 
     req.body.password = sha1(md5(req.body.password));
