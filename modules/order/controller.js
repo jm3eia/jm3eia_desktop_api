@@ -720,6 +720,17 @@ module.exports.status = async (req, res) => {
 	});
 };
 
+
+module.exports.getDeliveringOrder = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	req.custom.clean_filter = { status: 18 };
+	req.custom.limit = 1000;
+	mainController.list(req, res, collectionName, { status: 1, driver_username: 1 });
+};
+
 module.exports.refundToWallet = async (req, res) => {
 	// 1) get the original order
 	const collection = req.custom.db.client().collection(collectionName);

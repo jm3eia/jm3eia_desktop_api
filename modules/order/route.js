@@ -20,6 +20,11 @@ router.get('/driver', controller.listDriverOrders);
 router.get('/completed', controller.completed);
 
 /**
+ * GET /order/delivering
+ */
+router.get('/delivering', controller.getDeliveringOrder);
+
+/**
  * GET /order/:Id
  */
 router.get('/:Id', controller.read);
@@ -38,6 +43,7 @@ router.get('/:Id/number', controller.readByOrderNumber);
  * GET /order/:Id/number
  */
 router.get('/:Id/status', controller.status);
+
 
 /**
  * PUT /order/:Id/refund
