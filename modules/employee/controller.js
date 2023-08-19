@@ -432,6 +432,10 @@ module.exports.getSkippedProducts = async (req, res) => {
     });
 }
 
+module.exports.getEmployeeByPhoneNumber = async (req, res) => {
+    req.custom.where_property = "mobile";
+    mainController.read(req, res, "member");
+};
 
 function isValidTime(timeStr) {
     const timeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/; // HH:mm format regex

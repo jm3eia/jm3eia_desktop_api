@@ -19,6 +19,11 @@ router.post('/logout', controller.logout);
 router.get('/me', controller.me);
 
 /**
+ * GET /employee/me
+ */
+router.get('/:Id/mobile', controller.getEmployeeByPhoneNumber);
+
+/**
  * GET /employee/logs
  */
 router.get('/logs', controller.logs);
