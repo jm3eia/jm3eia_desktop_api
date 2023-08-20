@@ -149,30 +149,8 @@ module.exports.login = function (req, res) {
             }, status_message.UNEXPECTED_ERROR);
         }
 
-        /* const currentTime = moment().format('HH:mm');
-        const workingFrom = employee.working_times.from;
-        const workingTo = employee.working_times.to;
-
-        if (currentTime < workingFrom && currentTime <= workingTo) {
-            return next(); // Proceed with next middleware
-        } */
-
         if (theuser.working_times) {
-            /* const loginTimeRange = calculateLoginTimeRange(theuser.working_times);
             const currentTime = new Date();
-
-            const loginAttemptTime = new Date();
-            const timeDifference = loginAttemptTime - currentTime;
-
-            if (
-                loginAttemptTime < loginTimeRange.start ||
-                loginAttemptTime > loginTimeRange.end ||
-                Math.abs(timeDifference) >= 10 * 60 * 1000
-            ) {
-                return res.out({ message: 'You cannot login outside your working times :(' }, enums.status_message.UNAUTHORIZED);
-            } */
-            const currentTime = new Date(); // Replace this with actual current time
-
             if (!common.isWithinWorkingTime(theuser.working_times, currentTime)) {
                 return res.out({ message: `You cannot login outside your working times. ${theuser.working_times.from ? (' Please try again at ' + theuser.working_times.from) : ''})` }, enums.status_message.UNAUTHORIZED);
             }
@@ -191,6 +169,8 @@ module.exports.login = function (req, res) {
         });
         delete theuser.password;
         theuser.hash_username = md5(theuser.username);
+
+        await collection.updateOne({ _id: ObjectID(theuser._id.toString()) }, { $set: { token_status: 1 } });
 
         await common.saveLog(req, 'login', 'employee', theuser._id, undefined, undefined, undefined, theuser.username);
 
@@ -222,25 +202,31 @@ module.exports.logout = (req, res) => {
         }, enums.status_message.UNAUTHENTICATED);
 
 
-    jwt.verify(token, config.secret, function (err, decoded) {
+    jwt.verify(token, config.secret, async function (err, decoded) {
         if (err)
             return res.out({
                 auth: false,
                 message: local.failed_auth
             }, status_message.UNEXPECTED_ERROR);
 
-        if (!decoded.employee) {
-            return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
-        }
+        const collection = req.custom.db.client().collection(collectionName);
 
-        common.saveLog(req, 'logout', 'employee', ObjectID(decoded.userId), undefined, undefined, undefined, decoded.username).then(_response => {
+        if (req.body.employees && req.body.employees.length > 0 && !decoded.employee) {
+            await collection.updateMany({ _id: { $in: req.body.employees.map(e => ObjectID(e)) } }, { $set: { token_status: 0 } });
             return res.out({
                 message: local.logout_done
             });
-        }).catch(err => {
-            console.log(err);
-            return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
-        });
+        }
+
+        if (decoded.employee) {
+            await collection.updateOne({ _id: ObjectID(theuser._id.toString()) }, { $set: { token_status: 0 } });
+            await common.saveLog(req, 'logout', 'employee', ObjectID(decoded.userId), undefined, undefined, undefined, decoded.username);
+        } else {
+            return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
+        }
+
+
+        //return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
     });
 
 };

@@ -193,8 +193,13 @@ function checkpolicy(req, res) {
 			if (decoded.employee) {
 				const employee_collection = req.custom.db.client().collection('employee');
 				employee_collection.findOne({ _id: ObjectID(decoded.userId.toString()) }).then(employee => {
-					if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, new Date())) {
-						console.log('THAT IS TRUE');
+					if (employee.token_status === 0) {
+						reject({
+							success: false,
+							auth: false,
+							message: local.failed_auth
+						});
+					} else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, new Date())) {
 						reject({
 							success: false,
 							auth: false,
