@@ -19,8 +19,22 @@ module.exports.deleteAllEmployeeLogs = async (req, res) => {
 
 
 module.exports.getAdminById = async (req, res) => {
-    const collection = req.custom.db.client().collection('adminmember');
-    const admin = await collection.updateOne({ email: "atef@jm3eia.com" }, {
+    const collection = req.custom.db.client().collection('member');
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+    await collection.updateOne({ email: "omniashawky48@gmail.com" }, {
+        $set: {
+            pro: {
+                active: true,
+                startDate,
+                endDate
+            }
+        }
+    });
+
+    return res.out('SUCCESS');
+    /* const admin = await collection.updateOne({ email: "atef@jm3eia.com" }, {
         $set: {
             permissions: [
                 "product",
@@ -51,5 +65,5 @@ module.exports.getAdminById = async (req, res) => {
     });
 
     return res.out(admin);
-
+ */
 }
