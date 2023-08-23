@@ -207,12 +207,16 @@ module.exports.logout = (req, res) => {
             return res.out({
                 auth: false,
                 message: local.failed_auth
-            }, status_message.UNEXPECTED_ERROR);
+            }, enums.status_message.UNEXPECTED_ERROR);
 
         const collection = req.custom.db.client().collection(collectionName);
 
         if (req.body.employees && req.body.employees.length > 0 && !decoded.employee) {
             await collection.updateMany({ _id: { $in: req.body.employees.map(e => ObjectID(e)) } }, { $set: { token_status: 0 } });
+            const employees = await collection.find({ _id: { $in: req.body.employees.map(e => ObjectID(e)) } }).toArray();
+            for (let e of employees) {
+                await common.saveLog(req, 'logout', 'employee', ObjectID(e._id.toString()), undefined, undefined, undefined, e.username);
+            }
             return res.out({
                 message: local.logout_done
             });
