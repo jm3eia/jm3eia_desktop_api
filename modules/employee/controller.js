@@ -223,8 +223,11 @@ module.exports.logout = (req, res) => {
         }
 
         if (decoded.employee) {
-            await collection.updateOne({ _id: ObjectID(theUser._id.toString()) }, { $set: { token_status: 0 } });
+            await collection.updateOne({ _id: ObjectID(decoded.userId.toString()) }, { $set: { token_status: 0 } });
             await common.saveLog(req, 'logout', 'employee', ObjectID(decoded.userId), undefined, undefined, undefined, decoded.username);
+            return res.out({
+                message: local.logout_done
+            });
         } else {
             return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
         }
