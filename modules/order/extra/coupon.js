@@ -42,10 +42,10 @@ function get_remote_token(req) {
 exports.create_coupon = function (req, p, data) {
 	const code = "RJ" + shortid.generate().toUpperCase();
 	data = {
-		"name": "jm3eia_offer",
+		"name": "jm3eia_offer_" + code,
 		"code": code,
 		"discount_value": 0,
-		"member_id": data.member_id,
+		"member_id": null,
 		"max_uses": 1,
 		"max_uses_per_user": 1,
 		"number_of_uses": 0,
