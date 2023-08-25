@@ -9,7 +9,7 @@ module.exports = {
 	no_token: 'No token provided.',
 	logout_done: 'تم تسجيل الخروج بنجاح',
 	not_exists: (doc, field) => 'No ' + doc + ' associated with the given ' + field,
-
+	"coupon_refresh_juice": (code) => 'مبروك ربحت كود خصم ( ' + code + ' ) بقيمه ٥٠٪ من تطبيق رفرش جوس عند استلامك الطلب من احد فروعنا ، حمل التطبيق Https://onelink.to/refresh ابحث عن اقرب فرع بجميع المحافظات داخل التطبيق',
 	"order_notification_body_2": "جاري تجهيز طلبكم الان",
 	"order_notification_title_2": "حالة الطلب",
 

@@ -30,6 +30,13 @@ module.exports = {
         password: process.env.DESKTOP_PASSWORD,
         base_url: process.env.DESKTOP_BASE_URL,
     },
+    refresh_juice: {
+        app_id: process.env.REFRESH_JUICE_APP_ID,
+        app_secret: process.env.REFRESH_JUICE_APP_SECRET,
+        email: process.env.REFRESH_JUICE_EMAIL,
+        password: process.env.REFRESH_JUICE_PASSWORD,
+        base_url: process.env.REFRESH_JUICE_BASE_URL,
+    },
     env: process.env.APP_ENV,
     denied_agents: process.env.DENIED_AGENTS,
     secret: process.env.APP_SECRET,

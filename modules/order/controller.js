@@ -8,6 +8,8 @@ const moment = require('moment');
 const ObjectID = require('mongodb').ObjectID;
 const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
+const { sendSms } = require("../../libraries/sms");
+const { create_coupon } = require("./extra/coupon");
 const collectionName = "order";
 
 /**
@@ -207,6 +209,23 @@ module.exports.update_status = async (req, res) => {
 
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
 			return false;
+		}
+
+		if (order.status == 4) {
+			const refresh_collection = req.custom.db.client().collection('refresh_juice_gift');
+			const exist_promo = await refresh_collection.findOne({
+				member_id: order.user_data._id,
+			});
+			if(!exist_promo){
+				const coupon = create_coupon(req, order);
+				const sms_text = req.custom.local.coupon_refresh_juice(coupon);
+				await sendSms(order.user_data.mobile, sms_text);
+				const refresh_juice_data = {
+					member_id: order.user_data._id,	
+					created_at: new Date(),
+				};
+				await refresh_collection.insertOne(refresh_juice_data);
+			}
 		}
 
 		const skus = updated_order.products.map((p) => p.sku.toString());
