@@ -216,12 +216,12 @@ module.exports.update_status = async (req, res) => {
 			const exist_promo = await refresh_collection.findOne({
 				member_id: order.user_data._id,
 			});
-			if(!exist_promo){
+			if (!exist_promo) {
 				const coupon = create_coupon(req, order);
 				const sms_text = req.custom.local.coupon_refresh_juice(coupon);
 				await sendSms(order.user_data.mobile, sms_text);
 				const refresh_juice_data = {
-					member_id: order.user_data._id,	
+					member_id: order.user_data._id,
 					created_at: new Date(),
 				};
 				await refresh_collection.insertOne(refresh_juice_data);
@@ -681,9 +681,23 @@ module.exports.read = (req, res) => {
 			}, {});
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
-				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { _id: 1, name: 1, city_number: 1 });
+				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { projection: { _id: 1, name: 1, city_number: 1 } });
 				doc.user_data.address.city = city;
 			}
+
+			const product_collection = req.custom.db.client().collection('product');
+			const newData = [];
+
+			for (let d of doc.data) {
+				const newProducts = [];
+				for (let p of d.products) {
+					const product = await product_collection.findOne({ sku: p.sku }, { projection: { pick_sorting: 1 } });
+					newProducts.push({ ...p, pick_sorting: product.pick_sorting });
+				}
+				newData.push({ ...d, products: newProducts });
+			}
+			doc.data = newData;
+
 		} catch (error) {
 			//	doc.products = [];
 		}
