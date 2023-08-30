@@ -58,6 +58,7 @@ module.exports.update = (req, res) => {
         return res.out({ 'message': 'Please enter a valid working times.' }, enums.status_message.VALIDATION_ERROR);
     }
     mainController.update(req, res, collectionName);
+    return res.out({ 'message': 'Record has been updated successfully.' }, enums.status_message.UPDATED);
 };
 
 
