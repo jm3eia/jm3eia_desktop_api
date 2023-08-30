@@ -308,7 +308,7 @@ module.exports.logs = (req, res) => {
     }
 
     if (req.query.username) {
-        req.custom.clean_filter['employee_username'] = req.query.username;
+        req.custom.clean_filter['employee_username'] = { $regex: req.query.username, $options: 'i' };
     }
 
     if (req.query.order_id && ObjectID.isValid(req.query.order_id)) {
