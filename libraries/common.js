@@ -150,7 +150,7 @@ module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
 
 	const fromHour = parseInt(fromTimeParts[0], 10);
 	const fromMinute = parseInt(fromTimeParts[1], 10);
-	const toHour = parseInt(toTimeParts[0], 10);
+	const toHour = parseInt(toTimeParts[0], 10) + 1;
 	const toMinute = parseInt(toTimeParts[1], 10);
 
 	const startWorkingTime = new Date(currentTime);
