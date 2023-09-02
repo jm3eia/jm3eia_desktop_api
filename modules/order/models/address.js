@@ -1,0 +1,54 @@
+// Brand model
+const ObjectID = require("../../../types/object_id");
+const Field = require("../../../libraries/field");
+const common = require('../../../libraries/common');
+const config = require("../../../config");
+
+module.exports = {
+	"city_name": new Field({
+		"required": true,
+	}),
+	"city_id": new Field({
+		"type": ObjectID,
+		"collection": "city",
+		"required": true,
+	}),
+	"widget": new Field({
+		"default": "",
+		"required": false,
+	}),
+	"street": new Field({
+		"default": "",
+		"required": false,
+	}),
+	"gada": new Field({
+		"default": "",
+		"required": false
+	}),
+	"house": new Field({
+		"default": "",
+		"required": false,
+	}),
+	"floor": new Field({
+		"default": "",
+		"required": false
+	}),
+	"latitude": new Field({
+		"required": false
+	}),
+	"longitude": new Field({
+		"required": false
+	}),
+	"created": new Field({
+		"type": Date,
+		"default": common.getDate(),
+		"insertOnly": true,
+		"auto": true
+	}),
+	"modified": new Field({
+		"type": Date,
+		"default": common.getDate(),
+		"updateOnly": true,
+		"auto": true
+	})
+};

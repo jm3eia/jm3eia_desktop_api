@@ -76,6 +76,11 @@ router.put('/:Id/driver_details/remove', controller.remove_driver_details);
 router.put('/:Id/delivery_time', controller.update_delivery_time);
 
 /**
+ * PUT /order/:Id/address
+ */
+router.put('/:Id/address', controller.update_address);
+
+/**
  * DELETE /order/:Id/product
  */
 router.delete('/:Id/product/:soft_code', controller.delete_product);

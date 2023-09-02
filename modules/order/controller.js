@@ -557,6 +557,41 @@ module.exports.remove_driver_details = async (req, res) => {
 
 }
 
+module.exports.update_address = async (req, res) => {
+	if (!req.body.delivery_time || !moment(req.body.delivery_time).isValid()) {
+		return res.out({ message: 'Delivery time not valid' }, enums.status_message.VALIDATION_ERROR);;
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	// original order
+	const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	req.custom.model = require('./models/address');
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	collection.updateOne({ _id: ObjectID(req.params.Id) },
+		{
+			$set: data,
+		}).then((response) => res.out({
+			message: req.custom.local.saved_done
+		}, enums.status_message.UPDATED))
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));;
+}
+
 module.exports.update_delivery_time = async (req, res) => {
 	if (!req.body.delivery_time || !moment(req.body.delivery_time).isValid()) {
 		return res.out({ message: 'Delivery time not valid' }, enums.status_message.VALIDATION_ERROR);;
