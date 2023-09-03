@@ -775,3 +775,66 @@ module.exports.removeProductFromOrders = async (req, res) => {
 			message: err.message
 		}, enums.status_message.UNEXPECTED_ERROR));
 }
+
+
+module.exports.create = async function (req, res) {
+	if (req.custom.isAuthorized === false || !req.custom.authUser.supplier) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+	req.body.sku = req.body.sku || req.body.soft_code;
+	req.body.supplier_id = req.custom.authUser.userId;
+	req.custom.model = req.custom.model || require(`./model`);
+
+	if (req.body.features && req.body.features.length > 0) {
+		req.body.features = req.body.features.map(f => ({ ...f, feature_id: ObjectID(f.feature_id) }));
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const local = req.custom.local;
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+	data.status = false;
+	data.created_by = ObjectID(req.custom.authUser.userId);
+	collection.insertOne(data)
+		.then((response) => res.out({
+			message: local.saved_done,
+			insertedId: response.insertedId
+		}, enums.status_message.CREATED))
+		.catch((error) => res.out({
+			'message': error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+};
+
+
+module.exports.approve = async function (req, res) {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const local = req.custom.local;
+	const update_by = req.custom.update_by != undefined ? req.custom.update_by : {
+		_id: ObjectID(req.params.Id)
+	};
+	collection.updateOne(update_by, {
+		$set: { status: true }
+	})
+		.then((response) => res.out({
+			message: local.saved_done,
+			insertedId: response.insertedId
+		}, enums.status_message.CREATED))
+		.catch((error) => res.out({
+			'message': error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+};
+
+
+
+module.exports.delete = (req, res) => {
+	mainController.delete(req, res, collectionName);
+};
