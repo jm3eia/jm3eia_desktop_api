@@ -142,10 +142,10 @@ module.exports.update_status = async (req, res) => {
 				message_title = req.custom.local.order_notification_title_7;
 			}
 			// Order Returned 8
-			else if (parseInt(req.body.status) === 8 && order.status != 8) {
-				message_body = req.custom.local.order_notification_body_8;
-				message_title = req.custom.local.order_notification_title_8;
-			}
+			// else if (parseInt(req.body.status) === 8 && order.status != 8) {
+			// 	message_body = req.custom.local.order_notification_body_8;
+			// 	message_title = req.custom.local.order_notification_title_8;
+			// }
 			// Order Ready to pick 12
 			else if (parseInt(req.body.status) === 12 && order.status != 12) {
 				message_body = req.custom.local.order_notification_body_12;
