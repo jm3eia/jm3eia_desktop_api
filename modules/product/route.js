@@ -5,6 +5,21 @@ const controller = require('./controller');
 
 
 /**
+ * POST /product
+ */
+router.post('/', controller.create);
+
+/**
+ * POST /product/approve
+ */
+router.put('/:Id/approve', controller.approve);
+
+/**
+ * POST /product/approve
+ */
+router.put('/:Id/refuse', controller.delete);
+
+/**
  * GET /product/:soft_code
  */
 router.get('/:soft_code', controller.info);
