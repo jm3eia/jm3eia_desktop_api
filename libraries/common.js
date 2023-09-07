@@ -98,10 +98,18 @@ module.exports.saveLog = async (
       logRecord.employee_username = username;
     }
 
+    const base_url = 'https://jameia.co/api/app';
+    const headers = {
+      'Content-Type': 'application/json',
+      'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+      'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+    }
+
     await axios({
       method: "post",
-      url: `${base_url}/employees?employee_id=${employee_id}&name=${req.body.name}&code=${req.body.username}&mobile=${req.body.mobile}&department=${req.body.department}`,
+      url: `${base_url}/save_log`,
       headers: headers,
+      data: logRecord
     });
 
     await log_collection.insertOne(logRecord);
