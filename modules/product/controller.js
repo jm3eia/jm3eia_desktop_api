@@ -710,6 +710,10 @@ module.exports.list = (req, res) => {
             req.custom.clean_filter['supplier_id'] = ObjectID(req.query.supplier_id);
         }
     }
+
+	if (req.query.status) {
+		req.custom.clean_filter['status'] = req.query.status;
+	}
 	mainController.list(req, res, collectionName);
 };
 

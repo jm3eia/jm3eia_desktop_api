@@ -42,6 +42,11 @@ router.get('/:Id/number', controller.readByOrderNumber);
 /**
  * GET /order/:Id/number
  */
+router.get('/:Id/mobile', controller.listByPhoneNumber);
+
+/**
+ * GET /order/:Id/number
+ */
 router.get('/:Id/status', controller.status);
 
 

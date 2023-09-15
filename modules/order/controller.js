@@ -767,6 +767,37 @@ module.exports.readByOrderNumber = async (req, res) => {
 	});
 };
 
+module.exports.listByPhoneNumber = async (req, res) => {
+	req.custom.clean_filter['user_data.mobile'] = req.params.Id;
+
+	const twoMonthsAgo = new Date();
+    twoMonthsAgo.setUTCMonth(twoMonthsAgo.getUTCMonth() - 2);
+
+	req.custom.clean_filter['created'] = { $gte: twoMonthsAgo };
+
+	mainController.list(req, res, collectionName, async (out) => {
+		out.data = out.data.map((doc) => {
+			try {
+				doc.products = doc.products.reduce((prod, curr) => {
+					//console.log(curr);
+					if (curr.supplier) {
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
+			} catch (error) { }
+
+			return doc;
+		});
+		res.out(out);
+	});
+};
+
 module.exports.status = async (req, res) => {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
