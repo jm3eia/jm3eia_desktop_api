@@ -771,7 +771,7 @@ module.exports.listByPhoneNumber = async (req, res) => {
 	req.custom.clean_filter['user_data.mobile'] = req.params.Id;
 
 	const twoMonthsAgo = new Date();
-    twoMonthsAgo.setUTCMonth(twoMonthsAgo.getUTCMonth() - 2);
+    twoMonthsAgo.setUTCMonth(twoMonthsAgo.getUTCMonth() - 1);
 
 	req.custom.clean_filter['created'] = { $gte: twoMonthsAgo };
 
