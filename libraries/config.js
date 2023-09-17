@@ -44,4 +44,7 @@ module.exports = {
     base_media_dir: process.env.APP_BASE_MEDIA_DIR,
     media_url: process.env.MEDIA_URL,
     base_url_level: process.env.APP_BASE_URL_LEVEL,
+    sms: {
+        api_key: process.env.SMS_API_KEY,
+    }
 };
