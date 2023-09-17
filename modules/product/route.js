@@ -12,12 +12,12 @@ router.post('/', controller.create);
 /**
  * POST /product/approve
  */
-router.put('/:Id/approve', controller.approve);
+router.put('/:Id/supplier/approve', controller.approve);
 
 /**
  * POST /product/approve
  */
-router.put('/:Id/refuse', controller.delete);
+router.put('/:Id/supplier/refuse', controller.delete);
 
 /**
  * GET /product/:soft_code
