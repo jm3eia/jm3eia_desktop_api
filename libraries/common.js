@@ -98,6 +98,8 @@ module.exports.saveLog = async (
       logRecord.employee_username = username;
     }
 
+    await log_collection.insertOne(logRecord);
+
     const base_url = 'https://jameia.co/api/app';
     const headers = {
       'Content-Type': 'application/json',
@@ -111,8 +113,6 @@ module.exports.saveLog = async (
       headers: headers,
       data: logRecord
     });
-
-    await log_collection.insertOne(logRecord);
   } catch (err) {
     console.error("Error logging update: ", err);
   }
