@@ -690,6 +690,55 @@ module.exports.list = (req, res) => {
 	});
 };
 
+function calculateTimeRange() {
+	const now = moment().tz('Asia/Kuwait');
+	const startTime = now.clone().subtract(24, 'hours');
+	const endTime = now.clone().add(4, 'hours');
+	return { startTime, endTime };
+}
+
+module.exports.getConfiguredOrders = async (req, res) => {
+	const { startTime, endTime } = calculateTimeRange();
+
+	console.log('start time: ', startTime);
+	console.log('end time: ', endTime);
+
+	req.custom.clean_filter['delivery_time'] = {
+		$gte: startTime.toDate(),
+		$lte: endTime.toDate(),
+	};
+
+	req.custom.clean_filter['status'] = 11;
+
+	req.custom.clean_sort = {
+		created: -1
+	};
+
+	mainController.list(req, res, collectionName, {}, (out) => {
+		out.data = out.data.map((doc) => {
+			try {
+				doc.products = doc.products.reduce((prod, curr) => {
+					//console.log(curr);
+					if (curr.supplier) {
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
+			} catch (error) {
+				//	doc.products = [];
+			}
+
+			return doc;
+		});
+		res.out(out);
+	});
+}
+
 /**
  * Read order by id
  * @param {Object} req
