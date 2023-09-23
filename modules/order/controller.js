@@ -691,10 +691,12 @@ module.exports.list = (req, res) => {
 };
 
 function calculateTimeRange() {
-	const now = common.getAdjustedDate();
-	const startTime = now.clone().subtract(24, 'hours');
-	const endTime = now.clone().add(4, 'hours');
-	return { startTime, endTime };
+	const start = common.getAdjustedDate();
+	const end = common.getAdjustedDate();
+	start.setHours(start.hours() - 24);
+  	end.setHours(end.hours() + 4);
+
+  	return { startTime: start, endTime: end };
 }
 
 module.exports.getConfiguredOrders = async (req, res) => {
@@ -704,8 +706,8 @@ module.exports.getConfiguredOrders = async (req, res) => {
 	console.log('end time: ', endTime);
 
 	req.custom.clean_filter['delivery_time'] = {
-		$gte: startTime.toDate(),
-		$lte: endTime.toDate(),
+		$gte: startTime,
+		$lte: endTime,
 	};
 
 	req.custom.clean_filter['status'] = 11;
