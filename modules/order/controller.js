@@ -434,26 +434,44 @@ module.exports.listDriverOrders = (req, res) => {
 
 
 module.exports.completed = (req, res) => {
+	//await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, req.query);
+
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	req.custom.clean_filter['created'] = {
+		$gte: thirtyDaysAgo
+	};
+
+	if (req.custom.authUser && req.custom.authUser.employee) {
+		req.custom.clean_filter['employee_username'] = req.custom.authUser.username;
+	}
+
+	req.custom.clean_filter['old_data.status'] = 14;
+	req.custom.clean_filter['new_data.status'] = 17;
+
+	mainController.list(req, res, "employee_logs");
+
+
 	//const collection = req.custom.db.client().collection(collectionName);
-	req.custom.limit = 200;
+	/* req.custom.limit = 200;
 	const currentDate = new Date();
 	const thirtyDaysAgo = new Date();
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 	req.custom.clean_filter['created'] = {
 		$gte: thirtyDaysAgo
 	  };
-	/* if (req.custom.authUser && req.custom.authUser.employee) {
+	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
 			req.custom.clean_filter['store_manager_username'] = req.custom.authUser.username;
 		else if (req.custom.authUser.department === 2)
 			req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 		else
 			req.custom.clean_filter['employee_username'] = req.custom.authUser.username;
-	} */
+	}
 
 	req.custom.clean_filter['status'] = 17;
 
-	mainController.list(req, res, collectionName, { order_number: 1 });
+	mainController.list(req, res, collectionName, { order_number: 1 }); */
 
 	/* collection.aggregate([
 		{
