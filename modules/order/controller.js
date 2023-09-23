@@ -451,7 +451,17 @@ module.exports.completed = (req, res) => {
 
 	req.custom.clean_sort = { created: -1 };
 
-	mainController.list(req, res, "employee_logs", { 'new_data.order_number': 1 });
+	mainController.list(req, res, "employee_logs", { 'new_data.order_number': 1 }, (out) => {
+		out.data = out.data.map(d => {
+			if (d.new_data && d.new_data.order_number) {
+				d.order_number = d.new_data.order_number;
+				delete d.new_data;
+			}
+			return d;
+		});
+
+		return res.out(out);
+	});
 
 
 	//const collection = req.custom.db.client().collection(collectionName);
