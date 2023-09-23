@@ -484,7 +484,7 @@ module.exports.completed = (req, res) => {
 				"_id.month": 1
 			}
 		}
-	]).toArray(async (err, result) => {
+	], {allowDiskUse:true}).toArray(async (err, result) => {
 		if (err) {
 			return res.out({
 				'message': err.message
