@@ -441,7 +441,7 @@ module.exports.completed = (req, res) => {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 	req.custom.clean_filter['created'] = {
 		$gte: thirtyDaysAgo,
-		$lt: currentDate
+		$lte: currentDate
 	  };
 	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
