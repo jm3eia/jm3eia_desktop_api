@@ -691,7 +691,7 @@ module.exports.list = (req, res) => {
 };
 
 function calculateTimeRange() {
-	const now = moment().tz('Asia/Kuwait');
+	const now = common.getAdjustedDate();
 	const startTime = now.clone().subtract(24, 'hours');
 	const endTime = now.clone().add(4, 'hours');
 	return { startTime, endTime };
