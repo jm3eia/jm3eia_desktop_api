@@ -435,6 +435,7 @@ module.exports.listDriverOrders = (req, res) => {
 
 module.exports.completed = (req, res) => {
 	//const collection = req.custom.db.client().collection(collectionName);
+	req.custom.limit = 200;
 	const currentDate = new Date();
 	const thirtyDaysAgo = new Date();
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
