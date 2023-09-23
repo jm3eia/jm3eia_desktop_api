@@ -449,6 +449,8 @@ module.exports.completed = (req, res) => {
 	req.custom.clean_filter['old_data.status'] = 14;
 	req.custom.clean_filter['new_data.status'] = 17;
 
+	req.custom.clean_sort = { created: -1 };
+
 	mainController.list(req, res, "employee_logs");
 
 
