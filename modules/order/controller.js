@@ -442,14 +442,14 @@ module.exports.completed = (req, res) => {
 	req.custom.clean_filter['created'] = {
 		$gte: thirtyDaysAgo
 	  };
-	if (req.custom.authUser && req.custom.authUser.employee) {
+	/* if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
 			req.custom.clean_filter['store_manager_username'] = req.custom.authUser.username;
 		else if (req.custom.authUser.department === 2)
 			req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 		else
 			req.custom.clean_filter['employee_username'] = req.custom.authUser.username;
-	}
+	} */
 
 	req.custom.clean_filter['status'] = 17;
 
