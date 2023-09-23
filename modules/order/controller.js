@@ -452,6 +452,9 @@ module.exports.completed = (req, res) => {
 			$match: data
 		},
 		{
+			$limit: 100
+		},
+		{
 			$project: {
 				order_number: 1,
 				status: 1,
@@ -484,7 +487,7 @@ module.exports.completed = (req, res) => {
 				"_id.month": 1
 			}
 		}
-	], {allowDiskUse:true}).toArray(async (err, result) => {
+	], { allowDiskUse:true }).toArray(async (err, result) => {
 		if (err) {
 			return res.out({
 				'message': err.message
