@@ -217,6 +217,8 @@ module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
     } else {
       return false;
     } */
+
+    console.log('CURRENT TIME: ', currentTime);
   const fromTimeParts = userWorkingTimes.from.split(":");
   const toTimeParts = userWorkingTimes.to.split(":");
 
