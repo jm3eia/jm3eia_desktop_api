@@ -199,7 +199,7 @@ function checkpolicy(req, res) {
 							auth: false,
 							message: local.failed_auth
 						});
-					} else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, new Date())) {
+					} else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, common.getDate())) {
 						reject({
 							success: false,
 							auth: false,
