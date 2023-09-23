@@ -201,7 +201,23 @@ module.exports.updateOrderEmployee = async (req, orderId, sku, action) => {
 } */
 
 module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
-  const fromTimeParts = userWorkingTimes.from.split(":");
+    const fromTime = new Date();
+    const toTime = new Date();
+
+    // Set the hours and minutes for fromTime and toTime
+    const [fromHours, fromMinutes] = userWorkingTimes.from.split(':');
+    fromTime.setHours(parseInt(fromHours), parseInt(fromMinutes), 0);
+
+    const [toHours, toMinutes] = userWorkingTimes.to.split(':');
+    toTime.setHours(parseInt(toHours), parseInt(toMinutes), 0);
+
+    // Check if the current time is within the working time range
+    if (currentTime >= fromTime || currentTime <= toTime) {
+      return true;
+    } else {
+      return false;
+    }
+  /* const fromTimeParts = userWorkingTimes.from.split(":");
   const toTimeParts = userWorkingTimes.to.split(":");
 
   const fromHour = parseInt(fromTimeParts[0], 10);
@@ -234,7 +250,7 @@ module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
       currentTimeInMinutes >= startWorkingTimeInMinutes - 10 &&
       currentTimeInMinutes <= endWorkingTimeInMinutes + 10
     );
-  }
+  } */
 };
 
 function send_to_multiple(message, device_tokens, wallet = false) {
