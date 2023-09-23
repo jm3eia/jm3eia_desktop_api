@@ -693,8 +693,8 @@ module.exports.list = (req, res) => {
 function calculateTimeRange() {
 	const start = common.getAdjustedDate();
 	const end = common.getAdjustedDate();
-	start.setHours(start.hours() - 24);
-  	end.setHours(end.hours() + 4);
+	start.setHours(start.getHours() - 24);
+  	end.setHours(end.getHours() + 4);
 
   	return { startTime: start, endTime: end };
 }
