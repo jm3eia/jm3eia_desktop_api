@@ -451,7 +451,7 @@ module.exports.completed = (req, res) => {
 
 	req.custom.clean_sort = { created: -1 };
 
-	mainController.list(req, res, "employee_logs");
+	mainController.list(req, res, "employee_logs", { 'new_data.order_number': 1 });
 
 
 	//const collection = req.custom.db.client().collection(collectionName);
