@@ -434,28 +434,30 @@ module.exports.listDriverOrders = (req, res) => {
 
 
 module.exports.completed = (req, res) => {
-	const collection = req.custom.db.client().collection(collectionName);
+	//const collection = req.custom.db.client().collection(collectionName);
 	const currentDate = new Date();
-	const data = {
-		created: { $lte: currentDate }
-	};
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	req.custom.clean_filter['created'] = {
+		$gte: thirtyDaysAgo,
+		$lt: currentDate
+	  };
 	if (req.custom.authUser && req.custom.authUser.employee) {
 		if (req.custom.authUser.department === 3)
-			data.store_manager_username = req.custom.authUser.username;
+			req.custom.clean_filter['store_manager_username'] = req.custom.authUser.username;
 		else if (req.custom.authUser.department === 2)
-			data.driver_username = req.custom.authUser.username;
+			req.custom.clean_filter['driver_username'] = req.custom.authUser.username;
 		else
-			data.employee_username = req.custom.authUser.username;
+			req.custom.clean_filter['employee_username'] = req.custom.authUser.username;
 	}
-	collection.aggregate([
+
+	req.custom.clean_filter['status'] = 17;
+
+	mainController.list(req, res, collectionName, { order_number: 1 });
+
+	/* collection.aggregate([
 		{
 			$match: data
-		},
-		{
-			$limit: 100
-		},
-		{
-			$sort: { created: -1 }
 		},
 		{
 			$project: {
@@ -535,7 +537,7 @@ module.exports.completed = (req, res) => {
 		});
 
 		return res.out(mergedResult.map(r => ({ ...r, month: r._id.month, year: r._id.year, _id: null })));
-	});;
+	}); */
 }
 
 
