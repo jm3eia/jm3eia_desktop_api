@@ -201,7 +201,7 @@ module.exports.updateOrderEmployee = async (req, orderId, sku, action) => {
 } */
 
 module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
-    const fromTime = new Date();
+    /* const fromTime = new Date();
     const toTime = new Date();
 
     // Set the hours and minutes for fromTime and toTime
@@ -216,8 +216,8 @@ module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
       return true;
     } else {
       return false;
-    }
-  /* const fromTimeParts = userWorkingTimes.from.split(":");
+    } */
+  const fromTimeParts = userWorkingTimes.from.split(":");
   const toTimeParts = userWorkingTimes.to.split(":");
 
   const fromHour = parseInt(fromTimeParts[0], 10);
@@ -250,7 +250,7 @@ module.exports.isWithinWorkingTime = (userWorkingTimes, currentTime) => {
       currentTimeInMinutes >= startWorkingTimeInMinutes - 10 &&
       currentTimeInMinutes <= endWorkingTimeInMinutes + 10
     );
-  } */
+  }
 };
 
 function send_to_multiple(message, device_tokens, wallet = false) {
