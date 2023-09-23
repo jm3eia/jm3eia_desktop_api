@@ -488,7 +488,7 @@ module.exports.completed = (req, res) => {
 		if (err) {
 			return res.out({
 				'message': err.message
-			}, status_message.UNEXPECTED_ERROR);
+			}, enums.status_message.UNEXPECTED_ERROR);
 		}
 
 		const uniqueMonths = result.map((item) => ({
