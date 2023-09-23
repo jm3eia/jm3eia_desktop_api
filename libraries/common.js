@@ -119,7 +119,7 @@ module.exports.saveLog = async (
 };
 
 module.exports.getAdjustedDate = (dateStr) => {
-  const date = new Date(dateStr);
+  const date = dateStr ? new Date(dateStr) : new Date();
   const timezoneOffset = date.getTimezoneOffset() * 60000;
   const adjusted_date = new Date(date.getTime() - timezoneOffset);
   return adjusted_date;

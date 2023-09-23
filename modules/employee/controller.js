@@ -150,7 +150,7 @@ module.exports.login = function (req, res) {
         }
 
         if (theuser.working_times) {
-            const currentTime = common.getAdjustedDate(new Date());
+            const currentTime = common.getAdjustedDate();
             if (!common.isWithinWorkingTime(theuser.working_times, currentTime)) {
                 return res.out({ message: `You cannot login outside your working times. ${theuser.working_times.from ? (' Please try again at ' + theuser.working_times.from) : ''})` }, enums.status_message.UNAUTHORIZED);
             }
