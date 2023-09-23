@@ -455,6 +455,9 @@ module.exports.completed = (req, res) => {
 			$limit: 100
 		},
 		{
+			$sort: { created: -1 }
+		},
+		{
 			$project: {
 				order_number: 1,
 				status: 1,
