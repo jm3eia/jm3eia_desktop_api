@@ -175,6 +175,7 @@ module.exports.update_status = async (req, res) => {
 
 		console.info('************** WE ARE HERE **************');
 		let remoteResponse = {};
+		let isRemoteSuccess = null;
 		if (parseInt(req.body.status) == 17) {
 			console.log('===============================================================');
 			try {
@@ -192,10 +193,14 @@ module.exports.update_status = async (req, res) => {
 				console.info('JM3EIA.TK RESPONSE: ', response.data);
 				console.log('===============================================================');
 				if (response && response.data && response.data.iserror == 0) {
+					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
+				} else {
+					isRemoteSuccess = false;
 				}
 			} catch(err) {
 				remoteResponse = err;
+				isRemoteSuccess = false;
 				console.error('JM3EIA.TK ERROR: ', err);
 				console.log('===============================================================');
 			}
