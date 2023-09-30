@@ -173,6 +173,12 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
+		const updated_order = await collection.findOne({
+			_id: ObjectID(req.params.Id)
+		})
+			.then((o) => o)
+			.catch(() => null);
+
 		console.info('************** WE ARE HERE **************');
 		let remoteResponse = {};
 		let isRemoteSuccess = null;
@@ -206,12 +212,6 @@ module.exports.update_status = async (req, res) => {
 			}
 
 		}
-
-		const updated_order = await collection.findOne({
-			_id: ObjectID(req.params.Id)
-		})
-			.then((o) => o)
-			.catch(() => null);
 		
 			
 		if (req.custom.authUser.employee) {
@@ -239,7 +239,11 @@ module.exports.update_status = async (req, res) => {
 				$set: toUpdate
 			});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse});
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+			
+			if (isRemoteSuccess) {
+				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+			}
 		}
 
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
