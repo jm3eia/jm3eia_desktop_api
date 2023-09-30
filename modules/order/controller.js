@@ -173,7 +173,7 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
-
+		console.log('************** WE ARE HERE **************');
 		if (parseInt(req.body.status) == 17) {
 			console.log('===============================================================');
 			try {
@@ -184,7 +184,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: JSON.stringify(updated_order)
+					data: JSON.stringify(order)
 				};
 				const response = await axios(config);
 				console.log('JM3EIA.TK RESPONSE: ', response);
