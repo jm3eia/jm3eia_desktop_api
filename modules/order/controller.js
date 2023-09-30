@@ -188,8 +188,8 @@ module.exports.update_status = async (req, res) => {
 					data: JSON.stringify(order)
 				};
 				const response = await axios(config);
-				remoteResponse = response;
-				console.info('JM3EIA.TK RESPONSE: ', response);
+				remoteResponse = response.data;
+				console.info('JM3EIA.TK RESPONSE: ', response.data);
 				console.log('===============================================================');
 				if (response && response.data && response.data.iserror == 0) {
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
