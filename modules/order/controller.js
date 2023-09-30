@@ -173,7 +173,7 @@ module.exports.update_status = async (req, res) => {
 			return false;
 		}
 
-		console.log('************** WE ARE HERE **************');
+		console.info('************** WE ARE HERE **************');
 		let remoteResponse = {};
 		if (parseInt(req.body.status) == 17) {
 			console.log('===============================================================');
@@ -189,9 +189,9 @@ module.exports.update_status = async (req, res) => {
 				};
 				const response = await axios(config);
 				remoteResponse = response;
-				console.log('JM3EIA.TK RESPONSE: ', response);
+				console.info('JM3EIA.TK RESPONSE: ', response);
 				console.log('===============================================================');
-				if (response && response.iserror == 0) {
+				if (response && response.data && response.data.iserror == 0) {
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
 				}
 			} catch(err) {
