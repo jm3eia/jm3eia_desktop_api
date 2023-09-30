@@ -228,6 +228,23 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
+		if (order.status == 17) {
+			try {
+				const config = {
+					method: 'POST',
+					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					},
+					data: JSON.stringify(order)
+				};
+				await axios(config);
+			} catch(err) {
+				console.error('ERROR - jm3eia.tk: ', err);
+			}
+		}
+
 		const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
 		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
