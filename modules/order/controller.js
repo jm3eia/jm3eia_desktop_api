@@ -175,6 +175,7 @@ module.exports.update_status = async (req, res) => {
 
 
 		if (parseInt(req.body.status) == 17) {
+			console.log('===============================================================');
 			try {
 				const config = {
 					method: 'POST',
@@ -183,16 +184,19 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: JSON.stringify(order)
+					data: JSON.stringify(updated_order)
 				};
 				const response = await axios(config);
 				console.log('JM3EIA.TK RESPONSE: ', response);
+				console.log('===============================================================');
 				if (response && response.iserror == 0) {
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
 				}
 			} catch(err) {
 				console.error('JM3EIA.TK ERROR: ', err);
+				console.log('===============================================================');
 			}
+
 		}
 
 		const updated_order = await collection.findOne({
