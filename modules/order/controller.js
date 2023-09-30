@@ -172,19 +172,42 @@ module.exports.update_status = async (req, res) => {
 		if (!req.custom.authUser.employee && /* ? [2, 12, 14].indexOf(req.body.status) === -1 : */ update_quantity_arr.indexOf(req.body.status) === -1) {
 			return false;
 		}
+
+
+		if (parseInt(req.body.status) == 17) {
+			try {
+				const config = {
+					method: 'POST',
+					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					},
+					data: JSON.stringify(order)
+				};
+				const response = await axios(config);
+				console.log('JM3EIA.TK RESPONSE: ', response);
+				if (response && response.iserror == 0) {
+					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
+				}
+			} catch(err) {
+				console.error('JM3EIA.TK ERROR: ', err);
+			}
+		}
+
 		const updated_order = await collection.findOne({
 			_id: ObjectID(req.params.Id)
 		})
 			.then((o) => o)
 			.catch(() => null);
-
+		
+			
 		if (req.custom.authUser.employee) {
 			let action = 'update_status';
+			let toUpdate = {};
 
 			/* if (parseInt(req.body.status) === 2) action = 'pickup';
 			if (parseInt(req.body.status) === 12) action = 'done'; */
-
-			let toUpdate = {};
 
 			if (req.custom.authUser.department === 1) {
 				toUpdate = { employee_username: req.custom.authUser.username }
@@ -225,23 +248,6 @@ module.exports.update_status = async (req, res) => {
 					created_at: new Date(),
 				};
 				await refresh_collection.insertOne(refresh_juice_data);
-			}
-		}
-
-		if (order.status == 17) {
-			try {
-				const config = {
-					method: 'POST',
-					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
-					},
-					data: JSON.stringify(order)
-				};
-				await axios(config);
-			} catch(err) {
-				console.error('ERROR - jm3eia.tk: ', err);
 			}
 		}
 
