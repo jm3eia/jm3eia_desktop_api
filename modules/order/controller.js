@@ -174,6 +174,7 @@ module.exports.update_status = async (req, res) => {
 		}
 
 		console.log('************** WE ARE HERE **************');
+		let remoteResponse = {};
 		if (parseInt(req.body.status) == 17) {
 			console.log('===============================================================');
 			try {
@@ -187,12 +188,14 @@ module.exports.update_status = async (req, res) => {
 					data: JSON.stringify(order)
 				};
 				const response = await axios(config);
+				remoteResponse = response;
 				console.log('JM3EIA.TK RESPONSE: ', response);
 				console.log('===============================================================');
 				if (response && response.iserror == 0) {
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
 				}
 			} catch(err) {
+				remoteResponse = err;
 				console.error('JM3EIA.TK ERROR: ', err);
 				console.log('===============================================================');
 			}
@@ -231,7 +234,7 @@ module.exports.update_status = async (req, res) => {
 				$set: toUpdate
 			});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, req.query);
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse});
 		}
 
 		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
