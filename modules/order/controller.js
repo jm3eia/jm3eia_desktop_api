@@ -179,11 +179,9 @@ module.exports.update_status = async (req, res) => {
 			.then((o) => o)
 			.catch(() => null);
 
-		console.info('************** WE ARE HERE **************');
 		let remoteResponse = {};
 		let isRemoteSuccess = null;
 		if (parseInt(req.body.status) == 17) {
-			console.log('===============================================================');
 			try {
 				const config = {
 					method: 'POST',
@@ -196,8 +194,6 @@ module.exports.update_status = async (req, res) => {
 				};
 				const response = await axios(config);
 				remoteResponse = response.data;
-				console.info('JM3EIA.TK RESPONSE: ', response.data);
-				console.log('===============================================================');
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
@@ -207,8 +203,46 @@ module.exports.update_status = async (req, res) => {
 			} catch(err) {
 				remoteResponse = err;
 				isRemoteSuccess = false;
-				console.error('JM3EIA.TK ERROR: ', err);
-				console.log('===============================================================');
+			}
+
+		}
+
+		if (parseInt(req.body.status) == 18) {
+			console.log('===============================================================');
+			const driverUsername = req.custom.authUser.department === 2 ? req.custom.authUser.username : order.driver_username;
+			if (driverUsername) {
+				try {
+					const config = {
+						method: 'POST',
+						url: 'https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3',
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+						data: JSON.stringify({
+							so_id: order._id.toString(),
+							  driverusername:  driverUsername
+	
+						})
+					};
+					const response = await axios(config);
+					remoteResponse = response.data;
+					console.info('JM3EIA.TK RESPONSE: ', response.data);
+					console.log('===============================================================');
+					if (response && response.data && response.data.iserror == 0) {
+						isRemoteSuccess = true;
+						await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
+					} else {
+						isRemoteSuccess = false;
+					}
+				} catch(err) {
+					remoteResponse = err;
+					isRemoteSuccess = false;
+					console.error('JM3EIA.TK ERROR: ', err);
+					console.log('===============================================================');
+				}
+			} else {
+				console.log('============= no driver username =============');
 			}
 
 		}
