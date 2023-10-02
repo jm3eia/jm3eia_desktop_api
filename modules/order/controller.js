@@ -220,8 +220,8 @@ module.exports.update_status = async (req, res) => {
 							'Content-Type': 'application/json',
 						},
 						data: JSON.stringify({
-							so_id: order._id.toString(),
-							  driverusername:  driverUsername
+							so_id: order.order_number,
+							driverusername:  driverUsername
 	
 						})
 					};
