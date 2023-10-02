@@ -238,7 +238,7 @@ module.exports.update_status = async (req, res) => {
 				} catch(err) {
 					remoteResponse = err;
 					isRemoteSuccess = false;
-					console.error('JM3EIA.TK ERROR: ', err.data && err.data.errors ? err.data.errors[0] : err);
+					console.error('JM3EIA.TK ERROR: ', err.response.data && err.response.data.errors ? err.response.data.errors[0] : err);
 					console.log('===============================================================');
 				}
 			} else {
