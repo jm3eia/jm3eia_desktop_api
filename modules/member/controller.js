@@ -204,7 +204,7 @@ module.exports.update = async (req, res) => {
 		if (err || !doc) {
 			return res.out({
 				message: req.custom.local.id_not_valid
-			}, status_message.INVALID_URL_PARAMETER);
+			}, enums.status_message.INVALID_URL_PARAMETER);
 		}
 
 		collection.updateOne({ _id: ObjectID(req.params.Id) }, {
