@@ -85,6 +85,8 @@ router.put('/:Id/driver_details/remove', controller.remove_driver_details);
  */
 router.put('/:Id/delivery_time', controller.update_delivery_time);
 
+router.put('/:Id/delivery_time_only', controller.update_delivery_time_only);
+
 /**
  * PUT /order/:Id/address
  */
