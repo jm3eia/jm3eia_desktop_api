@@ -750,11 +750,11 @@ module.exports.update_delivery_time_only = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	console.info('delivery time: ', req.body.delivery_time, common.getDate(req.body.delivery_time));
+	console.info('delivery time: ', req.body.delivery_time, new Date(moment(req.body.delivery_time)));
 
 	collection.updateOne({ _id: ObjectID(req.params.Id) },
 		{
-			$set: { delivery_time: common.getDate(req.body.delivery_time) },
+			$set: { delivery_time: new Date(moment(req.body.delivery_time)) },
 		}).then((response) => res.out({
 			message: req.custom.local.saved_done
 		}, enums.status_message.UPDATED))
