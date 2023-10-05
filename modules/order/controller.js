@@ -19,7 +19,8 @@ const collectionName = "order";
  */
 module.exports.update_status = async (req, res) => {
 
-	const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
+	try {
+		const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
 
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order
@@ -387,6 +388,10 @@ module.exports.update_status = async (req, res) => {
 
 		Promise.all(promises).catch((err) => console.log(err));
 	});
+	} catch (err) {
+		console.error('UPDATE STATUS ERROR: ', err);
+		return res.out({}, enums.status_message.UNEXPECTED_ERROR);
+	}
 };
 
 /**
