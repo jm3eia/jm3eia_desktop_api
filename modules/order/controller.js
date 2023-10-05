@@ -856,11 +856,8 @@ function calculateTimeRange() {
   	return { startTime: start, endTime: end };
 }
 
-module.exports.getConfiguredOrders = async (req, res) => {
+module.exports.getConfiguredOrders = (req, res) => {
 	const { startTime, endTime } = calculateTimeRange();
-
-	console.log('start time: ', startTime);
-	console.log('end time: ', endTime);
 
 	req.custom.clean_filter['delivery_time'] = {
 		$gte: startTime,
