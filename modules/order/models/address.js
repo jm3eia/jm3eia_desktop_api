@@ -1,54 +1,52 @@
 // Brand model
-const ObjectID = require("../../../types/object_id");
-const Field = require("../../../libraries/field");
+const ObjectID = require("mongodb").ObjectID;
 const common = require('../../../libraries/common');
-const config = require("../../../config");
 
 module.exports = {
 	/* "city_name": new Field({
 		"required": true,
 	}), */
-	"city_id": new Field({
+	"city_id": {
 		"type": ObjectID,
 		"collection": "city",
-		"required": true,
-	}),
-	"widget": new Field({
+		"requred": true,
+	},
+	"widget": {
 		"default": "",
 		"required": false,
-	}),
-	"street": new Field({
+	},
+	"street": {
 		"default": "",
 		"required": false,
-	}),
-	"gada": new Field({
+	},
+	"gada": {
 		"default": "",
 		"required": false
-	}),
-	"house": new Field({
+	},
+	"house": {
 		"default": "",
 		"required": false,
-	}),
-	"floor": new Field({
+	},
+	"floor": {
 		"default": "",
 		"required": false
-	}),
-	"latitude": new Field({
+	},
+	"latitude": {
 		"required": false
-	}),
-	"longitude": new Field({
+	},
+	"longitude": {
 		"required": false
-	}),
-	"created": new Field({
+	},
+	"created": {
 		"type": Date,
 		"default": common.getDate(),
 		"insertOnly": true,
 		"auto": true
-	}),
-	"modified": new Field({
+	},
+	"modified": {
 		"type": Date,
 		"default": common.getDate(),
 		"updateOnly": true,
 		"auto": true
-	})
+	}
 };
