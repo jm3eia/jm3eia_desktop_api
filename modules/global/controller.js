@@ -68,8 +68,9 @@ module.exports.changeStatus = async (req, res) => {
     const collection = req.custom.db.client().collection('order');
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const update = await collection.updateMany({ status: 11, delivery_time: { $gte: today } }, { $set: { status: 2 } });
+    const update = await collection.updateMany({ status: 11, created: { $gte: today } }, { $set: { status: 2 } });
 
     return res.out({ update, today });
 
