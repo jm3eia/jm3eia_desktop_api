@@ -3,4 +3,8 @@ module.exports = {
         "type": Boolean,
         "required": true
     },
+    "employees": {
+        "type": Array,
+        "required": true
+    }
 };

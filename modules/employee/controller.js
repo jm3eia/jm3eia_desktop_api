@@ -86,10 +86,48 @@ module.exports.updatePassword = (req, res) => {
 };
 
 
-module.exports.updateStatus = (req, res) => {
-    req.custom.model = require('./models/update_status');
-
-    mainController.update(req, res, collectionName);
+module.exports.updateStatus = async (req, res) => {
+    try {
+        if (req.custom.isAuthorized === false) {
+            return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+        }
+        if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
+            return res.out({
+                'message': req.custom.local.id_not_valid
+            }, enums.status_message.INVALID_URL_PARAMETER);
+        }
+        const collection = req.custom.db.client().collection(collectionName);
+        const local = req.custom.local;
+        req.custom.model = require('./models/update_status');
+        const {
+            data,
+            unset,
+            error
+        } = await req.custom.getValidData(req);
+        if (error) {
+            return res.out(error, enums.status_message.VALIDATION_ERROR);
+        }
+        data.lastUser_update = ObjectID(req.custom.authUser.userId);
+        const row = {
+            $set: data
+        };
+        if (Object.keys(unset).length > 0) {
+            row["$unset"] = unset;
+        }
+        req.custom.cache.unset(collectionName).catch(() => { });
+        
+        if (data.employees && data.employees.length > 0) {
+            await collection.updateMany({ _id: { $in: data.employees.map(e => ObjectID(e)) } }, row);
+        }
+    
+        return res.out({
+            message: local.saved_done
+        }, enums.status_message.UPDATED)
+    } catch (err) {
+        return res.out({
+			message: err.message
+		}, enums.status_message.UNEXPECTED_ERROR)
+    }
 };
 
 /**
