@@ -37,12 +37,6 @@ module.exports = {
 	"longitude": {
 		"required": false
 	},
-	"created": {
-		"type": Date,
-		"default": common.getDate(),
-		"insertOnly": true,
-		"auto": true
-	},
 	"modified": {
 		"type": Date,
 		"default": common.getDate(),
