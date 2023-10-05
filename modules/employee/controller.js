@@ -85,6 +85,13 @@ module.exports.updatePassword = (req, res) => {
     mainController.update(req, res, collectionName);
 };
 
+
+module.exports.updateStatus = (req, res) => {
+    req.custom.model = require('./models/update_status');
+
+    mainController.update(req, res, collectionName);
+};
+
 /**
  * Delete employee
  * @param {Object} req
