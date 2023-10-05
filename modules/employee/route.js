@@ -6,7 +6,7 @@ const controller = require('./controller');
 /**
  * POST /employee/login
  */
-router.post('/login', controller.login);
+router.post('/signin', controller.login);
 
 /**
  * POST /employee/logout
