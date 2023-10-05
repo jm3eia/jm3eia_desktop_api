@@ -696,9 +696,18 @@ module.exports.update_address = async (req, res) => {
 		return res.out(error, enums.status_message.VALIDATION_ERROR);
 	}
 
+	if (data.city_id) {
+		const city_collection = req.custom.db.client().collection('city');
+		const city = await city_collection.findOne({ _id: ObjectID(data.city_id.toString()) }, { projection: { _id: 1, name: 1, city_number: 1 } });
+		data.city = city;
+		if (city) data.city_name = city.name['ar']
+	}
+
 	collection.updateOne({ _id: ObjectID(req.params.Id) },
 		{
-			$set: data,
+			$set: {
+				'user_data.address': data
+			},
 		}).then((response) => res.out({
 			message: req.custom.local.saved_done
 		}, enums.status_message.UPDATED))

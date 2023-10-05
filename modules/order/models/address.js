@@ -5,9 +5,9 @@ const common = require('../../../libraries/common');
 const config = require("../../../config");
 
 module.exports = {
-	"city_name": new Field({
+	/* "city_name": new Field({
 		"required": true,
-	}),
+	}), */
 	"city_id": new Field({
 		"type": ObjectID,
 		"collection": "city",
