@@ -75,5 +75,6 @@ module.exports = {
 		"3": "First",
 		"4": "Extenal supplier",
 		"5": "Refresh"
-	}
+	},
+	order_being_processed: "This order is being processed by another suppluer"
 };

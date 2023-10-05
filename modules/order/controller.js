@@ -31,6 +31,10 @@ module.exports.update_status = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
+	if (order.status === parseInt(req.body.status)) {
+		return res.out({ message: req.custom.local.order_being_processed }, enums.status_message.VALIDATION_ERROR);
+	}
+
 	const member_collection = req.custom.db.client().collection('member');
 	const user_info = order && order.user_data && order.user_data._id ?
 		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
