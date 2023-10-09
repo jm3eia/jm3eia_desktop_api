@@ -43,6 +43,12 @@ module.exports.update_status = async (req, res) => {
 	req.custom.model = require('./models/update_status')
 	mainController.update(req, res, collectionName, async () => {
 
+		try {
+			update_status_webhook(req.params.Id, req.body.status);
+		} catch (err) {
+			console.err('webhook error');
+		}
+
 		// Order Completed 4
 		if (parseInt(req.body.status) === 4 && order.status != 4) {
 
@@ -1364,4 +1370,20 @@ function update_product_quantity_in_order(req, res, action) {
 				}, enums.status_message.UNEXPECTED_ERROR));
 		});
 	});
+}
+
+
+const update_status_webhook = (order_id, status) => {
+	var config = {
+		method: 'put',
+		url: `https://jameia.co/api/app/order-status/?status=${status}&id=${order_id}`,
+		headers: {
+			'Content-Type': 'application/json',
+			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+      		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+		},
+	};
+
+	axios(config).then(response => console.log(response)).catch(err => console.error(req.originalUrl, err));
+
 }
