@@ -1406,10 +1406,10 @@ const update_status_desktop_webhook = (order_id, status) => {
 		}
 	}
 	axios(config).then(response => {
-		console.log(req.originalUrl, "update_status_desktop_webhook: ", response.data)
+		console.log("update_status_desktop_webhook: ", response.data)
 		return response.data;
 	}).catch(err => {
-		console.error(req.originalUrl, err);
+		console.error(err);
 		return err;
 	});
 }
