@@ -192,7 +192,7 @@ module.exports.update_status = async (req, res) => {
 
 		let remoteResponse = {};
 		let isRemoteSuccess = null;
-		if (parseInt(req.body.status) == 17) {
+		/* if (parseInt(req.body.status) == 17) {
 			try {
 				const config = {
 					method: 'POST',
@@ -256,7 +256,7 @@ module.exports.update_status = async (req, res) => {
 				console.log('============= no driver username =============');
 			}
 
-		}
+		} */
 		
 			
 		if (req.custom.authUser.employee) {
