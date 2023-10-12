@@ -221,6 +221,7 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
+				console.log('========== CATCHED =========', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
 			}
