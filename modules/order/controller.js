@@ -1395,7 +1395,7 @@ const update_status_webhook = (order_id, status) => {
 const update_status_desktop_webhook = (order_id, status) => {
 	var config = {
 		method: 'post',
-		url: 'https://jm3eia.tk:83/SalesOrder//UpdateOrderStatusToX',
+		url: 'https://jm3eia.tk:83/SalesOrder/UpdateOrderStatusToX',
 		headers: {
 			'Accept': 'application/json',
 			'Content-Type': 'application/json',
