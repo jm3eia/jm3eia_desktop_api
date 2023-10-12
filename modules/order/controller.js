@@ -207,6 +207,7 @@ module.exports.update_status = async (req, res) => {
 				};
 				const response = await axios(config);
 				remoteResponse = response.data;
+				console.log('=================== RESPONSE LIKE: ============', response.data);
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
@@ -1387,7 +1388,7 @@ const update_status_webhook = (order_id, status) => {
 		},
 	};
 
-	axios(config).then(response => console.log(response)).catch(err => console.error(req.originalUrl, err));
+	axios(config).then(response => console.log(response.data)).catch(err => console.error(err));
 
 }
 
