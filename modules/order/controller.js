@@ -208,6 +208,11 @@ module.exports.update_status = async (req, res) => {
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
+					try {
+						update_status_webhook(req.params.Id, 8);
+					} catch (err) {
+						console.err('webhook error');
+					}
 				} else {
 					isRemoteSuccess = false;
 				}
