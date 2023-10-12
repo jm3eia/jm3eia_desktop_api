@@ -203,7 +203,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: JSON.stringify(order)
+					data: order
 				};
 				const response = await axios(config);
 				remoteResponse = response.data;
@@ -239,11 +239,10 @@ module.exports.update_status = async (req, res) => {
 							'Accept': 'application/json',
 							'Content-Type': 'application/json',
 						},
-						data: JSON.stringify({
+						data: {
 							so_id: order.order_number,
 							driverusername:  driverUsername
-	
-						})
+						}
 					};
 					const response = await axios(config);
 					remoteResponse = response.data;
