@@ -45,6 +45,7 @@ module.exports.update_status = async (req, res) => {
 
 		try {
 			update_status_webhook(req.params.Id, req.body.status);
+			update_status_desktop_webhook(req.params.Id, req.body.status);
 		} catch (err) {
 			console.err('webhook error');
 		}
@@ -191,6 +192,7 @@ module.exports.update_status = async (req, res) => {
 			.catch(() => null);
 
 		let remoteResponse = {};
+		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		if (parseInt(req.body.status) == 17) {
 			try {
@@ -210,6 +212,7 @@ module.exports.update_status = async (req, res) => {
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
 					try {
 						update_status_webhook(req.params.Id, 8);
+						updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
 					} catch (err) {
 						console.err('webhook error');
 					}
@@ -224,7 +227,6 @@ module.exports.update_status = async (req, res) => {
 		}
 
 		if (parseInt(req.body.status) == 18) {
-			console.log('===============================================================');
 			const driverUsername = req.custom.authUser.department === 2 ? req.custom.authUser.username : order.driver_username;
 			if (driverUsername) {
 				try {
@@ -243,8 +245,6 @@ module.exports.update_status = async (req, res) => {
 					};
 					const response = await axios(config);
 					remoteResponse = response.data;
-					console.info('JM3EIA.TK RESPONSE: ', response.data);
-					console.log('===============================================================');
 					if (response && response.data && response.data.iserror == 0) {
 						isRemoteSuccess = true;
 						await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
@@ -254,8 +254,6 @@ module.exports.update_status = async (req, res) => {
 				} catch(err) {
 					remoteResponse = err;
 					isRemoteSuccess = false;
-					console.error('JM3EIA.TK ERROR: ', err);
-					console.log('===============================================================');
 				}
 			} else {
 				console.log('============= no driver username =============');
@@ -289,10 +287,10 @@ module.exports.update_status = async (req, res) => {
 				$set: toUpdate
 			});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess, update_status_remote_response: updateStatusRemoteResponse});
 			
 			if (isRemoteSuccess) {
-				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess, update_status_remote_response: updateStatusRemoteResponse});
 			}
 		}
 
@@ -1391,4 +1389,27 @@ const update_status_webhook = (order_id, status) => {
 
 	axios(config).then(response => console.log(response)).catch(err => console.error(req.originalUrl, err));
 
+}
+
+
+const update_status_desktop_webhook = (order_id, status) => {
+	var config = {
+		method: 'post',
+		url: 'https://jm3eia.tk:83/SalesOrder//UpdateOrderStatusToX',
+		headers: {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json',
+		},
+		data: {
+			order_id: order_id,
+			status: status
+		}
+	}
+	axios(config).then(response => {
+		console.log(req.originalUrl, "update_status_desktop_webhook: ", response.data)
+		return response.data;
+	}).catch(err => {
+		console.error(req.originalUrl, err);
+		return err;
+	});
 }
