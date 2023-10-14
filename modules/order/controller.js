@@ -205,9 +205,10 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: order
 				};
+				console.log('we are here guys');
 				const response = await axios(config);
-				remoteResponse = response.data;
 				console.log('========================= RESPONSE LIKE: ================', response.data);
+				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
