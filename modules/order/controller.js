@@ -207,21 +207,17 @@ module.exports.update_status = async (req, res) => {
 				};
 				const response = await axios(config);
 				remoteResponse = response.data;
-				console.log('=================== RESPONSE LIKE: ============', response.data);
+				console.log('========================= RESPONSE LIKE: ================', response.data);
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
-					try {
-						update_status_webhook(req.params.Id, 8);
-						updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
-					} catch (err) {
-						console.err('webhook error');
-					}
+					update_status_webhook(req.params.Id, 8);
+					updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
 				} else {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
-				console.log('========== CATCHED =========', err);
+				console.log('========================= CATCHED =======================', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
 			}
@@ -1410,7 +1406,7 @@ const update_status_desktop_webhook = (order_id, status) => {
 		console.log("update_status_desktop_webhook: ", response.data)
 		return response.data;
 	}).catch(err => {
-		console.error(err);
+		console.error(err.response.data);
 		return err;
 	});
 }
