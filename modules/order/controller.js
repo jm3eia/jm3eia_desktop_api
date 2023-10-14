@@ -47,7 +47,7 @@ module.exports.update_status = async (req, res) => {
 			update_status_webhook(req.params.Id, req.body.status);
 			update_status_desktop_webhook(req.params.Id, req.body.status);
 		} catch (err) {
-			console.err('webhook error');
+			console.err('**** webhook error ****');
 		}
 
 		// Order Completed 4
@@ -195,6 +195,7 @@ module.exports.update_status = async (req, res) => {
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		if (parseInt(req.body.status) == 17) {
+			console.log('================== IT IS 17 ===================')
 			try {
 				const config = {
 					method: 'POST',
@@ -205,7 +206,7 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: order
 				};
-				console.log('we are here guys');
+				console.log('************** we are here guys *******************');
 				const response = await axios(config);
 				console.log('========================= RESPONSE LIKE: ================', response.data);
 				remoteResponse = response.data;
