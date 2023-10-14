@@ -43,12 +43,8 @@ module.exports.update_status = async (req, res) => {
 	req.custom.model = require('./models/update_status')
 	mainController.update(req, res, collectionName, async () => {
 
-		try {
-			update_status_webhook(req.params.Id, req.body.status);
-			update_status_desktop_webhook(req.params.Id, req.body.status);
-		} catch (err) {
-			console.err('**** webhook error ****');
-		}
+		update_status_webhook(req.params.Id, req.body.status);
+		update_status_desktop_webhook(req.params.Id, req.body.status);
 
 		// Order Completed 4
 		if (parseInt(req.body.status) === 4 && order.status != 4) {
@@ -194,8 +190,9 @@ module.exports.update_status = async (req, res) => {
 		let remoteResponse = {};
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
+		console.log('================== IS IT IS 17 ? ===================');
 		if (parseInt(req.body.status) == 17) {
-			console.log('================== IT IS 17 ===================')
+			console.log('================== IT IS 17 ===================');
 			try {
 				const config = {
 					method: 'POST',
