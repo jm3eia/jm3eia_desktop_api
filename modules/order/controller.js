@@ -190,9 +190,7 @@ module.exports.update_status = async (req, res) => {
 		let remoteResponse = {};
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
-		console.log('================== IS IT IS 17 ? ===================');
 		if (parseInt(req.body.status) == 17) {
-			console.log('================== IT IS 17 ===================');
 			try {
 				const config = {
 					method: 'POST',
@@ -203,7 +201,6 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: order
 				};
-				console.log('************** we are here guys *******************');
 				const response = await axios(config);
 				console.log('========================= RESPONSE LIKE: ================', response.data);
 				remoteResponse = response.data;
