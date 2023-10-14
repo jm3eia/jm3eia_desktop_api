@@ -202,6 +202,7 @@ module.exports.update_status = async (req, res) => {
 					data: order
 				};
 				const response = await axios(config);
+				console.log(order._id, '========================= REQUEST LIKE: ================', order);
 				console.log(order._id, '========================= RESPONSE LIKE: ================', response.data);
 				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
