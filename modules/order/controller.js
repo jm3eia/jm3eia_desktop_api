@@ -199,7 +199,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: order
+					data: JSON.stringify(order)
 				};
 				const response = await axios(config);
 				console.log(order._id, '========================= RESPONSE LIKE: ================', response.data);
