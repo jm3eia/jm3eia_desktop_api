@@ -44,7 +44,7 @@ module.exports.update_status = async (req, res) => {
 	mainController.update(req, res, collectionName, async () => {
 
 		update_status_webhook(req.params.Id, req.body.status);
-		update_status_desktop_webhook(req.params.Id, req.body.status);
+		//update_status_desktop_webhook(req.params.Id, req.body.status);
 
 		// Order Completed 4
 		if (parseInt(req.body.status) === 4 && order.status != 4) {
@@ -208,7 +208,7 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = true;
 					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
 					update_status_webhook(req.params.Id, 8);
-					updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
+					//updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
 				} else {
 					isRemoteSuccess = false;
 				}
@@ -280,10 +280,10 @@ module.exports.update_status = async (req, res) => {
 				$set: toUpdate
 			});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess, update_status_remote_response: updateStatusRemoteResponse});
+			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
 			
 			if (isRemoteSuccess) {
-				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess, update_status_remote_response: updateStatusRemoteResponse});
+				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
 			}
 		}
 
