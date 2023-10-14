@@ -1398,7 +1398,7 @@ const update_status_desktop_webhook = (order_id, status) => {
 		},
 		data: {
 			order_id: order_id,
-			status: status
+			status: parseInt(status)
 		}
 	}
 	axios(config).then(response => {
