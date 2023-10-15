@@ -107,5 +107,10 @@ router.put('/:Id/product/:soft_code', controller.update_product_quantity);
  */
 router.get('/status/report', controller.status_report);
 
+/**
+ * GET /order/remote_requests
+ */
+router.get('/remote_requests', controller.get_remote_requests);
+
 
 module.exports = router;

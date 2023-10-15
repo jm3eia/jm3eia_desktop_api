@@ -190,6 +190,7 @@ module.exports.update_status = async (req, res) => {
 		let remoteResponse = {};
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
+		const response_collection = req.custom.db.client().collection("remote_requests_logs");
 		if (parseInt(req.body.status) == 17) {
 			try {
 				const config = {
@@ -204,6 +205,7 @@ module.exports.update_status = async (req, res) => {
 				const response = await axios(config);
 				console.log(order._id, '========================= REQUEST LIKE: ================', order);
 				console.log(order._id, '========================= RESPONSE LIKE: ================', response.data);
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
 				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
 					isRemoteSuccess = true;
@@ -238,6 +240,10 @@ module.exports.update_status = async (req, res) => {
 						}
 					};
 					const response = await axios(config);
+					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
+						so_id: order.order_number,
+						driverusername:  driverUsername
+					}, response: response.data, created: new Date() });
 					remoteResponse = response.data;
 					if (response && response.data && response.data.iserror == 0) {
 						isRemoteSuccess = true;
@@ -1213,6 +1219,19 @@ module.exports.status_report = async (req, res) => {
 		res.out(out);
 	});
 };
+
+
+module.exports.get_remote_requests = async (req, res) => {
+	if (req.query.order_id) {
+		req.custom.clean_filter['request.order._id'] = ObjectID(req.query.order_id);
+	}
+	if (req.query.order_number) {
+		req.custom.clean_filter['request.order.order_number'] = req.query.order_number;
+	}
+	mainController.list(req, res, 'remote_requests_logs');
+}
+
+
 
 function get_remote_token(req) {
 	if (
