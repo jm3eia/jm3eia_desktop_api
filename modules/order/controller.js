@@ -203,8 +203,6 @@ module.exports.update_status = async (req, res) => {
 					data: order
 				};
 				const response = await axios(config);
-				console.log(order._id, '========================= REQUEST LIKE: ================', order);
-				console.log(order._id, '========================= RESPONSE LIKE: ================', response.data);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
 				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
@@ -216,15 +214,19 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
+				if (err.data && err.data.errors) {
+					console.log(err.data.errors);
+				}
 				console.log('========================= CATCHED =======================', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: err.data, created: new Date() });
 			}
 
 		}
 
 		if (parseInt(req.body.status) == 18) {
-			const driverUsername = req.query.employee_department === 2 ? req.query.employee_username : order.driver_username;
+			const driverUsername = req.body.employee_department === 2 ? req.body.employee_username : order.driver_username;
 			if (driverUsername) {
 				try {
 					const config = {
@@ -254,6 +256,10 @@ module.exports.update_status = async (req, res) => {
 				} catch(err) {
 					remoteResponse = err;
 					isRemoteSuccess = false;
+					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
+						so_id: order.order_number,
+						driverusername:  driverUsername
+					}, response: err.data, created: new Date() });
 				}
 			} else {
 				console.log('============= no driver username =============');
@@ -261,20 +267,20 @@ module.exports.update_status = async (req, res) => {
 
 		}
 			
-		if (req.query.employee_username) {
+		if (req.body.employee_username) {
 			let action = 'update_status';
 			let toUpdate = {};
 
-			if (req.query.employee_department === 1) {
-				toUpdate = { employee_username: req.query.employee_username }
+			if (req.body.employee_department === 1) {
+				toUpdate = { employee_username: req.body.employee_username }
 			}
 
-			if (req.query.department === 2) {
-				toUpdate = { driver_username: req.query.employee_username }
+			if (req.body.employee_department === 2) {
+				toUpdate = { driver_username: req.body.employee_username }
 			}
 
-			if (req.query.department === 3) {
-				toUpdate = { store_manager_username: req.query.employee_username }
+			if (req.body.employee_department === 3) {
+				toUpdate = { store_manager_username: req.body.employee_username }
 			}
 
 			await collection.updateOne({
