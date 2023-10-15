@@ -1128,10 +1128,10 @@ module.exports.refundToWallet = async (req, res) => {
  * @param {Object} res
  */
 module.exports.delete_product = (req, res) => {
-	if (!req.custom.authUser.employee) {
+	/* if (!req.custom.authUser.employee) {
 		const local = req.custom.local;
 		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
-	}
+	} */
 	req.body.quantity = 0;
 	update_product_quantity_in_order(req, res, 'product_delete');
 };
@@ -1142,10 +1142,10 @@ module.exports.delete_product = (req, res) => {
  * @param {Object} res
  */
 module.exports.update_product_quantity = (req, res) => {
-	if (!req.custom.authUser.employee) {
+	/* if (!req.custom.authUser.employee) {
 		const local = req.custom.local;
 		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
-	}
+	} */
 	update_product_quantity_in_order(req, res, 'product_update_quantity');
 };
 
