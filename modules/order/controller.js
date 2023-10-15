@@ -200,7 +200,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: order
+					data: { order  }
 				};
 				const response = await axios(config);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
@@ -214,13 +214,13 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
-				if (err.data && err.data.errors) {
-					console.log(err.data.errors);
+				if (err.response.data && err.response.data.errors) {
+					console.log(err.response.data.errors);
 				}
 				console.log('========================= CATCHED =======================', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: err.data, created: new Date() });
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: err.response.data, created: new Date() });
 			}
 
 		}
@@ -259,7 +259,7 @@ module.exports.update_status = async (req, res) => {
 					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
 						so_id: order.order_number,
 						driverusername:  driverUsername
-					}, response: err.data, created: new Date() });
+					}, response: err.response.data, created: new Date() });
 				}
 			} else {
 				console.log('============= no driver username =============');
