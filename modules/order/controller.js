@@ -200,7 +200,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: { order  }
+					data: { order, employee_username: req.body.employee_username }
 				};
 				const response = await axios(config);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
