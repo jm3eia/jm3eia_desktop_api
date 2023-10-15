@@ -177,9 +177,9 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
-		if (!req.custom.authUser.employee && /* ? [2, 12, 14].indexOf(req.body.status) === -1 : */ update_quantity_arr.indexOf(req.body.status) === -1) {
+		/* if (!req.custom.authUser.employee && ? [2, 12, 14].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
 			return false;
-		}
+		} */
 
 		const updated_order = await collection.findOne({
 			_id: ObjectID(req.params.Id)
@@ -224,7 +224,7 @@ module.exports.update_status = async (req, res) => {
 		}
 
 		if (parseInt(req.body.status) == 18) {
-			const driverUsername = req.custom.authUser.department === 2 ? req.custom.authUser.username : order.driver_username;
+			const driverUsername = req.query.employee_department === 2 ? req.query.employee_username : order.driver_username;
 			if (driverUsername) {
 				try {
 					const config = {
@@ -260,25 +260,21 @@ module.exports.update_status = async (req, res) => {
 			}
 
 		}
-		
 			
-		if (req.custom.authUser.employee) {
+		if (req.query.employee_username) {
 			let action = 'update_status';
 			let toUpdate = {};
 
-			/* if (parseInt(req.body.status) === 2) action = 'pickup';
-			if (parseInt(req.body.status) === 12) action = 'done'; */
-
-			if (req.custom.authUser.department === 1) {
-				toUpdate = { employee_username: req.custom.authUser.username }
+			if (req.query.employee_department === 1) {
+				toUpdate = { employee_username: req.query.employee_username }
 			}
 
-			if (req.custom.authUser.department === 2) {
-				toUpdate = { driver_username: req.custom.authUser.username }
+			if (req.query.department === 2) {
+				toUpdate = { driver_username: req.query.employee_username }
 			}
 
-			if (req.custom.authUser.department === 3) {
-				toUpdate = { store_manager_username: req.custom.authUser.username }
+			if (req.query.department === 3) {
+				toUpdate = { store_manager_username: req.query.employee_username }
 			}
 
 			await collection.updateOne({
