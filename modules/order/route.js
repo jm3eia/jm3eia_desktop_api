@@ -10,6 +10,11 @@ const controller = require('./controller');
 router.get('/', controller.list);
 
 /**
+ * GET /order/remote_requests
+ */
+router.get('/remote_requests', controller.get_remote_requests);
+
+/**
  * GET /order/
  */
 router.get('/configured', controller.getConfiguredOrders);
@@ -106,11 +111,6 @@ router.put('/:Id/product/:soft_code', controller.update_product_quantity);
  * PUT /order/status/report
  */
 router.get('/status/report', controller.status_report);
-
-/**
- * GET /order/remote_requests
- */
-router.get('/remote_requests', controller.get_remote_requests);
 
 
 module.exports = router;
