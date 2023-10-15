@@ -194,12 +194,12 @@ module.exports.login = function (req, res) {
             }, status_message.UNEXPECTED_ERROR);
         }
 
-        if (theuser.working_times) {
+        /* if (theuser.working_times) {
             const currentTime = common.getDate();
             if (!common.isWithinWorkingTime(theuser.working_times, currentTime)) {
                 return res.out({ message: `You cannot login outside your working times. ${theuser.working_times.from ? (' Please try again at ' + theuser.working_times.from) : ''})` }, enums.status_message.UNAUTHORIZED);
             }
-        }
+        } */
 
 
         var token = jwt.sign({

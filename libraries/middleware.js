@@ -199,13 +199,13 @@ function checkpolicy(req, res) {
 							auth: false,
 							message: local.failed_auth
 						});
-					} else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, common.getDate())) {
+					}/*  else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, common.getDate())) {
 						reject({
 							success: false,
 							auth: false,
 							message: `You are outside your working times. ${decoded.working_times.from ? (' Please try again at ' + decoded.working_times.from) : ''})`
 						});
-					} else {
+					} */ else {
 						resolve(decoded);
 					}
 				}).catch(error => {
