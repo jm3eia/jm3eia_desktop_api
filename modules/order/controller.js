@@ -40,7 +40,8 @@ module.exports.update_status = async (req, res) => {
 	const user_info = order && order.user_data && order.user_data._id ?
 		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 
-	req.custom.model =  require('./models/update_status');
+	if (order.order_number) req.body.order_number = order.order_number;
+
 	//if (order.order_number) req.body.order_number;
 	if (parseInt(req.body.status) == 11) {
 		try {
@@ -55,6 +56,8 @@ module.exports.update_status = async (req, res) => {
 		/* if (req.custom.model.order_number)
 			delete req.custom.model.order_number; */
 	}
+
+	req.custom.model = require('./models/update_status');
 
 	mainController.update(req, res, collectionName, async () => {
 
