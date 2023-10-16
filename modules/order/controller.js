@@ -45,7 +45,7 @@ module.exports.update_status = async (req, res) => {
 	if (parseInt(req.body.status) == 11) {
 		try {
 			const remote_order_number = await get_remote_order_number(order._id.toString());
-			if (remote_order_number) req.body.order_number = remote_order_number;
+			if (remote_order_number) req.body.order_number = remote_order_number.toString();
 			//else delete req.custom.model.order_number;
 		} catch(err) {
 			console.error('ERROR GETTING ORDER NUMBER: ', err);
