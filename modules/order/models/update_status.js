@@ -5,6 +5,10 @@ module.exports = {
         "type": Number,
         "required": true
     },
+    "order_number": {
+        "type": Number,
+        "required": false
+    },
     "modified": {
         "type": Date,
         "default": new Date(),

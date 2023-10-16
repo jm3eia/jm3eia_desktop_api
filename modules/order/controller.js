@@ -40,7 +40,22 @@ module.exports.update_status = async (req, res) => {
 	const user_info = order && order.user_data && order.user_data._id ?
 		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 
-	req.custom.model = require('./models/update_status')
+	req.custom.model =  require('./models/update_status');
+	//if (order.order_number) req.body.order_number;
+	if (parseInt(req.body.status) == 11) {
+		try {
+			const remote_order_number = await get_remote_order_number(order._id.toString());
+			if (remote_order_number) req.body.order_number = remote_order_number;
+			else delete req.custom.model.order_number;
+		} catch(err) {
+			console.error('ERROR GETTING ORDER NUMBER: ', err);
+			delete req.custom.model.order_number;
+		}
+	} else {
+		if (req.custom.model.order_number)
+			delete req.custom.model.order_number;
+	}
+
 	mainController.update(req, res, collectionName, async () => {
 
 		update_status_webhook(req.params.Id, req.body.status);
@@ -1412,6 +1427,21 @@ const update_status_webhook = (order_id, status) => {
 
 	axios(config).then(response => console.log(response.data)).catch(err => console.error(err));
 
+}
+
+const get_remote_order_number = async (order_id) => {
+	var config = {
+		method: 'get',
+		url: `https://jameia.co/api/app/get_order_number/${order_id}`,
+		headers: {
+			'Content-Type': 'application/json',
+			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+      		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+		},
+	};
+
+	const response = await axios(config);
+	return response.data ? response.data.success : null;
 }
 
 
