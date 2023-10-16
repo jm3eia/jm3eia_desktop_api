@@ -6,12 +6,12 @@ const controller = require('./controller');
 /**
  * POST /employee/login
  */
-router.post('/signin', controller.login);
+//router.post('/signin', controller.login);
 
 /**
  * POST /employee/logout
  */
-router.post('/logout', controller.logout);
+//router.post('/logout', controller.logout);
 
 /**
  * GET /employee/me
