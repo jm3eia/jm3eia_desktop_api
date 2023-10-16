@@ -336,7 +336,7 @@ module.exports.saveActionLog = async (
   newData = {},
   oldData = {}
 ) => {
-  try {
+  /* try {
     if (action == "UPDATE") {
       if (oldData.hasOwnProperty("created")) delete oldData.created;
       if (oldData.hasOwnProperty("modified")) delete oldData.modified;
@@ -365,5 +365,5 @@ module.exports.saveActionLog = async (
     await call_api(`${base_url}/save_log`, "POST", logRecord);
   } catch (err) {
     console.error("Error logging update: ", err);
-  }
+  } */
 };
