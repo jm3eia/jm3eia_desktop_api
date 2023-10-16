@@ -191,7 +191,12 @@ function checkpolicy(req, res) {
 			}
 
 			if (decoded.employee) {
-				const employee_collection = req.custom.db.client().collection('employee');
+				reject({
+					success: false,
+					auth: false,
+					message: local.failed_auth
+				});
+				/* const employee_collection = req.custom.db.client().collection('employee');
 				employee_collection.findOne({ _id: ObjectID(decoded.userId.toString()) }).then(employee => {
 					if (employee.token_status === 0) {
 						reject({
@@ -199,13 +204,13 @@ function checkpolicy(req, res) {
 							auth: false,
 							message: local.failed_auth
 						});
-					}/*  else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, common.getDate())) {
+					} else if (employee.working_times && !common.isWithinWorkingTime(employee.working_times, common.getDate())) {
 						reject({
 							success: false,
 							auth: false,
 							message: `You are outside your working times. ${decoded.working_times.from ? (' Please try again at ' + decoded.working_times.from) : ''})`
 						});
-					} */ else {
+					} else {
 						resolve(decoded);
 					}
 				}).catch(error => {
@@ -214,7 +219,7 @@ function checkpolicy(req, res) {
 						auth: false,
 						message: local.failed_auth
 					});
-				});
+				}); */
 			} else {
 				resolve(decoded);
 			}
