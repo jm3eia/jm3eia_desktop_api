@@ -1441,6 +1441,7 @@ const get_remote_order_number = async (order_id) => {
 	};
 
 	const response = await axios(config);
+	console.log('=============== GET ORDER NUMBER ', response.data, '===================');
 	return response.data ? response.data.success : null;
 }
 
