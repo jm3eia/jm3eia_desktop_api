@@ -6,7 +6,7 @@ module.exports = {
         "required": true
     },
     "order_number": {
-        "type": Number,
+        "type": String,
         "required": false
     },
     "modified": {
