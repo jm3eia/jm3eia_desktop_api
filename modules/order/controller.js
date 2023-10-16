@@ -1227,9 +1227,15 @@ module.exports.get_remote_requests = async (req, res) => {
 	if (req.query.order_id) {
 		req.custom.clean_filter['request._id'] = ObjectID(req.query.order_id);
 	}
+
 	if (req.query.order_number) {
 		req.custom.clean_filter['request.order_number'] = req.query.order_number;
 	}
+
+	if (req.query.iserror) {
+		req.custom.clean_filter['response.iserror'] = parseInt(req.query.iserror);
+	}
+
 	mainController.list(req, res, 'remote_requests_logs');
 }
 
