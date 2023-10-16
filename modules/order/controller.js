@@ -193,6 +193,7 @@ module.exports.update_status = async (req, res) => {
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
 		const fieldsToConvertToNumber = ['value', 'total', 'subtotal', 'shipping_cost', 'price', 'old_price'];
 		if (parseInt(req.body.status) == 17) {
+			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username}, fieldsToConvertToNumber);
 			try {
 				const config = {
 					method: 'POST',
@@ -201,7 +202,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: convertFieldsToNumbers({...order, employee_username: req.body.employee_username}, fieldsToConvertToNumber)
+					data: convertedOrder
 				};
 				const response = await axios(config);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
@@ -1459,4 +1460,16 @@ function convertFieldsToNumbers(obj, fieldsToConvert) {
 	}
   
 	return newObj;
+  }
+
+function convertFieldsToStrings(obj) {
+	if (obj.data && Array.isArray(obj.data)) {
+		obj.data = obj.data.map(d => {
+			return { ...d, products: d.products.map(p => ({...p, price: p.price.toString()})) }
+		});
+	}
+	if (obj.products && Array.isArray(obj.products)) {
+		obj.products = obj.products.map(p => ({...p, price: p.price.toString()}))
+	}
+	return obj;
   }
