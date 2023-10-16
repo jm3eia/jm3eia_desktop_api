@@ -46,14 +46,14 @@ module.exports.update_status = async (req, res) => {
 		try {
 			const remote_order_number = await get_remote_order_number(order._id.toString());
 			if (remote_order_number) req.body.order_number = remote_order_number;
-			else delete req.custom.model.order_number;
+			//else delete req.custom.model.order_number;
 		} catch(err) {
 			console.error('ERROR GETTING ORDER NUMBER: ', err);
-			delete req.custom.model.order_number;
+			//delete req.custom.model.order_number;
 		}
 	} else {
-		if (req.custom.model.order_number)
-			delete req.custom.model.order_number;
+		/* if (req.custom.model.order_number)
+			delete req.custom.model.order_number; */
 	}
 
 	mainController.update(req, res, collectionName, async () => {
