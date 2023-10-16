@@ -191,6 +191,7 @@ module.exports.update_status = async (req, res) => {
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
+		const fieldsToConvertToNumber = ['value', 'total', 'subtotal', 'shipping_cost', 'price', 'old_price'];
 		if (parseInt(req.body.status) == 17) {
 			try {
 				const config = {
@@ -200,7 +201,7 @@ module.exports.update_status = async (req, res) => {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json',
 					},
-					data: { order, employee_username: req.body.employee_username }
+					data: convertFieldsToNumbers({...order, employee_username: req.body.employee_username}, fieldsToConvertToNumber)
 				};
 				const response = await axios(config);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: order, response: response.data, created: new Date() });
@@ -1434,3 +1435,28 @@ const update_status_desktop_webhook = (order_id, status) => {
 		return err;
 	});
 }
+
+function convertFieldsToNumbers(obj, fieldsToConvert) {
+	if (typeof obj !== 'object') {
+	  return obj;
+	}
+  
+	if (Array.isArray(obj)) {
+	  return obj.map((item) => convertFieldsToNumbers(item, fieldsToConvert));
+	}
+  
+	const newObj = { ...obj };
+  
+	for (const key in newObj) {
+	  if (fieldsToConvert.includes(key) && typeof newObj[key] === 'string') {
+		newObj[key] = parseFloat(newObj[key]);
+		if (isNaN(newObj[key])) {
+		  newObj[key] = null; // Set to null if it couldn't be converted to a number
+		}
+	  } else {
+		newObj[key] = convertFieldsToNumbers(newObj[key], fieldsToConvert);
+	  }
+	}
+  
+	return newObj;
+  }
