@@ -337,7 +337,7 @@ module.exports.update_status = async (req, res) => {
 			}
 		}
 
-		const skus = updated_order.products.map((p) => p.sku.toString());
+		/* const skus = updated_order.products.map((p) => p.sku.toString());
 		const prod_collection = req.custom.db.client().collection('product');
 		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
 		const the_products = await prod_collection.find(filter)
@@ -417,7 +417,7 @@ module.exports.update_status = async (req, res) => {
 			promises.push(update);
 		}
 
-		Promise.all(promises).catch((err) => console.log(err));
+		Promise.all(promises).catch((err) => console.log(err)); */
 	});
 	} catch (err) {
 		console.error('UPDATE STATUS ERROR: ', err);
