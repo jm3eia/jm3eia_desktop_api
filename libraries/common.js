@@ -70,7 +70,7 @@ module.exports.saveLog = async (
   username = null,
   query = {}
 ) => {
-  try {
+  /* try {
     const log_collection = req.custom.db.client().collection("employee_logs");
     const logRecord = {
       action: action,
@@ -115,7 +115,7 @@ module.exports.saveLog = async (
     });
   } catch (err) {
     console.error("Error logging update: ", err);
-  }
+  } */
 };
 
 module.exports.getAdjustedDate = (dateStr) => {
@@ -336,7 +336,7 @@ module.exports.saveActionLog = async (
   newData = {},
   oldData = {}
 ) => {
-  /* try {
+  try {
     if (action == "UPDATE") {
       if (oldData.hasOwnProperty("created")) delete oldData.created;
       if (oldData.hasOwnProperty("modified")) delete oldData.modified;
@@ -365,5 +365,5 @@ module.exports.saveActionLog = async (
     await call_api(`${base_url}/save_log`, "POST", logRecord);
   } catch (err) {
     console.error("Error logging update: ", err);
-  } */
+  }
 };
