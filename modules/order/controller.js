@@ -246,7 +246,7 @@ module.exports.update_status = async (req, res) => {
 		}
 
 		if (parseInt(req.body.status) == 18) {
-			const driverUsername = req.body.employee_department === 2 ? req.body.employee_username : order.driver_username;
+			const driverUsername = req.body.employee_department && parseInt(req.body.employee_department) === 2 ? req.body.employee_username : order.driver_username;
 			if (driverUsername) {
 				try {
 					const config = {
