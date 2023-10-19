@@ -257,7 +257,7 @@ module.exports.update_status = async (req, res) => {
 							'Content-Type': 'application/json',
 						},
 						data: {
-							so_number: order.order_number,
+							so_number: order._id.toString(),
 							driverusername:  driverUsername,
 							delivery_remarks: "",
 							user_id: 0
@@ -265,7 +265,7 @@ module.exports.update_status = async (req, res) => {
 					};
 					const response = await axios(config);
 					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
-						so_number: order.order_number,
+						so_number: order._id.toString(),
 						driverusername:  driverUsername,
 						delivery_remarks: "",
 						user_id: 0
