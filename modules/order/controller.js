@@ -257,14 +257,18 @@ module.exports.update_status = async (req, res) => {
 							'Content-Type': 'application/json',
 						},
 						data: {
-							so_id: order.order_number,
-							driverusername:  driverUsername
+							so_number: order.order_number,
+							driverusername:  driverUsername,
+							delivery_remarks: "",
+							user_id: 0
 						}
 					};
 					const response = await axios(config);
 					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
-						so_id: order.order_number,
-						driverusername:  driverUsername
+						so_number: order.order_number,
+						driverusername:  driverUsername,
+						delivery_remarks: "",
+						user_id: 0
 					}, response: response.data, created: new Date() });
 					remoteResponse = response.data;
 					if (response && response.data && response.data.iserror == 0) {
