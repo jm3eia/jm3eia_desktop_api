@@ -222,7 +222,7 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: convertedOrder
 				};
-				console.log(convertedOrder);
+				//console.log(convertedOrder);
 				const response = await axios(config).catch(err => console.log('ERROR: ', err.response.data));
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: response.data, created: new Date() });
 				remoteResponse = response.data;
@@ -235,10 +235,10 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
-				//console.log('========================= CATCHED =======================', err);
-				remoteResponse = err.response.data;
+				console.log('========================= CATCHED =======================', err);
+				remoteResponse = err;
 				isRemoteSuccess = false;
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: err.response.data, created: new Date() }).catch(err => console.log('that is the real error: ', err));
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: err.response && err.response.data ? err.response.data : err.response, created: new Date() }).catch(err => console.log('that is the real error: ', err));
 			}
 
 		}
