@@ -209,7 +209,6 @@ module.exports.update_status = async (req, res) => {
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
-		console.log('WE are here: ', req.body.status);
 		if (parseInt(req.body.status) == 17) {
 
 			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username});
@@ -223,6 +222,7 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: convertedOrder
 				};
+				console.log(convertedOrder);
 				const response = await axios(config).catch(err => console.log('ERROR: ', err.response.data));
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: response.data, created: new Date() });
 				remoteResponse = response.data;
@@ -235,7 +235,7 @@ module.exports.update_status = async (req, res) => {
 					isRemoteSuccess = false;
 				}
 			} catch(err) {
-				console.log('========================= CATCHED =======================', err.response.data);
+				//console.log('========================= CATCHED =======================', err);
 				remoteResponse = err.response.data;
 				isRemoteSuccess = false;
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: err.response.data, created: new Date() }).catch(err => console.log('that is the real error: ', err));
