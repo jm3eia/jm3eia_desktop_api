@@ -238,7 +238,7 @@ module.exports.update_status = async (req, res) => {
 				console.log('========================= CATCHED =======================', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: {}, response: err.response && err.response.data ? err.response.data : err.response, created: new Date() }).catch(err => console.log('that is the real error: ', err));
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: {}, response: err.response && err.response.data ? err.response.data : err.response, created: new Date() });
 			}
 
 		}
