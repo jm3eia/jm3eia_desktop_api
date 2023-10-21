@@ -1501,9 +1501,23 @@ const update_status_desktop_webhook = (order_id, status) => {
 
 function convertFields(obj) {
 	if (obj.data && Array.isArray(obj.data)) {
-		obj.data = obj.data.map(d => {
+		/* obj.data = obj.data.map(d => {
 			return { ...d, products: d.products.map(p => ({...p, price: p.price.toString()})) }
-		});
+		}); */
+	const new_data = [];
+
+	for (const d of obj.data) {
+		if (d.products && d.products.length > 0) {
+			const products = [];
+			for (const p of d.products) {
+				products.push({...p, price: p.price.toString()});
+			}
+			new_data.push({ ...d, products: products });
+		}
+	}
+
+	obj.data = new_data;
+
 	}
 	if (obj.products && Array.isArray(obj.products)) {
 		obj.products = obj.products.map(p => ({...p, price: p.price.toString()}))
