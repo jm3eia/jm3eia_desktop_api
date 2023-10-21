@@ -213,7 +213,6 @@ module.exports.update_status = async (req, res) => {
 
 			const convertedOrder = convertFields({...order, employee_username: req.body.employee_username});
 			try {
-				console.log('WE ARE HERE: ', order._id);
 				const config = {
 					method: 'POST',
 					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
@@ -225,6 +224,7 @@ module.exports.update_status = async (req, res) => {
 				};
 				//console.log(convertedOrder);
 				const response = await axios(config);
+				console.log('RESPONSE: ', order._id, response.data);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: response.data, created: new Date() });
 				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
