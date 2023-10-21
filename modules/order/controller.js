@@ -211,7 +211,7 @@ module.exports.update_status = async (req, res) => {
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
 		if (parseInt(req.body.status) == 17) {
 
-			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username});
+			const convertedOrder = order;//convertFieldsToStrings({...order, employee_username: req.body.employee_username});
 			try {
 				const config = {
 					method: 'POST',
