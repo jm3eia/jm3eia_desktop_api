@@ -211,7 +211,7 @@ module.exports.update_status = async (req, res) => {
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
 		if (parseInt(req.body.status) == 17) {
 
-			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username});
+			const convertedOrder = convertFields({...order, employee_username: req.body.employee_username});
 			try {
 				const config = {
 					method: 'POST',
@@ -1473,7 +1473,7 @@ const update_status_desktop_webhook = (order_id, status) => {
 	});
 }
 
-function convertFieldsToNumbers(obj, fieldsToConvert) {
+/* function convertFieldsToNumbers(obj, fieldsToConvert) {
 	if (typeof obj !== 'object') {
 	  return obj;
 	}
@@ -1496,9 +1496,9 @@ function convertFieldsToNumbers(obj, fieldsToConvert) {
 	}
   
 	return newObj;
-  }
+  } */
 
-function convertFieldsToStrings(obj) {
+function convertFields(obj) {
 	if (obj.data && Array.isArray(obj.data)) {
 		obj.data = obj.data.map(d => {
 			return { ...d, products: d.products.map(p => ({...p, price: p.price.toString()})) }
@@ -1507,5 +1507,6 @@ function convertFieldsToStrings(obj) {
 	if (obj.products && Array.isArray(obj.products)) {
 		obj.products = obj.products.map(p => ({...p, price: p.price.toString()}))
 	}
+	if (obj.user_data && obj.user_data.wallet) obj.user_data.wallet = 0;
 	return obj;
   }
