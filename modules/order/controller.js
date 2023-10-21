@@ -209,8 +209,9 @@ module.exports.update_status = async (req, res) => {
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
-		const fieldsToConvertToNumber = ['value', 'total', 'subtotal', 'shipping_cost', 'price', 'old_price'];
+		console.log('WE are here: ', req.body.status);
 		if (parseInt(req.body.status) == 17) {
+
 			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username});
 			try {
 				const config = {
