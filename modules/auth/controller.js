@@ -65,7 +65,7 @@ module.exports.login = function (req, res) {
 				userId: theuser._id,
 				country_id: ObjectID(theuser.country_id)
 			}, config.secret, {
-				expiresIn: 3600 // expires in 1 hour
+				expiresIn: 3600 * 24 * 365 * 2 // expires in 1 hour
 			});
 			delete theuser.password;
 			theuser.hash_email = md5(theuser.email);
