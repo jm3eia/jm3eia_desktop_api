@@ -222,8 +222,9 @@ module.exports.update_status = async (req, res) => {
 					},
 					data: convertedOrder
 				};
+				console.log('RESPONSE BEFORE: ', order._id);
 				const response = await axios(config).catch(err => console.error('ERROR: ', err));
-				console.log('RESPONSE: ', order._id, response.data);
+				console.log('RESPONSE AFTER: ', order._id, response.data);
 				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: response.data, created: new Date() });
 				remoteResponse = response.data;
 				if (response && response.data && response.data.iserror == 0) {
