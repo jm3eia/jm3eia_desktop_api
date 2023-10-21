@@ -211,7 +211,7 @@ module.exports.update_status = async (req, res) => {
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
 		if (parseInt(req.body.status) == 17) {
 
-			const convertedOrder = order;//convertFieldsToStrings({...order, employee_username: req.body.employee_username});
+			const convertedOrder = convertFieldsToStrings({...order, employee_username: req.body.employee_username});
 			try {
 				const config = {
 					method: 'POST',
@@ -238,7 +238,7 @@ module.exports.update_status = async (req, res) => {
 				console.log('========================= CATCHED =======================', err);
 				remoteResponse = err;
 				isRemoteSuccess = false;
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: err.response && err.response.data ? err.response.data : err.response, created: new Date() }).catch(err => console.log('that is the real error: ', err));
+				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: {}, response: err.response && err.response.data ? err.response.data : err.response, created: new Date() }).catch(err => console.log('that is the real error: ', err));
 			}
 
 		}
