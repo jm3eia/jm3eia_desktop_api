@@ -213,6 +213,7 @@ module.exports.update_status = async (req, res) => {
 
 			const convertedOrder = convertFields({...order, employee_username: req.body.employee_username});
 			try {
+				console.log('WE ARE HERE: ', order._id);
 				const config = {
 					method: 'POST',
 					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
