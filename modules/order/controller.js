@@ -209,7 +209,7 @@ module.exports.update_status = async (req, res) => {
 		let updateStatusRemoteResponse = {};
 		let isRemoteSuccess = null;
 		const response_collection = req.custom.db.client().collection("remote_requests_logs");
-		if (parseInt(req.body.status) == 17) {
+		/* if (parseInt(req.body.status) == 17) {
 
 			const convertedOrder = convertFields({...order, employee_username: req.body.employee_username});
 			try {
@@ -288,7 +288,7 @@ module.exports.update_status = async (req, res) => {
 				console.log('============= no driver username =============');
 			}
 
-		}
+		} */
 			
 		if (req.body.employee_username) {
 			let action = 'update_status';
