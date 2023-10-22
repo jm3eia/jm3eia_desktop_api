@@ -32,17 +32,20 @@ module.exports.update_status = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	/* if (order.status === parseInt(req.body.status)) {
+	if (order.status === parseInt(req.body.status)) {
 		return res.out({ message: req.custom.local.order_being_processed }, enums.status_message.VALIDATION_ERROR);
-	} */
+	}
 
 	const member_collection = req.custom.db.client().collection('member');
 	const user_info = order && order.user_data && order.user_data._id ?
 		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
 
-	if (order.order_number) req.body.order_number = order.order_number;
-
-	//if (order.order_number) req.body.order_number;
+		if (order.order_number && parseInt(req.body.status) === 14 && !req.body.order_number) req.body.order_number = order.order_number;
+		
+		if (order.order_number && parseInt(req.body.status) !== 14 ) req.body.order_number = order.order_number;
+		
+	
+	/* //if (order.order_number) req.body.order_number;
 	if (parseInt(req.body.status) == 11) {
 		try {
 			const remote_order_number = await get_remote_order_number(order._id.toString());
@@ -50,12 +53,8 @@ module.exports.update_status = async (req, res) => {
 			//else delete req.custom.model.order_number;
 		} catch(err) {
 			console.error('ERROR GETTING ORDER NUMBER: ', err);
-			//delete req.custom.model.order_number;
 		}
-	} else {
-		/* if (req.custom.model.order_number)
-			delete req.custom.model.order_number; */
-	}
+	} */
 
 	req.custom.model = require('./models/update_status');
 
