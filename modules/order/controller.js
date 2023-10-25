@@ -746,12 +746,15 @@ module.exports.update_address = async (req, res) => {
 			$set: {
 				'user_data.address': data
 			},
-		}).then((response) => res.out({
-			message: req.custom.local.saved_done
-		}, enums.status_message.UPDATED))
+		}).then((response) => {
+			update_remote_order_address(req.params.Id, data);
+			return res.out({
+				message: req.custom.local.saved_done
+			}, enums.status_message.UPDATED)
+		})
 		.catch((error) => res.out({
 			message: error.message
-		}, enums.status_message.UNEXPECTED_ERROR));;
+		}, enums.status_message.UNEXPECTED_ERROR));
 }
 
 module.exports.update_delivery_time = async (req, res) => {
@@ -1447,6 +1450,23 @@ const get_remote_order_number = async (order_id) => {
 
 	const response = await axios(config);
 	console.log('=============== GET ORDER NUMBER ', response.data, '===================');
+	return response.data ? response.data.success : null;
+}
+
+const update_remote_order_address = async (order_id, data) => {
+	var config = {
+		method: 'put',
+		url: `https://jameia.co/api/app/order-address/${order_id}`,
+		headers: {
+			'Content-Type': 'application/json',
+			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+      		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+		},
+		data
+	};
+
+	const response = await axios(config);
+	console.log('=============== UPDATE REMOTE ORDER ADDRESS ', response.data, '===================');
 	return response.data ? response.data.success : null;
 }
 
