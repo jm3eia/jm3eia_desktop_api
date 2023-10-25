@@ -1482,7 +1482,6 @@ const update_remote_order_delivery_time = async (order_id, delivery_time) => {
 			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
       		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
 		},
-		data
 	};
 
 	const response = await axios(config);
