@@ -800,14 +800,17 @@ module.exports.update_delivery_time_only = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	console.info('delivery time: ', req.body.delivery_time, new Date(moment(req.body.delivery_time)));
+	const new_delivery_time = new Date(moment(req.body.delivery_time));
 
 	collection.updateOne({ _id: ObjectID(req.params.Id) },
 		{
-			$set: { delivery_time: new Date(moment(req.body.delivery_time)) },
-		}).then((response) => res.out({
-			message: req.custom.local.saved_done
-		}, enums.status_message.UPDATED))
+			$set: { delivery_time: new_delivery_time },
+		}).then((response) => {
+			update_remote_order_delivery_time(req.params.Id, new_delivery_time);
+			return res.out({
+				message: req.custom.local.saved_done
+			}, enums.status_message.UPDATED);
+		})
 		.catch((error) => res.out({
 			message: error.message
 		}, enums.status_message.UNEXPECTED_ERROR));;
@@ -1457,6 +1460,23 @@ const update_remote_order_address = async (order_id, data) => {
 	var config = {
 		method: 'put',
 		url: `https://jameia.co/api/app/order-address/${order_id}`,
+		headers: {
+			'Content-Type': 'application/json',
+			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+      		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+		},
+		data
+	};
+
+	const response = await axios(config);
+	console.log('=============== UPDATE REMOTE ORDER ADDRESS ', response.data, '===================');
+	return response.data ? response.data.success : null;
+}
+
+const update_remote_order_delivery_time = async (order_id, delivery_time) => {
+	var config = {
+		method: 'put',
+		url: `https://jameia.co/api/app/order-address/${order_id}?delivery_time=${delivery_time}`,
 		headers: {
 			'Content-Type': 'application/json',
 			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
