@@ -804,9 +804,9 @@ module.exports.update_delivery_time_only = async (req, res) => {
 
 	collection.updateOne({ _id: ObjectID(req.params.Id) },
 		{
-			$set: { delivery_time: req.body.delivery_time },
+			$set: { delivery_time: new_delivery_time },
 		}).then((response) => {
-			update_remote_order_delivery_time(req.params.Id, new_delivery_time);
+			update_remote_order_delivery_time(req.params.Id, req.body.delivery_time);
 			return res.out({
 				message: req.custom.local.saved_done
 			}, enums.status_message.UPDATED);
