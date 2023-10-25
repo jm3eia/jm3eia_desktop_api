@@ -1476,7 +1476,7 @@ const update_remote_order_address = async (order_id, data) => {
 const update_remote_order_delivery_time = async (order_id, delivery_time) => {
 	var config = {
 		method: 'put',
-		url: `https://jameia.co/api/app/order-address/${order_id}?delivery_time=${delivery_time}`,
+		url: `https://jameia.co/api/app/update-order/${order_id}?delivery_time=${delivery_time}`,
 		headers: {
 			'Content-Type': 'application/json',
 			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
