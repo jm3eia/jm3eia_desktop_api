@@ -113,4 +113,7 @@ router.put('/:Id/product/:soft_code', controller.update_product_quantity);
 router.get('/status/report', controller.status_report);
 
 
+router.patch('/make_inserted', controller.make_orders_inserted);
+
 module.exports = router;
+

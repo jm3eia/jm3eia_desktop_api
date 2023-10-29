@@ -857,6 +857,10 @@ module.exports.list = (req, res) => {
 		req.custom.clean_filter['payment_method.id'] = req.query.payment_method;
 	}
 
+	if (req.query.failed == 'true') {
+		req.custom.clean_filter['inserted_remotly'] = false;
+	}
+
 	req.custom.clean_sort = {
 		created: -1
 	};
@@ -1562,4 +1566,25 @@ function convertFields(obj) {
 	}
 	if (obj.user_data && obj.user_data.wallet) obj.user_data.wallet = 0;
 	return obj;
+  }
+
+  module.exports.make_orders_inserted = async function(req, res) {
+	try {
+		if (!req.body.orders || req.body.orders.length < 1 || req.body.orders.findIndex(o => !ObjectID.isValid(o)) > -1) {
+			return res.out({ message: "Orders not valid" }, enums.status_message.VALIDATION_ERROR);
+		}
+	
+		const collection = req.custom.db.client().collection(collectionName);
+	
+		await collection.updateMany({ _id: { $in: req.body.orders.map(o => ObjectID(o)) } }, { $set: { inserted_remotly: true } });
+	
+		return res.out({
+			message: req.custom.local.saved_done
+		}, enums.status_message.UPDATED);
+	} catch (err) {
+		return res.out({
+			message: err.message
+		}, enums.status_message.UNEXPECTED_ERROR);
+	}
+
   }
