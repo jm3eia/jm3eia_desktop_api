@@ -868,6 +868,7 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
+				if (!doc.data) doc.data = get_order_data(order);
 				doc.products = doc.products.reduce((prod, curr) => {
 					//console.log(curr);
 					if (curr.supplier) {
@@ -948,6 +949,7 @@ module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {
+			if (!doc.data) doc.data = get_order_data(order);
 			doc.products = doc.products.reduce((prod, curr) => {
 				var keyName = curr.supplier.name.en;
 				keyName = keyName.replace(' ', '_');
@@ -1026,6 +1028,7 @@ module.exports.listByPhoneNumber = async (req, res) => {
 	mainController.list(req, res, collectionName, async (out) => {
 		out.data = out.data.map((doc) => {
 			try {
+				if (!doc.data) doc.data = get_order_data(order);
 				doc.products = doc.products.reduce((prod, curr) => {
 					//console.log(curr);
 					if (curr.supplier) {
@@ -1587,4 +1590,10 @@ function convertFields(obj) {
 		}, enums.status_message.UNEXPECTED_ERROR);
 	}
 
+  }
+
+  function get_order_data(order) {
+	const data = [{ supplier: order.supplier, products: order.products, coupon: order.coupon, total: order.total, subtotal: order.subtotal, shipping_cost: order.shipping_cost, delivery_time: order.delivery_time }];
+
+	return data;
   }
