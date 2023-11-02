@@ -996,6 +996,7 @@ module.exports.read = (req, res) => {
 
 		} catch (error) {
 			//	doc.products = [];
+			console.error('CATCHED: ', error);
 		}
 
 		res.out(doc);
