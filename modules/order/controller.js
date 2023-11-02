@@ -869,18 +869,22 @@ module.exports.list = (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				if (!doc.data) doc.data = get_order_data(order);
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
-					}
-					else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}
-					return prod;
-				}, {});
+				if (doc.supplier) {
+					doc.products = { [doc.supplier._id.toString()]: doc.products };
+				} else {
+					doc.products = doc.products.reduce((prod, curr) => {
+						//console.log(curr);
+						if (curr.supplier) {
+							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+							prod[curr.supplier.name.en].push(curr);
+						}
+						else {
+							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+							prod[curr.supplier_id].push(curr);
+						}
+						return prod;
+					}, {});
+				}
 			} catch (error) {
 				//	doc.products = [];
 			}
@@ -950,20 +954,24 @@ module.exports.read = (req, res) => {
 
 		try {
 			if (!doc.data) doc.data = get_order_data(order);
-			doc.products = doc.products.reduce((prod, curr) => {
-				var keyName = curr.supplier.name.en;
-				keyName = keyName.replace(' ', '_');
-
-				if (curr.supplier) {
-					prod[keyName] = prod[curr.supplier.name.en] || [];
-					prod[keyName].push(curr);
-				}
-				else {
-					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-					prod[curr.supplier_id].push(curr);
-				}
-				return prod;
-			}, {});
+			if (doc.supplier) {
+				doc.products = { [doc.supplier._id.toString()]: doc.products };
+			} else {
+				doc.products = doc.products.reduce((prod, curr) => {
+					var keyName = curr.supplier.name.en;
+					keyName = keyName.replace(' ', '_');
+	
+					if (curr.supplier) {
+						prod[keyName] = prod[curr.supplier.name.en] || [];
+						prod[keyName].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
+			}
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
 				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { projection: { _id: 1, name: 1, city_number: 1 } });
@@ -1029,18 +1037,22 @@ module.exports.listByPhoneNumber = async (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				if (!doc.data) doc.data = get_order_data(order);
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
-					}
-					else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}
-					return prod;
-				}, {});
+				if (doc.supplier) {
+					doc.products = { [doc.supplier._id.toString()]: doc.products };
+				} else {
+					doc.products = doc.products.reduce((prod, curr) => {
+						//console.log(curr);
+						if (curr.supplier) {
+							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+							prod[curr.supplier.name.en].push(curr);
+						}
+						else {
+							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+							prod[curr.supplier_id].push(curr);
+						}
+						return prod;
+					}, {});
+				}
 			} catch (error) { }
 
 			return doc;
