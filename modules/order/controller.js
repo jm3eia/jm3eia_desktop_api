@@ -869,7 +869,7 @@ module.exports.list = (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				if (!doc.data) doc.data = get_order_data(doc);
-				if (doc.supplier) {
+				if (false) {
 					doc.products = { [doc.supplier._id.toString()]: doc.products };
 				} else {
 					doc.products = doc.products.reduce((prod, curr) => {
@@ -955,7 +955,7 @@ module.exports.read = (req, res) => {
 
 		try {
 			if (!doc.data) doc.data = get_order_data(doc);
-			if (doc.supplier) {
+			if (false) {
 				console.log('=== YES ===');
 				doc.products = { [doc.supplier._id.toString()]: doc.products };
 			} else {
@@ -1041,7 +1041,7 @@ module.exports.listByPhoneNumber = async (req, res) => {
 		out.data = out.data.map((doc) => {
 			try {
 				if (!doc.data) doc.data = get_order_data(doc);
-				if (doc.supplier) {
+				if (false) {
 					doc.products = { [doc.supplier._id.toString()]: doc.products };
 				} else {
 					doc.products = doc.products.reduce((prod, curr) => {
