@@ -949,6 +949,7 @@ module.exports.getConfiguredOrders = (req, res) => {
  * @param {Object} res
  */
 module.exports.read = (req, res) => {
+	console.log('CALLED');
 	//req.custom.where_property = "order_id";
 	mainController.read(req, res, collectionName, async (doc) => {
 
