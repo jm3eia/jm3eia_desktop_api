@@ -868,7 +868,7 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				if (!doc.data) doc.data = get_order_data(order);
+				if (!doc.data) doc.data = get_order_data(doc);
 				if (doc.supplier) {
 					doc.products = { [doc.supplier._id.toString()]: doc.products };
 				} else {
@@ -954,7 +954,7 @@ module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {
-			if (!doc.data) doc.data = get_order_data(order);
+			if (!doc.data) doc.data = get_order_data(doc);
 			if (doc.supplier) {
 				console.log('=== YES ===');
 				doc.products = { [doc.supplier._id.toString()]: doc.products };
@@ -1040,7 +1040,7 @@ module.exports.listByPhoneNumber = async (req, res) => {
 	mainController.list(req, res, collectionName, async (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				if (!doc.data) doc.data = get_order_data(order);
+				if (!doc.data) doc.data = get_order_data(doc);
 				if (doc.supplier) {
 					doc.products = { [doc.supplier._id.toString()]: doc.products };
 				} else {
