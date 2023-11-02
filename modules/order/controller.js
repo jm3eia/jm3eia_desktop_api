@@ -955,8 +955,10 @@ module.exports.read = (req, res) => {
 		try {
 			if (!doc.data) doc.data = get_order_data(order);
 			if (doc.supplier) {
+				console.log('=== YES ===');
 				doc.products = { [doc.supplier._id.toString()]: doc.products };
 			} else {
+				console.log('=== NO === ', doc.supplier);
 				doc.products = doc.products.reduce((prod, curr) => {
 					var keyName = curr.supplier.name.en;
 					keyName = keyName.replace(' ', '_');
