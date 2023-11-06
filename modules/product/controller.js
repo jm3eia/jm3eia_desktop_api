@@ -256,10 +256,10 @@ module.exports.floor = async (req, res) => {
  * @param {Object} res
  */
 module.exports.rack_zone = async (req, res) => {
-	if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
+	/* if (!req.custom.authUser || !req.custom.authUser.employee || req.custom.authUser.department !== 3) {
 		const local = req.custom.local;
 		return res.out({ auth: false, message: local.failed_auth }, enums.status_message.UNAUTHORIZED);
-	}
+	} */
 	req.custom.model = require('./models/rack_zone');
 	req.custom.update_by = {
 		soft_code: req.params.soft_code
@@ -269,20 +269,22 @@ module.exports.rack_zone = async (req, res) => {
 	const product_before = await product_collection.findOne(req.custom.update_by);
 
 	mainController.update(req, res, collectionName, async (response) => {
-		const product = await product_collection.findOne(req.custom.update_by);
-		await common.saveLog(
-			req,
-			'update_rack_zone',
-			'product',
-			ObjectID(product._id.toString()),
-			product,
-			product_before,
-			{ rack_zone: req.body.rack_zone },
-			req.body.employee_username,
-			req.query
-		);
-		await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_rack_zone');
-		await unskipProduct(req, 'update_rack_zone').catch(null);
+		if (req.custom.authUser && req.custom.authUser.employee && req.custom.authUser.department === 3) {
+			const product = await product_collection.findOne(req.custom.update_by);
+			await common.saveLog(
+				req,
+				'update_rack_zone',
+				'product',
+				ObjectID(product._id.toString()),
+				product,
+				product_before,
+				{ rack_zone: req.body.rack_zone },
+				req.body.employee_username,
+				req.query
+			);
+			await common.updateOrderEmployee(req, req.query.order_id, req.params.soft_code, 'update_rack_zone');
+			await unskipProduct(req, 'update_rack_zone').catch(null);
+		}
 	});
 };
 
