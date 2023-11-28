@@ -706,11 +706,15 @@ module.exports.update_status = async (req, res) => {
  */
 module.exports.list = (req, res) => {
 	if (req.query.supplier_id) {
-        if (Array.isArray(req.query.supplier_id)) {
-            req.custom.clean_filter['supplier_id'] = ObjectID(req.query.supplier_id);
-        } else {
-            req.custom.clean_filter['supplier_id'] = ObjectID(req.query.supplier_id);
-        }
+		if (req.query.supplier_id === "Jm3eia") {
+			req.custom.clean_filter['supplier_id'] = { $exists: false };
+		} else {
+			if (Array.isArray(req.query.supplier_id)) {
+				req.custom.clean_filter['supplier_id'] = ObjectID(req.query.supplier_id);
+			} else {
+				req.custom.clean_filter['supplier_id'] = ObjectID(req.query.supplier_id);
+			}
+		}
     }
 
 	if (req.query.status) {
