@@ -817,6 +817,7 @@ module.exports.create = async function (req, res) {
 	}
 	data.status = false;
 	data.created = new Date();
+	data.prod_n_storeArr = [{ store_id: ObjectID('5d3827c683545d0366ac4285'), quantity: 0, status: true }];
 	data.created_by = ObjectID(req.custom.authUser.userId);
 	collection.insertOne(data)
 		.then((response) => res.out({
