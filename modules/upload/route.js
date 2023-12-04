@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('./controller');
-const crypto = require('crypto');
+/* const crypto = require('crypto');
 const fs = require('fs');
 const mime = require('mime');
 const path = require('path');
@@ -39,10 +39,10 @@ const upload = multer({
         cb(`${req.custom.local.unsupported_file_types} ${filetypes}`);
     }
 });
-
+ */
 /**
  * POST /upload
  */
-router.post('/', upload.single('picture'), controller.upload);
+router.post('/', /* upload.single('picture'), */ controller.upload);
 
 module.exports = router;
