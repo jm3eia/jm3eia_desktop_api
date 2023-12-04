@@ -816,6 +816,7 @@ module.exports.create = async function (req, res) {
 		return res.out(error, enums.status_message.VALIDATION_ERROR);
 	}
 	data.status = false;
+	data.created = new Date();
 	data.created_by = ObjectID(req.custom.authUser.userId);
 	collection.insertOne(data)
 		.then((response) => res.out({
