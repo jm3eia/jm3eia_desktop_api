@@ -10,6 +10,16 @@ const controller = require('./controller');
 router.get('/', controller.list);
 
 /**
+ * POST /category
+ */
+router.post('/', controller.create);
+
+/**
+ * PUT /category
+ */
+router.put('/:Id', controller.update);
+
+/**
  * GET /category/:Id
  */
 router.get('/:Id', controller.read);

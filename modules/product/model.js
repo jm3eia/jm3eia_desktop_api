@@ -13,9 +13,11 @@ module.exports = {
 	},
 	"description": {
 		"isLang": true,
+		"required": true
 	},
 	"keywords": {
 		"isLang": true,
+		"required": true
 	},
 	"brand_id": {
 		"type": ObjectID,

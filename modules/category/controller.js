@@ -6,6 +6,25 @@ const ObjectID = require('mongodb').ObjectID;
 const collectionName = "category";
 
 /**
+ * Create new category
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.create = (req, res) => {
+	mainController.create(req, res, collectionName);
+  };
+  
+  /**
+   * Update category
+   * @param {Object} req
+   * @param {Object} res
+   */
+  module.exports.update = (req, res) => {
+	mainController.update(req, res, collectionName);
+  };
+  
+
+/**
  * List all stores
  * @param {Object} req
  * @param {Object} res
