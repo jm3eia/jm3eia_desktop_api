@@ -136,6 +136,7 @@ module.exports.quantity = async (req, res) => {
 				prod_n_storeArr: prod_n_storeArr,
 				lastUser_update: lastUser_update,
 				status: parseInt(data.quantity) > 0 ? true : false,
+				last_quantity_update: new Date()
 			}
 		};
 
@@ -165,6 +166,7 @@ module.exports.quantity = async (req, res) => {
 				lastUser_update: lastUser_update,
 				prod_n_storeArr,
 				status: totalQuantity > 0 ? true : false,
+				last_quantity_update: new Date()
 			}
 		};
 	}
@@ -467,6 +469,7 @@ module.exports.increase_quantity = async (req, res) => {
 				prod_n_storeArr: prod_n_storeArr,
 				lastUser_update: lastUser_update,
 				status: true,
+				last_quantity_update: new Date()
 			}
 		};
 	} else {
@@ -495,6 +498,7 @@ module.exports.increase_quantity = async (req, res) => {
 				lastUser_update: lastUser_update,
 				prod_n_storeArr,
 				status: true,
+				last_quantity_update: new Date()
 			}
 		};
 	}
@@ -561,7 +565,8 @@ module.exports.decrease_quantity = async (req, res) => {
 		row = {
 			$set: {
 				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update
+				lastUser_update: lastUser_update,
+				last_quantity_update: new Date()
 			}
 		};
 	} else {
@@ -590,7 +595,8 @@ module.exports.decrease_quantity = async (req, res) => {
 				variants: variants,
 				prod_n_storeArr,
 				lastUser_update: lastUser_update,
-				status: totalQuantity > 0 ? true : false
+				status: totalQuantity > 0 ? true : false,
+				last_quantity_update: new Date()
 			}
 		};
 	}
@@ -720,6 +726,22 @@ module.exports.list = (req, res) => {
 	if (req.query.status) {
 		req.custom.clean_filter['status'] = req.query.status;
 	}
+
+	if (req.query && req.query.quantity_from_date && req.query.quantity_to_date) {
+		req.custom.clean_filter['last_quantity_update'] = {
+			"$gte": new Date(req.query.quantity_from_date.toString()),
+			"$lte": new Date(req.query.quantity_to_date.toString())
+		};
+	} else {
+		if (req.query && req.query.quantity_from_date) {
+			req.custom.clean_filter['last_quantity_update'] = { "$gte": new Date(req.query.quantity_from_date.toString()) };
+		}
+
+		if (req.query && req.query.quantity_to_date) {
+			req.custom.clean_filter['last_quantity_update'] = { "$lte": new Date(req.query.quantity_to_date.toString()) };
+		}
+	}
+
 	mainController.list(req, res, collectionName);
 };
 
