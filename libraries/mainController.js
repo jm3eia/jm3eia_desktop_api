@@ -54,6 +54,7 @@ module.exports.update = async function (req, res, collectionName, callback) {
 	if (error) {
 		return res.out(error, enums.status_message.VALIDATION_ERROR);
 	}
+	console.log('DATA STATUS: ', data.status);
 	data.lastUser_update = ObjectID(req.custom.authUser.userId);
 	const row = {
 		$set: data

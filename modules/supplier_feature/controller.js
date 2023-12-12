@@ -19,6 +19,7 @@ module.exports.create = (req, res) => {
  * @param {Object} res
  */
 module.exports.update = (req, res) => {
+  console.log('BODY STATUS: ', req.body.status);
   mainController.update(req, res, collectionName);
 };
 
