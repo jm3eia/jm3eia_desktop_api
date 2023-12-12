@@ -151,7 +151,8 @@ function getDataWithTypes(row, model, data = {}) {
 					}
 					break;
 				case Boolean:
-					data[k] = Boolean(row[k].toString());
+					//data[k] = Boolean(row[k].toString());
+					data[k] = Boolean([true, 'true', 1].indexOf(row[k]) > -1);
 					break;
 				case Date:
 					data[k] = new Date(row[k].toString());
