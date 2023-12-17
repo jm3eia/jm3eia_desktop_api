@@ -952,6 +952,7 @@ module.exports.read = (req, res) => {
 				var keyName = curr.supplier.name.en;
 				keyName = keyName.replace(' ', '_');
 
+				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
 				if (curr.supplier) {
 					prod[keyName] = prod[curr.supplier.name.en] || [];
 					prod[keyName].push(curr);
