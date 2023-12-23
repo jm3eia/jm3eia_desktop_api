@@ -80,90 +80,58 @@ module.exports.changeStatus = async (req, res) => {
 module.exports.pointsToTransaction = async (req, res) => {
     try {
         const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-        const member_collection = req.custom.db.client().collection('member');
+        const expiredTransactions = await point_transactions_collection.find({ member_id: ObjectID("60f14267aeb2641b931a0076"), trashed: false, expiresAt: { $lt: getDate() } }).toArray() || [];
 
-        const commonDate = getDate();
-
-        const batchSize = 1000;
-
-        const expiredTransactionsCursor = point_transactions_collection
-            .find({ member_id: ObjectID("60f14267aeb2641b931a0076"), trashed: false, expiresAt: { $lt: commonDate } })
-            .batchSize(batchSize);
-
-        let batch;
-        while ((batch = await expiredTransactionsCursor.nextBatch()) && batch.length > 0) {
-            const transactionsGroupedByMember = {};
-
-            batch.forEach(transaction => {
-                const memberId = transaction.member_id.toString();
-                if (!transactionsGroupedByMember[memberId]) {
-                    transactionsGroupedByMember[memberId] = { member_id: transaction.member_id, transactions: [] };
-                }
-                transactionsGroupedByMember[memberId].transactions.push(transaction);
-            });
-
-            const allTransactionsIds = Object.keys(transactionsGroupedByMember).map(ObjectID);
-
-            console.log('ALL TRANSACTIONS IDS: ', allTransactionsIds);
-            
-            const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
-
-            return res.out({allTransactionsIds, members});
-
-            const bulkWrites = [];
-
-            members.forEach(m => {
-                const memberId = m._id.toString();
-                const foundTransaction = transactionsGroupedByMember[memberId];
-
-                let pointsToRemove = 0;
-                let convertedPoints = parseInt(m.convertedPoints) || 0;
-
-                if (foundTransaction) {
-                    foundTransaction.transactions.forEach(t => {
-                        const transactionPoints = parseInt(t.points);
-
-                        if (convertedPoints >= transactionPoints) {
-                            bulkWrites.push({
-                                updateOne: {
-                                    filter: { _id: ObjectID(t._id.toString()) },
-                                    update: { $set: { used: true, trashed: true } }
-                                }
-                            });
-                            convertedPoints -= transactionPoints;
-                        } else {
-                            bulkWrites.push({
-                                updateOne: {
-                                    filter: { _id: ObjectID(t._id.toString()) },
-                                    update: { $set: { trashed: true } }
-                                }
-                            });
-                            const sub = transactionPoints - convertedPoints;
-                            convertedPoints = 0;
-                            pointsToRemove += sub;
-                        }
-                    });
-                }
-
-                let memberPoints = parseInt(m.points) || 0;
-
-                if (pointsToRemove > 0 && memberPoints > 0) {
-                    memberPoints -= pointsToRemove;
-                    bulkWrites.push({
-                        updateOne: {
-                            filter: { _id: ObjectID(memberId) },
-                            update: { $set: { points: memberPoints, convertedPoints } }
-                        }
-                    });
-                }
-            });
-
-            if (bulkWrites.length > 0) {
-                await point_transactions_collection.bulkWrite(bulkWrites);
+        const transactionsGroupedByMember = [];
+        for (let transaction of expiredTransactions) {
+            const foundTransactionIndex = transactionsGroupedByMember.findIndex(t => t.member_id.toString() == transaction.member_id.toString());
+            if (foundTransactionIndex > -1) {
+                transactionsGroupedByMember[foundTransactionIndex].transactions.push(transaction);
+            } else {
+                transactionsGroupedByMember.push({ member_id: transaction.member_id, transactions: [transaction] });
             }
         }
 
-        return res.out('Done!');
+        const allTransactionsIds = transactionsGroupedByMember.map(t => ObjectID(t.member_id.toString()));
+
+        const member_collection = req.custom.db.client().collection('member');
+        const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
+
+        const promises = [];
+        for (let m of members) {
+            const foundTransactionIndex = transactionsGroupedByMember.findIndex(t => m._id.toString() == t.member_id.toString());
+            let pointsToRmove = 0;
+            let convertedPoints = parseInt(m.convertedPoints) || 0;
+            if (foundTransactionIndex > -1) {
+                for (let t of transactionsGroupedByMember[foundTransactionIndex].transactions) {
+                    const transactionPoints = parseInt(t.points);
+                    if (convertedPoints >= transactionPoints) {
+                        promises.push(point_transactions_collection.updateOne({ _id: ObjectID(t._id.toString()) }, { $set: { used: true, trashed: true } }));
+                        convertedPoints -= transactionPoints;
+                    } else if (convertedPoints < transactionPoints) {
+                        promises.push(point_transactions_collection.updateOne({ _id: ObjectID(t._id.toString()) }, { $set: { trashed: true } }));
+                        const sub = transactionPoints - convertedPoints;
+                        convertedPoints = 0;
+                        pointsToRmove += sub;
+                    } else {
+                        pointsToRmove += transactionPoints;
+                    }
+                }
+            }
+
+            let memberPoints = m.points ? parseInt(m.points) : 0;
+
+            if (pointsToRmove > 0 && memberPoints > 0) {
+                memberPoints -= pointsToRmove;
+                promises.push(member_collection.updateOne({ _id: ObjectID(m._id.toString()) }, { $set: { points: memberPoints, convertedPoints } }));
+            }
+
+        }
+
+        await Promise.all(promises);
+
+        return res.out('Done! ', expiredTransactions.length);
+
     } catch (err) {
         console.error(req.originalUrl, err);
     }
