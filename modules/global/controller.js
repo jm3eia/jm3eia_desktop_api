@@ -77,7 +77,7 @@ module.exports.changeStatus = async (req, res) => {
 }
 
 module.exports.pointsToTransaction = async (req, res) => {
-    /* try {
+    try {
         const point_transactions_collection = req.custom.db.collection('point_transactions');
         const member_collection = req.custom.db.collection('member');
 
@@ -161,5 +161,5 @@ module.exports.pointsToTransaction = async (req, res) => {
         return res.out('Done!');
     } catch (err) {
         console.error(req.originalUrl, err);
-    } */
+    }
 };
