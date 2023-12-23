@@ -1,3 +1,4 @@
+const { getDate } = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const ObjectID = require('mongodb').ObjectID;
 
@@ -81,7 +82,7 @@ module.exports.pointsToTransaction = async (req, res) => {
         const point_transactions_collection = req.custom.db.client().collection('point_transactions');
         const member_collection = req.custom.db.client().collection('member');
 
-        const commonDate = common.getDate();
+        const commonDate = getDate();
 
         const batchSize = 1000;
 
