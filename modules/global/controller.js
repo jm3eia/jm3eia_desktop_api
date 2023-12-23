@@ -76,8 +76,6 @@ module.exports.changeStatus = async (req, res) => {
 
 }
 
-const { ObjectID } = require('mongodb');
-
 module.exports.pointsToTransaction = async (req, res) => {
     /* try {
         const point_transactions_collection = req.custom.db.collection('point_transactions');
