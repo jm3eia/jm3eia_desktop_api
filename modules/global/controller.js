@@ -101,7 +101,7 @@ module.exports.pointsToTransaction = async (req, res) => {
                 transactionsGroupedByMember[memberId].transactions.push(transaction);
             });
 
-            //const allTransactionsIds = Object.keys(transactionsGroupedByMember).map(ObjectID);
+            const allTransactionsIds = Object.keys(transactionsGroupedByMember).map(ObjectID);
 
             const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
 
