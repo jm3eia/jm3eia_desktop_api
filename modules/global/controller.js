@@ -103,7 +103,11 @@ module.exports.pointsToTransaction = async (req, res) => {
 
             const allTransactionsIds = Object.keys(transactionsGroupedByMember).map(ObjectID);
 
+            console.log('ALL TRANSACTIONS IDS: ', allTransactionsIds);
+            
             const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
+
+            return res.out({allTransactionsIds, members});
 
             const bulkWrites = [];
 
