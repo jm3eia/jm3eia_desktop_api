@@ -80,7 +80,7 @@ module.exports.changeStatus = async (req, res) => {
 module.exports.pointsToTransaction = async (req, res) => {
     try {
         const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-        const expiredTransactions = await point_transactions_collection.find({ member_id: ObjectID("60f14267aeb2641b931a0076"), trashed: false, expiresAt: { $lt: getDate() } }).toArray() || [];
+        const expiredTransactions = await point_transactions_collection.find({ trashed: false, expiresAt: { $lt: getDate() } }).toArray() || [];
 
         const transactionsGroupedByMember = [];
         for (let transaction of expiredTransactions) {
@@ -94,8 +94,10 @@ module.exports.pointsToTransaction = async (req, res) => {
 
         const allTransactionsIds = transactionsGroupedByMember.map(t => ObjectID(t.member_id.toString()));
 
+        
         const member_collection = req.custom.db.client().collection('member');
         const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
+        return res.out({ allTransactionsIds: allTransactionsIds.length, members: members.length });
 
         const promises = [];
         for (let m of members) {
