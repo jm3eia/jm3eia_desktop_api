@@ -949,18 +949,9 @@ module.exports.read = (req, res) => {
 
 		try {
 			doc.products = doc.products.reduce((prod, curr) => {
-				var keyName = curr.supplier.name.en;
-				keyName = keyName.replace(' ', '_');
-
 				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
-				if (curr.supplier) {
-					prod[keyName] = prod[curr.supplier.name.en] || [];
-					prod[keyName].push(curr);
-				}
-				else {
-					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-					prod[curr.supplier_id].push(curr);
-				}
+				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+				prod[curr.supplier_id].push(curr);
 				return prod;
 			}, {});
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
