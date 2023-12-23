@@ -78,8 +78,8 @@ module.exports.changeStatus = async (req, res) => {
 
 module.exports.pointsToTransaction = async (req, res) => {
     try {
-        const point_transactions_collection = req.custom.db.collection('point_transactions');
-        const member_collection = req.custom.db.collection('member');
+        const point_transactions_collection = req.custom.db.client().collection('point_transactions');
+        const member_collection = req.custom.db.client().collection('member');
 
         const commonDate = common.getDate();
 
