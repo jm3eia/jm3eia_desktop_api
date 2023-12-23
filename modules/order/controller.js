@@ -60,7 +60,9 @@ module.exports.update_status = async (req, res) => {
 
 	mainController.update(req, res, collectionName, async () => {
 
-		update_status_webhook(req.params.Id, req.body.status);
+		if (parseInt(req.body.status) !== 4) {
+			update_status_webhook(req.params.Id, req.body.status);
+		}
 		//update_status_desktop_webhook(req.params.Id, req.body.status);
 
 		// Order Completed 4
