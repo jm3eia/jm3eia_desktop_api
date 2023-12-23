@@ -75,3 +75,93 @@ module.exports.changeStatus = async (req, res) => {
     return res.out({ update, today });
 
 }
+
+const { ObjectID } = require('mongodb');
+
+module.exports.pointsToTransaction = async (req, res) => {
+    try {
+        const point_transactions_collection = req.custom.db.collection('point_transactions');
+        const member_collection = req.custom.db.collection('member');
+
+        const commonDate = common.getDate();
+
+        const batchSize = 1000;
+
+        const expiredTransactionsCursor = point_transactions_collection
+            .find({ member_id: ObjectID("60f14267aeb2641b931a0076"), trashed: false, expiresAt: { $lt: commonDate } })
+            .batchSize(batchSize);
+
+        let batch;
+        while ((batch = await expiredTransactionsCursor.nextBatch()) && batch.length > 0) {
+            const transactionsGroupedByMember = {};
+
+            batch.forEach(transaction => {
+                const memberId = transaction.member_id.toString();
+                if (!transactionsGroupedByMember[memberId]) {
+                    transactionsGroupedByMember[memberId] = { member_id: transaction.member_id, transactions: [] };
+                }
+                transactionsGroupedByMember[memberId].transactions.push(transaction);
+            });
+
+            const allTransactionsIds = Object.keys(transactionsGroupedByMember).map(ObjectID);
+
+            const members = await member_collection.find({ _id: { $in: allTransactionsIds } }).toArray();
+
+            const bulkWrites = [];
+
+            members.forEach(m => {
+                const memberId = m._id.toString();
+                const foundTransaction = transactionsGroupedByMember[memberId];
+
+                let pointsToRemove = 0;
+                let convertedPoints = parseInt(m.convertedPoints) || 0;
+
+                if (foundTransaction) {
+                    foundTransaction.transactions.forEach(t => {
+                        const transactionPoints = parseInt(t.points);
+
+                        if (convertedPoints >= transactionPoints) {
+                            bulkWrites.push({
+                                updateOne: {
+                                    filter: { _id: ObjectID(t._id.toString()) },
+                                    update: { $set: { used: true, trashed: true } }
+                                }
+                            });
+                            convertedPoints -= transactionPoints;
+                        } else {
+                            bulkWrites.push({
+                                updateOne: {
+                                    filter: { _id: ObjectID(t._id.toString()) },
+                                    update: { $set: { trashed: true } }
+                                }
+                            });
+                            const sub = transactionPoints - convertedPoints;
+                            convertedPoints = 0;
+                            pointsToRemove += sub;
+                        }
+                    });
+                }
+
+                let memberPoints = parseInt(m.points) || 0;
+
+                if (pointsToRemove > 0 && memberPoints > 0) {
+                    memberPoints -= pointsToRemove;
+                    bulkWrites.push({
+                        updateOne: {
+                            filter: { _id: ObjectID(memberId) },
+                            update: { $set: { points: memberPoints, convertedPoints } }
+                        }
+                    });
+                }
+            });
+
+            if (bulkWrites.length > 0) {
+                await point_transactions_collection.bulkWrite(bulkWrites);
+            }
+        }
+
+        return res.out('Done!');
+    } catch (err) {
+        console.error(req.originalUrl, err);
+    }
+};
