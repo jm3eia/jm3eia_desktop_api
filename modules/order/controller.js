@@ -73,33 +73,65 @@ module.exports.update_status = async (req, res) => {
 				let points = parseInt(user_info.points || 0);
 				let wallet = parseFloat(user_info.wallet || 0);
 
-				const new_points = req.body.points && common.is_numeric(req.body.points) ? parseInt(req.body.points) : 0;
+				const new_points = parseInt(order.total) && parseInt(order.total) ? parseInt(order.total) : 0;
 				if (new_points > 0) {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
 					} else {
-						points += parseInt(new_points);
 						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-						await point_transactions_collection.insertOne({
-							member_id: ObjectID(order.user_data._id.toString()),
+						const point_history_collection = req.custom.db.client().collection('point_history');
+						let point_transaction_data = {
 							points: parseInt(new_points),
 							createdAt: common.getDate(),
 							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
 							used: false,
 							trashed: false
-						}).catch((err) => { console.log('Points transaction error: ', err) });
+						};
+						let point_history_data = {
+							order_id: ObjectID(order._id.toString()),
+							added_points: parseInt(new_points),
+							created: common.getDate(),
+							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+						};
+						let total_points = 0;
+						if (order.points_transfer_mobile) {
+							const member = await member_collection.findOne({ mobile: order.points_transfer_mobile });
+							total_points  = parseInt(member.points || 0) + new_points;
+							if (member) {
+								point_transaction_data.member_id = ObjectID(member._id.toString());
+								point_history_data = {
+									...point_history_data,
+									member_id: ObjectID(member._id.toString()),
+									sender_id: ObjectID(order.user_data._id.toString()),
+									old_points: member.points || 0,
+									new_points: total_points,
+									old_wallet: common.getFixedPrice(member.wallet || 0),
+									new_wallet: common.getFixedPrice(member.wallet || 0),
+									notes: "Transferred",
+									type: "transfered",
+								};
+								await member_collection.updateOne({ _id: member._id }, { $set: { points: total_points } });
+							}
+						} else {
+							points += parseInt(new_points);
+							total_points = points;
+							point_transaction_data.member_id = ObjectID(order.user_data._id.toString());
+							point_history_data = {
+								...point_history_data,
+								member_id: ObjectID(order.user_data._id.toString()),
+								old_points: user_info.points || 0,
+								new_points: points,
+								old_wallet: common.getFixedPrice(user_info.wallet || 0),
+								new_wallet: common.getFixedPrice(wallet),
+								notes: "Bonus from order",
+								type: "bonus",
+							};
+						}
 
-						const point_history_collection = req.custom.db.client().collection('point_history');
-						await point_history_collection.insertOne({
-							member_id: ObjectID(order.user_data._id.toString()),
-							old_points: user_info.points || 0,
-							new_points: points,
-							old_wallet: common.getFixedPrice(user_info.wallet || 0),
-							new_wallet: common.getFixedPrice(wallet),
-							notes: "Bonus from order",
-							type: "bonus",
-							created: new Date(),
-						}).catch((err) => { console.log('Points history error: ', err) });
+						
+						await point_transactions_collection.insertOne(point_transaction_data).catch((err) => { console.log('Points transaction error: ', err) });
+
+						await point_history_collection.insertOne(point_history_collection).catch((err) => { console.log('Points history error: ', err) });
 					}
 
 					await member_collection.updateOne({
