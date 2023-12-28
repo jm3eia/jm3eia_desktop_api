@@ -66,7 +66,9 @@ module.exports.update_status = async (req, res) => {
 		//update_status_desktop_webhook(req.params.Id, req.body.status);
 
 		// Order Completed 4
-		if (parseInt(req.body.status) === 4 && order.status != 4) {
+		// OR Request reversed 9
+		if ((parseInt(req.body.status) === 4 && order.status != 4) || (parseInt(req.body.status) === 9 && order.status != 9)) {
+			const is_canceled = parseInt(req.body.status) === 9 && order.status != 9;
 
 			if (order.user_data && order.user_data._id && user_info) {
 
@@ -96,7 +98,7 @@ module.exports.update_status = async (req, res) => {
 						let total_points = 0;
 						if (order.points_transfer_mobile) {
 							const member = await member_collection.findOne({ mobile: order.points_transfer_mobile });
-							total_points  = parseInt(member.points || 0) + new_points;
+							total_points = is_canceled ? (parseInt(member.points || 0) - new_points) : (parseInt(member.points || 0) + new_points);
 							if (member) {
 								point_transaction_data.member_id = ObjectID(member._id.toString());
 								point_history_data = {
@@ -107,13 +109,13 @@ module.exports.update_status = async (req, res) => {
 									new_points: total_points,
 									old_wallet: common.getFixedPrice(member.wallet || 0),
 									new_wallet: common.getFixedPrice(member.wallet || 0),
-									notes: "Transferred",
-									type: "transfered",
+									notes: is_canceled ? "canceled transfered order" : "Transferred",
+									type: is_canceled ? "canceled" : "transfered",
 								};
 								await member_collection.updateOne({ _id: member._id }, { $set: { points: total_points } });
 							}
 						} else {
-							points += parseInt(new_points);
+							points = is_canceled ? (points - parseInt(new_points)) : (points + parseInt(new_points));
 							total_points = points;
 							point_transaction_data.member_id = ObjectID(order.user_data._id.toString());
 							point_history_data = {
@@ -123,8 +125,8 @@ module.exports.update_status = async (req, res) => {
 								new_points: points,
 								old_wallet: common.getFixedPrice(user_info.wallet || 0),
 								new_wallet: common.getFixedPrice(wallet),
-								notes: "Bonus from order",
-								type: "bonus",
+								notes: is_canceled ? "canceled order" : "Bonus from order",
+								type: is_canceled ? "canceled" : "bonus",
 							};
 						}
 
@@ -146,6 +148,7 @@ module.exports.update_status = async (req, res) => {
 				}
 			}
 		}
+		
 		// Order Canceled 5
 		else if (parseInt(req.body.status) === 5 && order.status != 5 && parseFloat(order.discount_by_wallet_value) > 0) {
 			const wallet = parseFloat(user_info.wallet) + parseFloat(order.discount_by_wallet_value);
