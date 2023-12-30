@@ -133,7 +133,7 @@ module.exports.update_status = async (req, res) => {
 						
 						await point_transactions_collection.insertOne(point_transaction_data).catch((err) => { console.log('Points transaction error: ', err) });
 
-						await point_history_collection.insertOne(point_history_collection).catch((err) => { console.log('Points history error: ', err) });
+						await point_history_collection.insertOne(point_history_data).catch((err) => { console.log('Points history error: ', err) });
 					}
 
 					await member_collection.updateOne({
