@@ -32,3 +32,7 @@ exports.status_message = {
 	"UPDATED": "UPDATED", // Recored has been updated : 200
 	"VALIDATION_ERROR": "VALIDATION_ERROR" // Validation errors : 500
 };
+
+/* exports.points_types = {
+	''
+} */

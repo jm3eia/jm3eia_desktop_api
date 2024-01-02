@@ -67,8 +67,8 @@ module.exports.update_status = async (req, res) => {
 
 		// Order Completed 4
 		// OR Request reversed 9
-		if ((parseInt(req.body.status) === 4 && order.status != 4) || (parseInt(req.body.status) === 9 && order.status != 9)) {
-			const is_canceled = parseInt(req.body.status) === 9 && order.status != 9;
+		if ((parseInt(req.body.status) === 4 && order.status != 4) || (parseInt(req.body.status) === 9 && order.status === 4)) {
+			const is_canceled = parseInt(req.body.status) === 9 && order.status === 4;
 
 			if (order.user_data && order.user_data._id && user_info) {
 
