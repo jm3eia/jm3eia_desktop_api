@@ -30,9 +30,19 @@ router.get('/:soft_code', controller.info);
 router.get('/:soft_code/price_picture', controller.price_picture);
 
 /**
+ * GET /product/:barcode/barcode
+ */
+router.get('/:barcode/barcode', controller.list_by_barcode);
+
+/**
  * PUT /product/:soft_code/price_qty_weight
  */
 router.put('/:soft_code/price_qty_weight', controller.update_price_qty_weight);
+
+/**
+ * PUT /product/:soft_code/update_price_store_status
+ */
+router.put('/:soft_code/update_price_store_status', controller.update_price_store_status);
 
 /**
  * PUT /product/:soft_code/quantity

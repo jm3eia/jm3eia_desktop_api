@@ -82,6 +82,68 @@ module.exports.update_price_qty_weight = async (req, res) => {
 };
 
 /**
+ * Update price, store status
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.update_price_store_status = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	req.custom.model = require('./models/update_price_store_status')
+	const collection = req.custom.db.client().collection(collectionName);
+	const oldProduct = await collection.findOne({soft_code: req.params.soft_code});
+
+	const local = req.custom.local;
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+
+	let new_prod_n_storeArr = [];
+	if (oldProduct.prod_n_storeArr) {
+		for (let store of oldProduct.prod_n_storeArr) {
+			if (store.store_id.toString() === data.store_id.toString()) {
+				new_prod_n_storeArr.push({ ...store, status: data.status });
+			} else {
+				new_prod_n_storeArr.push(store);
+			}
+		}
+	}
+
+
+	let row = {
+		$set: {
+			prod_n_storeArr: new_prod_n_storeArr,
+			price: data.price,
+			lastUser_update: ObjectID(req.custom.authUser.userId)
+		}
+	}
+	
+	req.custom.cache.unset(collectionName).catch(() => { });
+
+	collection.updateOne({
+		soft_code: req.params.soft_code,
+		'prod_n_storeArr.store_id': data.store_id
+	}, row)
+		.then(async (response) => {
+			const newProduct = await collection.findOne({soft_code: req.params.soft_code});
+			common.saveActionLog(req, 'UPDATE', 'product', newProduct._id, newProduct, oldProduct);
+			res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+		})
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+};
+
+/**
  * Update quantities of product
  * @param {Object} req
  * @param {Object} res
@@ -741,6 +803,17 @@ module.exports.list = (req, res) => {
 			req.custom.clean_filter['last_quantity_update'] = { "$lte": new Date(req.query.quantity_to_date.toString()) };
 		}
 	}
+
+	mainController.list(req, res, collectionName);
+};
+
+/**
+ * List products by barcode
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.list_by_barcode = (req, res) => {
+	req.custom.clean_filter['barcode'] = req.params.barcode;
 
 	mainController.list(req, res, collectionName);
 };
