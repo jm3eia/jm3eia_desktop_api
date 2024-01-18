@@ -23,4 +23,9 @@ router.get('/me', controller.me);
  */
 router.get('/', controller.list);
 
+/**
+ * GET /supplier
+ */
+router.put('/:Id/busy', controller.update_busy);
+
 module.exports = router;

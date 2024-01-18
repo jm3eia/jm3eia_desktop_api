@@ -151,3 +151,9 @@ module.exports.list = async (req, res) => {
     };
     mainController.list(req, res, collectionName, projection);
 }
+
+
+module.exports.update_busy = async (req, res) => {
+    req.custom.model = require('./models/update_busy');
+	mainController.update(req, res, collectionName);
+}
