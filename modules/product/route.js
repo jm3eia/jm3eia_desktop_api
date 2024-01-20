@@ -109,4 +109,7 @@ router.put('/update_status', controller.update_status);
  */
 router.put('/:soft_code/remove', controller.removeProductFromOrders);
 
+//90007755441222
+router.put('/:barcode/transfer_quantity', controller.transfer_quantity);
+
 module.exports = router;

@@ -956,3 +956,70 @@ module.exports.approve = async function (req, res) {
 module.exports.delete = (req, res) => {
 	mainController.delete(req, res, collectionName);
 };
+
+
+module.exports.transfer_quantity = async (req, res) => {
+	req.custom.model = require('./models/transfer_quantity');
+
+	const collection = req.custom.db.client().collection('product');
+
+	const local = req.custom.local;
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const jm3eia_wholesale_id = ObjectID("648479474e9e6379c835aba2");
+
+
+	const source_product = await collection.findOne({ barcode: req.params.barcode, supplier_id: jm3eia_wholesale_id });
+
+	if (!source_product) {
+		return res.out({ message: 'Product not found in Jm3eia wholesale' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const destination_product = await collection.findOne({ barcode: req.params.barcode, $or: [ { supplier_id: { $exists: false } }, { supplier_id: null } ] });
+
+	if (!destination_product) {
+		return res.out({ message: 'Product not found in Jm3eia' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const source_store = source_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
+	if (!source_store) {
+		return res.out({ message: 'The store not found in the Jm3eia wholesale product' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	if (source_store.quantity < data.quantity) {
+		return res.out({ message: 'No enough quantity' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
+	if (!destination_store) {
+		return res.out({ message: 'The store not found in the Jm3eia product' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
+		if (s.store_id.toString() === '5d3827c683545d0366ac4285') {
+			s.quantity -= data.quantity;
+		}
+		return s;
+	});
+
+	const new_destination_prod_n_storeArr = destination_product.prod_n_storeArr.map(s => {
+		if (s.store_id.toString() === '5d3827c683545d0366ac4285') {
+			s.quantity += data.quantity;
+		}
+		return s;
+	});
+
+	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
+
+	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+
+	return res.out({
+		message: local.saved_done
+	}, enums.status_message.UPDATED)
+}
