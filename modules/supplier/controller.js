@@ -146,6 +146,7 @@ module.exports.list = async (req, res) => {
         cities: 1,
         available_delivery_times: 1,
         working_times: 1,
+        is_busy: 1, 
         created: 1,
         status: 1,
     };

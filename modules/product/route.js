@@ -10,6 +10,11 @@ const controller = require('./controller');
 router.post('/', controller.create);
 
 /**
+ * PUT /product/:Id
+ */
+router.put('/:Id/status', controller.update);
+
+/**
  * POST /product/approve
  */
 router.put('/:Id/supplier/approve', controller.approve);

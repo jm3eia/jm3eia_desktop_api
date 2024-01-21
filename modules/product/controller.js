@@ -929,6 +929,17 @@ module.exports.create = async function (req, res) {
 };
 
 
+module.exports.update = async function (req, res) {
+	if (req.custom.isAuthorized === false || !req.custom.authUser.supplier) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+	
+	req.custom.model = require(`./models/update_status`);
+	
+	mainController.update(req, res, collectionName);
+};
+
+
 module.exports.approve = async function (req, res) {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
