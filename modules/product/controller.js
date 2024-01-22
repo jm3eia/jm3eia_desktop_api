@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
-const { skipProduct, unskipProduct } = require('./utils');
+const { skipProduct, unskipProduct, update_children_quantities } = require('./utils');
 const collectionName = "product";
 
 /**
@@ -74,9 +74,13 @@ module.exports.update_price_qty_weight = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
 	const oldProduct = await collection.findOne(req.custom.update_by);
+	if (oldProduct && oldProduct.base_product && oldProduct.base_product.sku) {
+		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + oldProduct.base_product.sku }, enums.status_message.VALIDATION_ERROR);
+	}
 
 	mainController.update(req, res, collectionName, async () => {
 		const newProduct = await collection.findOne(req.custom.update_by);
+		update_children_quantities(req, newProduct);
 		common.saveActionLog(req, 'UPDATE', 'product', newProduct._id, newProduct, oldProduct);
 	});
 };
@@ -177,6 +181,10 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
+	if (product && product.base_product && product.base_product.sku) {
+		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
+	}
+
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
@@ -235,6 +243,8 @@ module.exports.quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
+			update_children_quantities(req, product);
+			//update_base_product(req, product, data.store_id.toString(), data.quantity);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
 			return res.out({
 				message: local.saved_done
@@ -512,7 +522,9 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	console.log('====================== PRODUCT ==================== ', product);
+	if (product && product.base_product && product.base_product.sku) {
+		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
+	}
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
@@ -567,6 +579,7 @@ module.exports.increase_quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
+			update_children_quantities(req, product);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);;
 			return res.out({
 				message: local.saved_done
@@ -604,6 +617,9 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
 	const product = await collection.findOne(filter);
+	if (product && product.base_product && product.base_product.sku) {
+		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
+	}
 
 	if (!product) {
 		return res.out({
@@ -667,6 +683,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
+			update_children_quantities(req, product);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
 			return res.out({
 				message: local.saved_done
@@ -930,7 +947,7 @@ module.exports.create = async function (req, res) {
 
 
 module.exports.update = async function (req, res) {
-	if (req.custom.isAuthorized === false || !req.custom.authUser.supplier) {
+	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 	
