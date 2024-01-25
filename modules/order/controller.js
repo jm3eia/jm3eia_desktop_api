@@ -905,20 +905,18 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				if (doc.data) {
-					doc.products = doc.products.reduce((prod, curr) => {
-						//console.log(curr);
-						if (curr.supplier) {
-							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-							prod[curr.supplier.name.en].push(curr);
-						}
-						else {
-							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-							prod[curr.supplier_id].push(curr);
-						}
-						return prod;
-					}, {});
-				}
+				doc.products = doc.products.reduce((prod, curr) => {
+					//console.log(curr);
+					if (curr.supplier) {
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
 			} catch (error) {
 				//	doc.products = [];
 			}
@@ -990,12 +988,24 @@ module.exports.read = (req, res) => {
 			if (doc.data) {
 				doc.products = doc.products.reduce((prod, curr) => {
 				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
-				const supplier_key =  !doc.data && curr.supplier && curr.supplier.name && curr.supplier.name.en ? curr.supplier.name.en : curr.supplier_id;
 
-				prod[supplier_key] = prod[supplier_key] || [];
-				prod[supplier_key].push(curr);
+				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+				prod[curr.supplier_id].push(curr);
 				return prod;
 			}, {});
+			} else {
+				doc.products = doc.products.reduce((prod, curr) => {
+					//console.log(curr);
+					if (curr.supplier) {
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
 			}
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
