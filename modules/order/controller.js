@@ -986,6 +986,7 @@ module.exports.read = (req, res) => {
 
 		try {
 			if (doc.data) {
+				console.log('DOC DATA: ', doc.data);
 				doc.products = doc.products.reduce((prod, curr) => {
 				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
 
