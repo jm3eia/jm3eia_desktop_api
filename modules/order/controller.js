@@ -919,7 +919,7 @@ module.exports.list = (req, res) => {
 						return prod;
 					}, {});
 				} else {
-					const key = doc.supplier && && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+					const key = doc.supplier && doc.supplier.name ? doc.supplier.name.en : 'unknown';
 					doc.products = {
 						[key]: doc.products
 					}
@@ -1001,7 +1001,7 @@ module.exports.read = (req, res) => {
 				return prod;
 			}, {});
 			} else {
-				const key = doc.supplier && && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+				const key = doc.supplier && doc.supplier.name ? doc.supplier.name.en : 'unknown';
 				doc.products = {
 					[key]: doc.products
 				}
