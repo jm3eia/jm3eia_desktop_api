@@ -985,32 +985,39 @@ module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {
-			doc.products = doc.products.reduce((prod, curr) => {
+			if (doc.data) {
+				doc.products = doc.products.reduce((prod, curr) => {
 				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
-				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-				prod[curr.supplier_id].push(curr);
+				const supplier_key =  !doc.data && curr.supplier && curr.supplier.name && curr.supplier.name.en ? curr.supplier.name.en : curr.supplier_id;
+
+				prod[supplier_key] = prod[supplier_key] || [];
+				prod[supplier_key].push(curr);
 				return prod;
 			}, {});
+			}
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
 				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { projection: { _id: 1, name: 1, city_number: 1 } });
 				doc.user_data.address.city = city;
 			}
 
-			const product_collection = req.custom.db.client().collection('product');
-			const newData = [];
+			if (doc.data) {
+				const product_collection = req.custom.db.client().collection('product');
+				const newData = [];
 
-			for (let d of doc.data) {
-				const newProducts = [];
-				for (let p of d.products) {
-					const product = await product_collection.findOne({ sku: p.sku }, { projection: { pick_sorting: 1 } });
-					newProducts.push({ ...p, pick_sorting: product.pick_sorting });
+				for (let d of doc.data) {
+					const newProducts = [];
+					for (let p of d.products) {
+						const product = await product_collection.findOne({ sku: p.sku }, { projection: { pick_sorting: 1 } });
+						newProducts.push({ ...p, pick_sorting: product.pick_sorting });
+					}
+					newData.push({ ...d, products: newProducts });
 				}
-				newData.push({ ...d, products: newProducts });
-			}
-			doc.data = newData;
+				doc.data = newData;
+				}
 
 		} catch (error) {
+			console.error('GET ORDER ERROR: ', error);
 			//	doc.products = [];
 		}
 
