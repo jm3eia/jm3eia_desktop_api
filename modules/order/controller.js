@@ -905,18 +905,20 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
-					}
-					else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}
-					return prod;
-				}, {});
+				if (doc.data) {
+					doc.products = doc.products.reduce((prod, curr) => {
+						//console.log(curr);
+						if (curr.supplier) {
+							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+							prod[curr.supplier.name.en].push(curr);
+						}
+						else {
+							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+							prod[curr.supplier_id].push(curr);
+						}
+						return prod;
+					}, {});
+				}
 			} catch (error) {
 				//	doc.products = [];
 			}
