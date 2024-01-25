@@ -994,16 +994,17 @@ module.exports.read = (req, res) => {
 				return prod;
 			}, {});
 			} else {
+				console.log('ELSE BEING APPLIED');
 				doc.products = doc.products.reduce((prod, curr) => {
 					//console.log(curr);
 					if (curr.supplier) {
 						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
 						prod[curr.supplier.name.en].push(curr);
 					}
-					else {
+					/* else {
 						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
 						prod[curr.supplier_id].push(curr);
-					}
+					} */
 					return prod;
 				}, {});
 			}
