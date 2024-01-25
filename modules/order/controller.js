@@ -905,18 +905,25 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
+				if (doc.data) {
+					doc.products = doc.products.reduce((prod, curr) => {
+						//console.log(curr);
+						if (curr.supplier) {
+							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+							prod[curr.supplier.name.en].push(curr);
+						}
+						else {
+							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+							prod[curr.supplier_id].push(curr);
+						}
+						return prod;
+					}, {});
+				} else {
+					const key = doc.supplier && && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+					doc.products = {
+						[key]: doc.products
 					}
-					else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}
-					return prod;
-				}, {});
+				}
 			} catch (error) {
 				//	doc.products = [];
 			}
@@ -986,7 +993,6 @@ module.exports.read = (req, res) => {
 
 		try {
 			if (doc.data) {
-				console.log('DOC DATA: ', doc.data);
 				doc.products = doc.products.reduce((prod, curr) => {
 				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
 
@@ -995,19 +1001,10 @@ module.exports.read = (req, res) => {
 				return prod;
 			}, {});
 			} else {
-				console.log('ELSE BEING APPLIED');
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
-					}
-					/* else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					} */
-					return prod;
-				}, {});
+				const key = doc.supplier && && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+				doc.products = {
+					[key]: doc.products
+				}
 			}
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
