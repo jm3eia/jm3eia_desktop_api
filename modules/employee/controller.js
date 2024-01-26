@@ -155,6 +155,7 @@ module.exports.list = async (req, res) => {
         department: 1,
         store_id: 1,
         working_times: 1,
+        max_orders: 1,
         status: 1,
     };
     mainController.list(req, res, collectionName, projection);
