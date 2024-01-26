@@ -905,18 +905,26 @@ module.exports.list = (req, res) => {
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
 			try {
-				doc.products = doc.products.reduce((prod, curr) => {
-					//console.log(curr);
-					if (curr.supplier) {
-						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
-						prod[curr.supplier.name.en].push(curr);
+				if (doc.data) {
+					doc.products = doc.products.reduce((prod, curr) => {
+						//console.log(curr);
+						if (curr.supplier) {
+							prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+							prod[curr.supplier.name.en].push(curr);
+						}
+						else {
+							prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+							prod[curr.supplier_id].push(curr);
+						}
+						return prod;
+					}, {});
+				} else {
+					const key = doc.supplier && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+					doc.products = {
+						[key]: doc.products
 					}
-					else {
-						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-						prod[curr.supplier_id].push(curr);
-					}
-					return prod;
-				}, {});
+				}
+
 			} catch (error) {
 				//	doc.products = [];
 			}
@@ -985,12 +993,20 @@ module.exports.read = (req, res) => {
 	mainController.read(req, res, collectionName, async (doc) => {
 
 		try {
-			doc.products = doc.products.reduce((prod, curr) => {
-				if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
-				prod[curr.supplier_id] = prod[curr.supplier_id] || [];
-				prod[curr.supplier_id].push(curr);
-				return prod;
-			}, {});
+			if (doc.data) {
+				doc.products = doc.products.reduce((prod, curr) => {
+					if (!curr.supplier_id) curr.supplier_id = "Jm3eia";
+	
+					prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+					prod[curr.supplier_id].push(curr);
+					return prod;
+				}, {});
+			} else {
+				const key = doc.supplier && doc.supplier.name ? doc.supplier.name.en : 'unknown';
+				doc.products = {
+					[key]: doc.products
+				}
+			}
 			if (doc.user_data && doc.user_data.address && doc.user_data.address.city_id) {
 				const city_collection = req.custom.db.client().collection('city');
 				const city = await city_collection.findOne({ _id: ObjectID(doc.user_data.address.city_id.toString()) }, { projection: { _id: 1, name: 1, city_number: 1 } });
