@@ -1007,19 +1007,22 @@ module.exports.transfer_quantity = async (req, res) => {
 
 	const source_product = await collection.findOne(req.query.source && req.query.source === 'jm3eia' ? jm3eia_filter : supplier_filter);
 
+	const source_name = req.query.source && req.query.source === 'jm3eia' ? "Jm3eia" : "Jm3eia wholesale";
+	const destination_name = req.query.source && req.query.source === 'jm3eia' ? "Jm3eia wholesale" : "Jm3eia";
+
 	if (!source_product) {
-		return res.out({ message: 'Product not found in Jm3eia wholesale' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'Product not found in ' + source_name }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	const destination_product = await collection.findOne(req.query.source && req.query.source === 'jm3eia' ? supplier_filter : jm3eia_filter);
 
 	if (!destination_product) {
-		return res.out({ message: 'Product not found in Jm3eia' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'Product not found in ' + destination_name }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	const source_store = source_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!source_store) {
-		return res.out({ message: 'The store not found in the Jm3eia wholesale product' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'The store not found in the ' + source_name + ' product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	if (source_store.quantity < data.quantity) {
@@ -1028,7 +1031,7 @@ module.exports.transfer_quantity = async (req, res) => {
 
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
-		return res.out({ message: 'The store not found in the Jm3eia product' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'The store not found in the ' + destination_name + ' product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
@@ -1054,7 +1057,7 @@ module.exports.transfer_quantity = async (req, res) => {
 	}, enums.status_message.UPDATED)
 }
 
-module.exports.transfer_quantity_from_jm3eia = async (req, res) => {
+module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 	req.custom.model = require('./models/transfer_quantity');
 
 	const collection = req.custom.db.client().collection('product');
@@ -1068,7 +1071,7 @@ module.exports.transfer_quantity_from_jm3eia = async (req, res) => {
 		return res.out(error, enums.status_message.VALIDATION_ERROR);
 	}
 
-	const supplier_id = ObjectID("648479474e9e6379c835aba2");
+	const supplier_id = ObjectID("65b8f396d61b28bf268b85e6");
 
 
 	const source_product = await collection.findOne({ barcode: req.params.barcode, $or: [ { supplier_id: { $exists: false } }, { supplier_id: null } ] });
@@ -1080,13 +1083,13 @@ module.exports.transfer_quantity_from_jm3eia = async (req, res) => {
 	const destination_product = await collection.findOne({ barcode: req.params.barcode, supplier_id: supplier_id });
 
 	if (!destination_product) {
-		return res.out({ message: 'Product not found in Jm3eia wholesale' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'Product not found in Mangaf' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 
 	const source_store = source_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!source_store) {
-		return res.out({ message: 'The store not found in the Jm3eia wholesale product' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'The store not found in the Jm3eia product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	if (source_store.quantity < data.quantity) {
@@ -1095,7 +1098,7 @@ module.exports.transfer_quantity_from_jm3eia = async (req, res) => {
 
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
-		return res.out({ message: 'The store not found in the Jm3eia product' }, enums.status_message.VALIDATION_ERROR);
+		return res.out({ message: 'The store not found in the Mangaf product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
