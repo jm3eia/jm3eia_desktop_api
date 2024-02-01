@@ -115,7 +115,8 @@ router.put('/update_status', controller.update_status);
 router.put('/:soft_code/remove', controller.removeProductFromOrders);
 
 //90007755441222
-router.put('/:barcode/transfer_quantity', controller.transfer_quantity);
+router.put('/:barcode/transfer_quantity/wholesale', controller.transfer_quantity_to_wholesale);
+router.put('/:barcode/transfer_quantity/jm3eia', controller.transfer_quantity_to_jm3eia);
 router.put('/:barcode/transfer_quantity/mangaf', controller.transfer_quantity_to_mangaf);
 
 module.exports = router;
