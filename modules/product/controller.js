@@ -1054,7 +1054,7 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 	}, enums.status_message.UPDATED)
 }
 
-module.exports.transfer_quantity_to_wholesale = async (req, res) => {
+/* module.exports.transfer_quantity_to_wholesale = async (req, res) => {
 	req.custom.model = require('./models/transfer_quantity');
 
 	const collection = req.custom.db.client().collection('product');
@@ -1097,6 +1097,74 @@ module.exports.transfer_quantity_to_wholesale = async (req, res) => {
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
 		return res.out({ message: 'The store not found in the Jm3eia wholesale product' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
+		if (s.store_id.toString() === '5d3827c683545d0366ac4285') {
+			s.quantity -= data.quantity;
+		}
+		return s;
+	});
+
+	const new_destination_prod_n_storeArr = destination_product.prod_n_storeArr.map(s => {
+		if (s.store_id.toString() === '5d3827c683545d0366ac4285') {
+			s.quantity += data.quantity;
+		}
+		return s;
+	});
+
+	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
+
+	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+
+	return res.out({
+		message: local.saved_done
+	}, enums.status_message.UPDATED)
+} */
+
+
+module.exports.transfer_quantity_to_express = async (req, res) => {
+	req.custom.model = require('./models/transfer_quantity');
+
+	const collection = req.custom.db.client().collection('product');
+
+	const local = req.custom.local;
+	const {
+		data,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const supplier_id = ObjectID("658dc00fcf38293bbdae82a2");
+
+
+	const source_product = await collection.findOne({ barcode: req.params.barcode, $or: [ { supplier_id: { $exists: false } }, { supplier_id: null } ] });
+
+	if (!source_product) {
+		return res.out({ message: 'Product not found in Jm3eia' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const destination_product = await collection.findOne({ barcode: req.params.barcode, supplier_id: supplier_id });
+
+	if (!destination_product) {
+		return res.out({ message: 'Product not found in Jm3eia Express' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+
+	const source_store = source_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
+	if (!source_store) {
+		return res.out({ message: 'The store not found in the Jm3eia Express' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	if (source_store.quantity < data.quantity) {
+		return res.out({ message: 'No enough quantity' }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
+	if (!destination_store) {
+		return res.out({ message: 'The store not found in the Jm3eia Express product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
 	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
