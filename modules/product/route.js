@@ -118,6 +118,6 @@ router.put('/:soft_code/remove', controller.removeProductFromOrders);
 //router.put('/:barcode/transfer_quantity/wholesale', controller.transfer_quantity_to_wholesale);
 router.put('/:barcode/transfer_quantity/jm3eia', controller.transfer_quantity_to_jm3eia);
 router.put('/:barcode/transfer_quantity/express', controller.transfer_quantity_to_express);
-router.put('/:barcode/transfer_quantity/express_mangaf', controller.transfer_quantity_to_mangaf);
+router.put('/:barcode/transfer_quantity/mangaf_express', controller.transfer_quantity_to_mangaf);
 
 module.exports = router;
