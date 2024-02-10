@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
-const { skipProduct, unskipProduct, update_children_quantities } = require('./utils');
+const { skipProduct, unskipProduct,  update_base_product } = require('./utils');
 const collectionName = "product";
 
 /**
@@ -74,13 +74,13 @@ module.exports.update_price_qty_weight = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
 	const oldProduct = await collection.findOne(req.custom.update_by);
-	if (oldProduct && oldProduct.base_product && oldProduct.base_product.sku) {
+	/* if (oldProduct && oldProduct.base_product && oldProduct.base_product.sku) {
 		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + oldProduct.base_product.sku }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	mainController.update(req, res, collectionName, async () => {
 		const newProduct = await collection.findOne(req.custom.update_by);
-		update_children_quantities(req, newProduct);
+		update_base_product(req, newProduct, req.body.prod_n_storeArr[0].store_id);
 		common.saveActionLog(req, 'UPDATE', 'product', newProduct._id, newProduct, oldProduct);
 	});
 };
@@ -181,9 +181,9 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	if (product && product.base_product && product.base_product.sku) {
+	/* if (product && product.base_product && product.base_product.sku) {
 		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
@@ -243,8 +243,7 @@ module.exports.quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
-			update_children_quantities(req, product);
-			//update_base_product(req, product, data.store_id.toString(), data.quantity);
+			update_base_product(req, product, data.store_id.toString());
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
 			return res.out({
 				message: local.saved_done
@@ -522,9 +521,9 @@ module.exports.increase_quantity = async (req, res) => {
 		}, enums.status_message.NOT_FOUND);
 	}
 
-	if (product && product.base_product && product.base_product.sku) {
+	/* if (product && product.base_product && product.base_product.sku) {
 		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
@@ -579,7 +578,7 @@ module.exports.increase_quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
-			update_children_quantities(req, product);
+			update_base_product(req, product, data.store_id.toString(), "increase", data.quantity);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);;
 			return res.out({
 				message: local.saved_done
@@ -617,9 +616,9 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	const collection = req.custom.db.client().collection(collectionName);
 	const product = await collection.findOne(filter);
-	if (product && product.base_product && product.base_product.sku) {
+	/* if (product && product.base_product && product.base_product.sku) {
 		return res.out({ message: "You cannot update the quantity of this product because it feeds it from " + product.base_product.sku }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	if (!product) {
 		return res.out({
@@ -683,7 +682,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
-			update_children_quantities(req, product);
+			update_base_product(req, product, data.store_id.toString(), "decrease", data.quantity);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
 			return res.out({
 				message: local.saved_done
@@ -1007,9 +1006,9 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 
 	const source_product = await collection.findOne(supplier_filter);
 
-	if (!source_product) {
+	/* if (!source_product) {
 		return res.out({ message: 'Product not found in Jm3eia wholesale' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_product = await collection.findOne(jm3eia_filter);
 
@@ -1022,9 +1021,9 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 		return res.out({ message: 'The store not found in the Jm3eia wholesale product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
-	if (source_store.quantity < data.quantity) {
+	/* if (source_store.quantity < data.quantity) {
 		return res.out({ message: 'No enough quantity' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
@@ -1034,6 +1033,7 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 	const new_source_prod_n_storeArr = source_product.prod_n_storeArr.map(s => {
 		if (s.store_id.toString() === '5d3827c683545d0366ac4285') {
 			s.quantity -= data.quantity;
+			if (s.quantity < 0) s.quantity = 0;
 		}
 		return s;
 	});
@@ -1046,8 +1046,11 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 	});
 
 	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
-
+	
 	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+	
+	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
+	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
 
 	return res.out({
 		message: local.saved_done
@@ -1142,9 +1145,9 @@ module.exports.transfer_quantity_to_express = async (req, res) => {
 
 	const source_product = await collection.findOne({ barcode: req.params.barcode, $or: [ { supplier_id: { $exists: false } }, { supplier_id: null } ] });
 
-	if (!source_product) {
+	/* if (!source_product) {
 		return res.out({ message: 'Product not found in Jm3eia' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_product = await collection.findOne({ barcode: req.params.barcode, supplier_id: supplier_id });
 
@@ -1158,9 +1161,9 @@ module.exports.transfer_quantity_to_express = async (req, res) => {
 		return res.out({ message: 'The store not found in the Jm3eia Express' }, enums.status_message.VALIDATION_ERROR);
 	}
 
-	if (source_store.quantity < data.quantity) {
+	/* if (source_store.quantity < data.quantity) {
 		return res.out({ message: 'No enough quantity' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
@@ -1184,6 +1187,9 @@ module.exports.transfer_quantity_to_express = async (req, res) => {
 	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
 
 	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+
+	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
+	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
 
 	return res.out({
 		message: local.saved_done
@@ -1209,9 +1215,9 @@ module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 
 	const source_product = await collection.findOne({ barcode: req.params.barcode, $or: [ { supplier_id: { $exists: false } }, { supplier_id: null } ] });
 
-	if (!source_product) {
+	/* if (!source_product) {
 		return res.out({ message: 'Product not found in Jm3eia' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_product = await collection.findOne({ barcode: req.params.barcode, supplier_id: supplier_id });
 
@@ -1225,9 +1231,9 @@ module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 		return res.out({ message: 'The store not found in the Jm3eia product' }, enums.status_message.VALIDATION_ERROR);
 	}
 
-	if (source_store.quantity < data.quantity) {
+	/* if (source_store.quantity < data.quantity) {
 		return res.out({ message: 'No enough quantity' }, enums.status_message.VALIDATION_ERROR);
-	}
+	} */
 
 	const destination_store = destination_product.prod_n_storeArr.find(s => s.store_id.toString() === '5d3827c683545d0366ac4285');
 	if (!destination_store) {
@@ -1251,6 +1257,9 @@ module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
 
 	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+
+	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
+	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
 
 	return res.out({
 		message: local.saved_done

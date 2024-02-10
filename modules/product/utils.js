@@ -47,7 +47,7 @@ module.exports.unskipProduct = async (req, action) => {
 
 
 
-module.exports.update_children_quantities = async function (req, product) {
+const update_children_quantities = async function (req, product) {
     try {
         if (product.base_product && product.base_product.sku) return;
         const collection = req.custom.db.client().collection("product");
@@ -95,13 +95,23 @@ module.exports.update_children_quantities = async function (req, product) {
 }
 
 
-module.exports.update_base_product = async function (req, product, store_id, quantity) {
+/**
+ * Types: "update", "increase", "decrease"
+ */
+module.exports.update_base_product = async function (req, product, store_id, type = "update", quantity) {
     if (
       !product.base_product ||
       !product.base_product.sku ||
       !product.base_product.item_quantity
-    )
-      return;
+    ) {
+        update_children_quantities(req, product);
+        return;
+    }
+
+    if (type !== 'update' && !quantity) {
+        console.error('You should set the quantity.');
+        return;
+    }
   
     const collection = req.custom.db.client().collection("product");
   
@@ -116,25 +126,59 @@ module.exports.update_base_product = async function (req, product, store_id, qua
     const data = {
         prod_n_storeArr: base_product.prod_n_storeArr.map(s => {
             if (s.store_id.toString() === store_id) {
-                const qty = Math.floor(product_store.quantity * product.base_product.item_quantity);
-                total_quantity += qty;
-                s.quantity = qty;
+                if (type === 'update') {
+                    const qty = Math.floor(product_store.quantity * product.base_product.item_quantity);
+                    s.quantity = qty;
+                    total_quantity += s.quantity;
+                }
+
+                if (type === 'increase') {
+                    const qty = Math.floor(quantity * product.base_product.item_quantity);
+                    console.log('quantity is: ', qty);
+                    s.quantity = s.quantity + qty;
+                    total_quantity += s.quantity;
+                }
+
+                if (type === 'decrease') {
+                    const qty = Math.floor(quantity * product.base_product.item_quantity);
+                    s.quantity = s.quantity - qty;
+                    if (s.quantity < 0) s.quantity = 0;
+                    total_quantity -= s.quantity;
+                }
+
             }
 
             return s;
-        }) 
+        })
     };
 
     if (product.variants && base_product.variants) {
         data.variants = product.variants.map(v => {
             const index = base_product.variants.findIndex(variant => variant.sku.split('-')[1] == v.sku.split('-')[1]);
             if (v.prod_n_storeArr && index > -1) {
-                v.prod_n_storeArr = base_product.variants[index].prod_n_storeArr.map(s => {
-                    if (s.store_id.toString() === store_id) {
-                        s.quantity = Math.floor(s.quantity * product.base_product.item_quantity)
-                    }
-                    return s;
-                });
+                const variant_store = v.prod_n_storeArr.find(s => s.store_id.toString() === store_id);
+                if (variant_store) {
+                    v.prod_n_storeArr = base_product.variants[index].prod_n_storeArr.map(s => {
+                        if (s.store_id.toString() === store_id) {
+                            if (type === 'update') {
+                                const qty = Math.floor(variant_store.quantity * product.base_product.item_quantity);
+                                s.quantity = qty;
+                            }
+    
+                            if (type === 'increase') {
+                                const qty = Math.floor(quantity * product.base_product.item_quantity);
+                                s.quantity = s.quantity + qty;
+                            }
+    
+                            if (type === 'decrease') {
+                                const qty = Math.floor(quantity * product.base_product.item_quantity);
+                                s.quantity = s.quantity - qty;
+                                if (s.quantity < 0) s.quantity = 0;
+                            }
+                        }
+                        return s;
+                    });
+                }
                 
             }
             return v;
@@ -148,14 +192,21 @@ module.exports.update_base_product = async function (req, product, store_id, qua
         data.status = false;
     }
 
-    await collection
-      .updateOne(
+    const result = await collection
+      .findOneAndUpdate(
         {
           _id: ObjectID(base_product._id.toString()),
         },
         {
           $set: data,
-        }
+        },
+        { returnDocument: 'after' }
       )
       .catch(() => null);
+
+      if (result.ok === 1) {
+        update_children_quantities(req, result.value);
+      } else {
+        update_children_quantities(req, product);
+      }
   };
