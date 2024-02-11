@@ -210,3 +210,18 @@ module.exports.update_base_product = async function (req, product, store_id, typ
         update_children_quantities(req, product);
       }
   };
+
+
+  module.exports.get_prod_status_by_quantity = (prod_n_storeArr) => {
+    if (!prod_n_storeArr || prod_n_storeArr.length < 1) {
+        return false;
+    }
+
+    const total_quantities = prod_n_storeArr.reduce((accumulator, currentValue) => {
+		// If quantity is undefined or null, treat it as 0
+		const quantity = currentValue.quantity || 0;
+		return accumulator + quantity;
+	  }, 0);
+
+    return total_quantities > 0;
+  }

@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
-const { skipProduct, unskipProduct,  update_base_product } = require('./utils');
+const { skipProduct, unskipProduct,  update_base_product, get_prod_status_by_quantity } = require('./utils');
 const collectionName = "product";
 
 /**
@@ -1045,9 +1045,9 @@ module.exports.transfer_quantity_to_jm3eia = async (req, res) => {
 		return s;
 	});
 
-	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
+	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr, status: get_prod_status_by_quantity(new_source_prod_n_storeArr) } });
 	
-	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr, status: get_prod_status_by_quantity(new_destination_prod_n_storeArr) } });
 	
 	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
 	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
@@ -1184,9 +1184,9 @@ module.exports.transfer_quantity_to_express = async (req, res) => {
 		return s;
 	});
 
-	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
+	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr, status: get_prod_status_by_quantity(new_source_prod_n_storeArr) } });
 
-	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr, status: get_prod_status_by_quantity(new_destination_prod_n_storeArr) } });
 
 	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
 	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
@@ -1253,10 +1253,13 @@ module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 		}
 		return s;
 	});
+	
 
-	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr } });
+	
 
-	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr } });
+	await collection.updateOne({ _id: ObjectID(source_product._id.toString()) }, { $set: { prod_n_storeArr: new_source_prod_n_storeArr, status: get_prod_status_by_quantity(new_source_prod_n_storeArr) } });
+
+	await collection.updateOne({ _id: ObjectID(destination_product._id.toString()) }, { $set: { prod_n_storeArr: new_destination_prod_n_storeArr, status: get_prod_status_by_quantity(new_destination_prod_n_storeArr) } });
 
 	update_base_product(req, source_product, '5d3827c683545d0366ac4285', 'decrease', data.quantity);
 	update_base_product(req, destination_product, '5d3827c683545d0366ac4285', 'increase', data.quantity);
