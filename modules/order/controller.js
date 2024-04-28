@@ -1232,6 +1232,142 @@ module.exports.update_product_quantity = (req, res) => {
 	update_product_quantity_in_order(req, res, 'product_update_quantity');
 };
 
+module.exports.add_product = async (req, res) => {
+	try {
+		if (req.custom.isAuthorized === false) {
+			return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+		}
+	
+		if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
+			return res.out({
+				'message': req.custom.local.id_not_valid
+			}, enums.status_message.INVALID_URL_PARAMETER);
+		}
+	
+		req.custom.model = require('./models/add_product');
+		const {
+			data,
+			error
+		} = await req.custom.getValidData(req);
+		if (error) {
+			return res.out(error, enums.status_message.VALIDATION_ERROR);
+		}
+	
+		const collection = req.custom.db.client().collection(collectionName);
+		const product_collection = req.custom.db.client().collection("product");
+		const adminmember_collection = req.custom.db.client().collection('adminmember')
+		const category_collection = req.custom.db.client().collection('category')
+		const local = req.custom.local;
+	
+		const order = await collection.findOne({_id: ObjectID(req.params.Id)});
+	
+		if (!order) {
+			return res.out({
+				"message": local.item_not_exists
+			}, enums.status_message.VALIDATION_ERROR);
+		}
+	
+		if (order.products.findIndex(p => p.sku === data.sku) > -1) {
+			return res.out({
+				"message": "Product already exists in the order"
+			}, enums.status_message.VALIDATION_ERROR);
+		}
+	
+	
+		const sku = data.sku.includes('-') ? data.sku.split('-')[0] : data.sku;
+		const product = await product_collection.findOne({ sku: sku }, { projection: {
+			"_id": 1,
+			"soft_code": 1,
+			"sku": { $ifNull: [`$sku`, `$soft_code`] }, // TODO: Change to sku
+			"name": 1,
+			"categories": "$prod_n_categoryArr",
+			"picture": 1,
+			"price": 1,
+			"exchange_with_points": 1,
+			"points": 1,
+			"old_price": 1,
+			"uom": 1,
+			"barcode": 1,
+			"weight": 1,
+			"prod_n_storeArr": 1,
+			"supplier_id": 1,
+			"variants": 1,
+			"free_shipping": 1,
+			"discount_price_valid_until": 1,
+			"floor": 1,
+			"rack_zone": 1,
+			"barcode_2": 1,
+			"options": 1,
+			"max_quantity_cart": 1,
+			"base_product": 1
+		} });
+
+		if (!product.prod_n_storeArr || product.prod_n_storeArr.findIndex(s => s.status && s.quantity > 0) < 0) {
+			return res.out({
+				"message": "No enough quantity"
+			}, enums.status_message.VALIDATION_ERROR);
+		}
+
+		const price = parseFloat(product.price) * data.quantity;
+	
+		let order_product = { ...product, quantity: data.quantity, price: common.getFixedPrice(product.price), picture: common.picture_with_base(product.picture) };
+	
+		if (order_product.categories) {
+			const categories = await category_collection.find({ _id: { $in: order_product.categories.map(c => ObjectID(c.category_id.toString())) } }).toArray();
+			order_product.categories = order_product.categories.map((i) => {
+				const cat_obj = categories.find((c) => c._id.toString() == i.category_id.toString());
+				if (cat_obj) {
+					const y = {};
+					y._id = cat_obj._id;
+					y.name = cat_obj.name;
+					if (y._id && y.name) {
+						return y;
+					}
+				}
+			});
+			order_product.categories = order_product.categories.filter((i) => i != null);
+		} else {
+			order.categories = [];
+		}
+	
+		const total = parseFloat(order.total) + price;
+		const subtotal = parseFloat(order.subtotal) + price;
+	
+		const admin = await adminmember_collection.findOne({_id: order.lastupdate_user});
+	
+		const update_by = req.custom.update_by != undefined ? req.custom.update_by : {
+			_id: ObjectID(req.params.Id)
+		};
+
+		const products = [...order.products];
+		products.push(product);
+	
+		const row = {
+			$set: {
+				products: products,
+				subtotal: subtotal,
+				total: total,
+				lastupdate_user_name: admin ? admin.username : ''
+			}
+		};
+	
+		const response = await collection.updateOne(update_by, row);
+	
+		common.saveLog(req, 'add_product', 'order', ObjectID(req.params.Id), { ...order, ...row['$set'] }, JSON.parse(order_str), { quantity: req.body.quantity }, req.body.employee_username, req.query);
+		common.updateOrderEmployee(req, req.params.Id, req.params.soft_code, 'add_product');
+		
+		return res.out({
+			message: local.saved_done
+		}, enums.status_message.UPDATED)
+	} catch (error) {
+		console.error(error);
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR)
+	}
+			
+};
+
 module.exports.update_order_number = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	// original order

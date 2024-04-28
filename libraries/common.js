@@ -2,6 +2,7 @@
 const moment = require("moment");
 const request = require("request");
 const axios = require("axios");
+const config = require("./config");
 const Decimal = require("mongodb").Decimal128;
 const ObjectID = require("mongodb").ObjectID;
 
@@ -367,3 +368,9 @@ module.exports.saveActionLog = async (
     console.error("Error logging update: ", err);
   }
 };
+
+
+module.exports.picture_with_base = function(picture) {
+	if (!picture) return "";
+	return picture.includes(config.media_url) ? picture : (config.media_url + picture);
+}

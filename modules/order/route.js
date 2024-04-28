@@ -108,6 +108,11 @@ router.delete('/:Id/product/:soft_code', controller.delete_product);
 router.put('/:Id/product/:soft_code', controller.update_product_quantity);
 
 /**
+ * PUT /order/:Id/product
+ */
+router.post('/:Id/product', controller.add_product);
+
+/**
  * PUT /order/status/report
  */
 router.get('/status/report', controller.status_report);
