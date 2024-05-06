@@ -1340,7 +1340,7 @@ module.exports.add_product = async (req, res) => {
 		};
 
 		const products = [...order.products];
-		products.push(product);
+		products.push(order_product);
 	
 		const row = {
 			$set: {
