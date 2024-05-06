@@ -1353,7 +1353,7 @@ module.exports.add_product = async (req, res) => {
 	
 		const response = await collection.updateOne(update_by, row);
 	
-		common.saveLog(req, 'add_product', 'order', ObjectID(req.params.Id), { ...order, ...row['$set'] }, JSON.parse(order_str), { quantity: req.body.quantity }, req.body.employee_username, req.query);
+		common.saveLog(req, 'add_product', 'order', ObjectID(req.params.Id), { ...order, ...row['$set'] }, order, { quantity: req.body.quantity }, req.body.employee_username, req.query);
 		common.updateOrderEmployee(req, req.params.Id, req.params.soft_code, 'add_product');
 		
 		return res.out({
