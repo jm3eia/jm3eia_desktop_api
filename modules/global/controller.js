@@ -138,3 +138,18 @@ module.exports.pointsToTransaction = async (req, res) => {
         console.error(req.originalUrl, err);
     }
 };
+
+
+
+module.exports.fix_parent_products = async (req, res) => {
+    /* if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, status_message.UNAUTHENTICATED);
+	} */
+
+	const collection = req.custom.db.client().collection("product");
+
+    const response = await collection.updateMany({ 'base_product.sku': { $exists: true }, 'prod_n_storeArr.quantity': { $gt: 0 }, status: false }, { $set: { status: true } });
+
+	
+	return res.out({ response });
+}
