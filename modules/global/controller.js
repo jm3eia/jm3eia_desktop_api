@@ -158,9 +158,19 @@ module.exports.fix_variants = async (req, res) => {
     try {
         const collection = req.custom.db.client().collection('product');
     const products = await collection.find({
-        $where: function() {
-          const mainSku = this.sku;
-          return this.variants && this.variants.length > 0 && this.variants.some(variant => !variant.sku.startsWith(mainSku));
+        variants: { $exists: true, $type: 'array', $ne: [] },
+        $expr: {
+          $gt: [
+            { $size: {
+                $filter: {
+                  input: "$variants",
+                  as: "variant",
+                  cond: { $not: { $regexMatch: { input: "$$variant.sku", regex: "^" + "$sku" } } }
+                }
+              } 
+            },
+            0
+          ]
         }
       }).toArray();
 
