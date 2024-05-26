@@ -165,7 +165,7 @@ module.exports.fix_variants = async (req, res) => {
                         $filter: {
                             input: "$variants",
                             as: "variant",
-                            cond: { $not: { $startsWith: ["$$variant.sku", "$$sku"] } }
+                            cond: { $not: { $regexMatch: { input: "$$variant.sku", regex: "^" + "$$sku" } } }
                         }
                     } 
                 },
