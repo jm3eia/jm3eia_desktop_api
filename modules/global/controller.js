@@ -165,7 +165,7 @@ module.exports.fix_variants = async (req, res) => {
             product.variants.some(variant => !variant.sku.startsWith(product.sku))
         );
 
-      return res.out({ length: products.length, products: filteredProducts.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
+      return res.out({ length: filteredProducts.length, products: filteredProducts.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
 
       console.log('Products fetched ', products.count);
 
