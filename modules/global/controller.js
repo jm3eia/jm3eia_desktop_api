@@ -162,7 +162,7 @@ module.exports.fix_variants = async (req, res) => {
         }).toArray();
 
         const filteredProducts = products.filter(product =>
-            product.variants.some(variant => !variant.sku.startsWith(product.sku))
+            product.variants && product.variants.length > 0 && product.variants.some(variant => !variant.sku.startsWith(product.sku))
         );
 
       return res.out({ length: filteredProducts.length, products: filteredProducts.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
