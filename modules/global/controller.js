@@ -161,18 +161,18 @@ module.exports.fix_variants = async (req, res) => {
             variants: { $exists: true, $type: 'array', $ne: [] }
         }).toArray();
 
-        const filteredProducts = products.filter(product =>
+        const prods = products.filter(product =>
             product.variants && product.variants.length > 0 && product.variants.some(variant => variant.sku && !variant.sku.startsWith(product.sku))
         );
 
-      return res.out({ length: filteredProducts.length, products: filteredProducts.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
+        const filteredProducts = [prods[0]];
 
-      console.log('Products fetched ', products.count);
+      console.log('Products fetched ', filteredProducts.count);
 
       const promises = [];
 
 
-      for (const product of products) {
+      for (const product of filteredProducts) {
         const mainSku = product.sku;
         
         const newVariants = product.variants.map(v => {
@@ -190,9 +190,11 @@ module.exports.fix_variants = async (req, res) => {
         
       }
 
+      console.log('Updating products ', promises.length);
+
       await Promise.all(promises);
 
-      return res.out({ products: products.length, skus: products.map(p => p.sku) });
+      return res.out({ length: filteredProducts.length, promises: promises.length, products: filteredProducts.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
     } catch (err) {
         console.error('ERR: ', err);
         return res.out(err);
