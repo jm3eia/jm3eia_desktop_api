@@ -161,13 +161,11 @@ module.exports.fix_variants = async (req, res) => {
             variants: { $exists: true, $type: 'array', $ne: [] }
         }).toArray();
 
-        const prods = products.filter(product =>
+        const filteredProducts = products.filter(product =>
             product.variants && product.variants.length > 0 && product.variants.some(variant => variant.sku && !variant.sku.startsWith(product.sku))
         );
 
-        const filteredProducts = [prods[0]];
-
-      console.log('Products fetched ', filteredProducts.count);
+      console.log('Products fetched ', filteredProducts.length);
 
       const promises = [];
 
