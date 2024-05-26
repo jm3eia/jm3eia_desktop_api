@@ -157,21 +157,21 @@ module.exports.fix_parent_products = async (req, res) => {
 module.exports.fix_variants = async (req, res) => {
     try {
         const collection = req.custom.db.client().collection('product');
-    const products = await collection.find({
-    variants: { $exists: true, $type: 'array', $ne: [] },
-    $expr: {
-        $gt: [
-            { $size: {
-                $filter: {
-                    input: "$variants",
-                    as: "variant",
-                    cond: { $not: { $regexMatch: { input: "$$variant.sku", regex: "^" + "$$sku" } } }
-                }
-            } 
-        },
-        0]
-    }
-}).toArray();
+        const products = await collection.find({
+            variants: { $exists: true, $type: 'array', $ne: [] },
+            $expr: {
+                $gt: [
+                    { $size: {
+                        $filter: {
+                            input: "$variants",
+                            as: "variant",
+                            cond: { $not: { $startsWith: ["$$variant.sku", "$$sku"] } }
+                        }
+                    } 
+                },
+                0]
+            }
+        }).toArray();
 
       return res.out({ length: products.length, products: products.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
 
