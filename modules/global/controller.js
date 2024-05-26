@@ -174,7 +174,7 @@ module.exports.fix_variants = async (req, res) => {
         }
       }).toArray();
 
-      return res.out(products.length);
+      return res.out({ length: products.length, products: products.map(p => ({ sku: p.sku, variants: p.variants.map(v => v.sku) })) });
 
       console.log('Products fetched ', products.count);
 
