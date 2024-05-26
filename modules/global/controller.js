@@ -153,3 +153,48 @@ module.exports.fix_parent_products = async (req, res) => {
 	
 	return res.out({ response });
 }
+
+module.exports.fix_variants = async (req, res) => {
+    try {
+        const collection = req.custom.db.client().collection('product');
+    const products = await collection.find({
+        $where: function() {
+          const mainSku = this.sku;
+          return this.variants && this.variants.length > 0 && this.variants.some(variant => !variant.sku.startsWith(mainSku));
+        }
+      }).toArray();
+
+      return res.out(products.length);
+
+      console.log('Products fetched ', products.count);
+
+      const promises = [];
+
+
+      for (const product of products) {
+        const mainSku = product.sku;
+        
+        const newVariants = product.variants.map(v => {
+            const splittedSku = v.sku.split('-');
+            if (splittedSku[0] !== mainSku) {
+                v.sku = `${mainSku}-${splittedSku[1]}`;
+            }
+            return v;
+        });
+
+        promises.push(collection.updateOne(
+            { _id: product._id },
+            { $set: { variants: newVariants } }
+        ));
+        
+      }
+
+      await Promise.all(promises);
+
+      return res.out({ products: products.length, skus: products.map(p => p.sku) });
+    } catch (err) {
+        console.error('ERR: ', err);
+        return res.out(err);
+    }
+
+}
