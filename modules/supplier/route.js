@@ -28,4 +28,6 @@ router.get('/', controller.list);
  */
 router.put('/:Id/busy', controller.update_busy);
 
+router.put('/:Id/working_times', controller.update_working_times);
+
 module.exports = router;
