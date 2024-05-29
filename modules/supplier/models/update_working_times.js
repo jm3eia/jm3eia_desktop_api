@@ -1,19 +1,19 @@
 //const ObjectID = require("mongodb").ObjectID;
 module.exports = {
-    "working_times": new Field({
+    "working_times": {
         "type": Array,
         "model": {
-            "week_day": new Field({
+            "week_day": {
                 "type": Number,
-            }),
-            "from": new Field({
+            },
+            "from": {
                 "type": String,
-            }),
-            "to": new Field({
+            },
+            "to": {
                 "type": String,
-            }),
+            },
         }
-    }),
+    },
     "modified": {
         "type": Date,
         "default": new Date(),
