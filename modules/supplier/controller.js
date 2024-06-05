@@ -139,6 +139,7 @@ module.exports.list = async (req, res) => {
     projection = {
         _id: 1,
         name: 1,
+        description: 1,
         email: 1,
         working_times: 1,
         picture: 1,
