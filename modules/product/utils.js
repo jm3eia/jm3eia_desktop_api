@@ -50,6 +50,7 @@ module.exports.unskipProduct = async (req, action) => {
 const update_children_quantities = async function (req, product) {
     try {
         if (product.base_product && product.base_product.sku) return;
+        console.error('PRODUCT: ', product);
         const collection = req.custom.db.client().collection("product");
         const children = await collection.find({ base_product: { $exists: true }, "base_product.sku": product.sku }).toArray();
         const promises = [];
@@ -63,7 +64,7 @@ const update_children_quantities = async function (req, product) {
                 }) 
             };
 
-            console.log('UPDATE QUANTITIES DATAT: ', p.sku, data.prod_n_storeArr[0], product.prod_n_storeArr[0], p.base_product.item_quantity);
+            //console.log('UPDATE QUANTITIES DATAT: ', p.sku, data.prod_n_storeArr[0], product.prod_n_storeArr[0], p.base_product.item_quantity);
             
             if (p.variants && product.variants) {
                 data.variants = p.variants.map(v => {
@@ -136,7 +137,6 @@ module.exports.update_base_product = async function (req, product, store_id, typ
                     const qty = Math.floor(quantity * product.base_product.item_quantity);
                     s.quantity = s.quantity + qty;
                     total_quantity += s.quantity;
-                    console.log('********************* ', total_quantity, ' *****************');
                 }
 
                 if (type === 'decrease') {
