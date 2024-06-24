@@ -53,11 +53,12 @@ const update_children_quantities = async function (req, product) {
         const collection = req.custom.db.client().collection("product");
         const children = await collection.find({ base_product: { $exists: true }, "base_product.sku": product.sku }).toArray();
         const promises = [];
+        console.log(product.prod_n_storeArr);
         for (let p of children) {
             let total_quantity = 0;
             const data = {
                 prod_n_storeArr: product.prod_n_storeArr.map(s => {
-                    console.log(s.quantity);
+                    console.log("qty: ", s.quantity);
                     const qty = Math.floor(s.quantity / p.base_product.item_quantity);
                     total_quantity += qty;
                     return { ...s, quantity: qty }
