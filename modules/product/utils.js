@@ -53,7 +53,6 @@ const update_children_quantities = async function (req, product) {
         const collection = req.custom.db.client().collection("product");
         const children = await collection.find({ base_product: { $exists: true }, "base_product.sku": product.sku }).toArray();
         const promises = [];
-        console.log(product.prod_n_storeArr);
         for (let p of children) {
             let total_quantity = 0;
             const data = {
@@ -64,10 +63,6 @@ const update_children_quantities = async function (req, product) {
                     return { ...s, quantity: qty }
                 }) 
             };
-
-            console.error('PRODUCT: ', p.sku, total_quantity);
-
-            //console.log('UPDATE QUANTITIES DATAT: ', p.sku, data.prod_n_storeArr[0], product.prod_n_storeArr[0], p.base_product.item_quantity);
             
             if (p.variants && product.variants) {
                 data.variants = p.variants.map(v => {
@@ -208,7 +203,7 @@ module.exports.update_base_product = async function (req, product, store_id, typ
       .catch(() => null);
 
       if (result.ok === 1) {
-        update_children_quantities(req, result.value);
+        update_children_quantities(req, {...result.value, prod_n_storeArr: data.prod_n_storeArr});
       } else {
         update_children_quantities(req, product);
       }
