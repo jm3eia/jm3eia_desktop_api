@@ -134,9 +134,9 @@ module.exports.update_base_product = async function (req, product, store_id, typ
 
                 if (type === 'increase') {
                     const qty = Math.floor(quantity * product.base_product.item_quantity);
-                    console.log('quantity is: ', qty);
                     s.quantity = s.quantity + qty;
                     total_quantity += s.quantity;
+                    console.log('********************* ', total_quantity, ' *****************');
                 }
 
                 if (type === 'decrease') {

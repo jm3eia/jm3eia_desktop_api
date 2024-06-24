@@ -545,6 +545,7 @@ module.exports.increase_quantity = async (req, res) => {
 				last_quantity_update: new Date()
 			}
 		};
+
 	} else {
 		let totalQuantity = 0;
 		const variants = product.variants.map((v) => {
