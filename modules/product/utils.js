@@ -57,6 +57,7 @@ const update_children_quantities = async function (req, product) {
             let total_quantity = 0;
             const data = {
                 prod_n_storeArr: product.prod_n_storeArr.map(s => {
+                    console.log(s.quantity);
                     const qty = Math.floor(s.quantity / p.base_product.item_quantity);
                     total_quantity += qty;
                     return { ...s, quantity: qty }
