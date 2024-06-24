@@ -50,7 +50,6 @@ module.exports.unskipProduct = async (req, action) => {
 const update_children_quantities = async function (req, product) {
     try {
         if (product.base_product && product.base_product.sku) return;
-        console.error('PRODUCT: ', product);
         const collection = req.custom.db.client().collection("product");
         const children = await collection.find({ base_product: { $exists: true }, "base_product.sku": product.sku }).toArray();
         const promises = [];
@@ -63,6 +62,8 @@ const update_children_quantities = async function (req, product) {
                     return { ...s, quantity: qty }
                 }) 
             };
+
+            console.error('PRODUCT: ', total_quantity);
 
             //console.log('UPDATE QUANTITIES DATAT: ', p.sku, data.prod_n_storeArr[0], product.prod_n_storeArr[0], p.base_product.item_quantity);
             
