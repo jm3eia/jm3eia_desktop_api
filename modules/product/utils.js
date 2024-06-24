@@ -63,7 +63,7 @@ const update_children_quantities = async function (req, product) {
                 }) 
             };
 
-            console.error('PRODUCT: ', total_quantity);
+            console.error('PRODUCT: ', p.sku, total_quantity);
 
             //console.log('UPDATE QUANTITIES DATAT: ', p.sku, data.prod_n_storeArr[0], product.prod_n_storeArr[0], p.base_product.item_quantity);
             
