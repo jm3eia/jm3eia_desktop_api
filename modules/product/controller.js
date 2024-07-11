@@ -38,6 +38,44 @@ module.exports.info = (req, res) => {
 	});
 };
 
+module.exports.product_details = async (req, res) => {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const category_collection = req.custom.db.client().collection("category");
+	const supplier_collection = req.custom.db.client().collection("supplier");
+	const product = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!product) {
+		return res.out({}, enums.status_message.NO_DATA);
+	}
+	if (product.floor && [1, 2, 3, 4, 5].includes(product.floor)) {
+		const local = req.custom.local;
+		product.floor = local.product_floors[product.floor];
+	}
+	if (product.picture) {
+		product.picture_with_base = process.env.MEDIA_URL + product.picture;
+	}
+
+	const categories_ids = product.prod_n_categoryArr ? product.prod_n_categoryArr.map(i => ObjectID(i.category_id.toString())) : [];
+
+	const categories = categories_ids.length > 0 ? await category_collection.find({ _id: { $in: categories_ids } }).toArray() : [];
+
+	const supplier = product.supplier_id
+    ? await supplier_collection.findOne({
+        _id: ObjectID(product.supplier_id.toString()),
+      })
+    : null;
+
+	product.categories = categories;
+	product.supplier = supplier;
+
+	res.out(product);
+	
+};
+
 /**
  * Get price and picture for product
  * @param {Object} req

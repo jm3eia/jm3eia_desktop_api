@@ -10,8 +10,10 @@ const controller = require('./controller');
 router.post('/', controller.create);
 
 /**
- * PUT /product/:Id
+ * GET /product/:Id/details
  */
+router.get('/:Id/details', controller.product_details);
+
 router.put('/:Id/status', controller.update);
 
 /**
