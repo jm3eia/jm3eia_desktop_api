@@ -54,7 +54,7 @@ router.put('/:soft_code/update_price_store_status', controller.update_price_stor
 /**
  * PUT /product/:soft_code/quantity
  */
-router.put('/:soft_code/quantity', controller.quantity);
+//router.put('/:soft_code/quantity', controller.quantity);
 
 /**
  * PUT /product/:soft_code/increase_quantity
