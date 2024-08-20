@@ -76,6 +76,11 @@ router.put('/:Id/number', controller.update_order_number);
 router.put('/:Id/status', controller.update_status);
 
 /**
+ * PUT /order/all_statuses
+ */
+router.put('/all_statuses', controller.update_all_statuses);
+
+/**
  * Post /order/:Id/driver_details
  */
 router.post('/:Id/driver_details', controller.update_driver_details);

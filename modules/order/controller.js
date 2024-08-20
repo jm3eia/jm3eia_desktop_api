@@ -1611,18 +1611,23 @@ function update_product_quantity_in_order(req, res, action) {
 }
 
 
-const update_status_webhook = (order_id, status) => {
-	var config = {
-		method: 'put',
-		url: `https://jameia.co/api/app/order-status/?status=${status}&id=${order_id}`,
-		headers: {
-			'Content-Type': 'application/json',
-			'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
-      		'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
-		},
-	};
-
-	axios(config).then(response => console.log(response.data)).catch(err => console.error(err));
+const update_status_webhook = async (order_id, status) => {
+	try {
+		var config = {
+			method: 'put',
+			url: `https://jameia.co/api/app/order-status/?status=${status}&id=${order_id}`,
+			headers: {
+				'Content-Type': 'application/json',
+				'app-key': '9cKkvPW6y9hpes0Q01ikfOkdwmpIc2T6r8OBmOjbapmwKw',
+				  'app-secret': 'jNmZGUyZTJlpGRRyF35tti0BHkN64WI4AlxNXIxL45gX2i'
+			},
+		};
+	
+		const response = await axios(config);
+		console.log(response.data);
+	} catch (err) {
+		console.error(err);
+	}
 
 }
 
@@ -1770,3 +1775,334 @@ function convertFields(obj) {
 	}
 
   }
+
+
+  module.exports.update_all_statuses = async (req, res) => {
+	try {
+		req.custom.model = require('./models/update_all_statuses');
+		const {
+			data,
+			error
+		} = await req.custom.getValidData(req);
+		if (error) {
+			return res.out(error, enums.status_message.VALIDATION_ERROR);
+		}
+
+	  const collection = req.custom.db.client().collection("order");
+	  const member_collection = req.custom.db.client().collection("member");
+	  const point_transactions_collection = req.custom.db
+		.client()
+		.collection("point_transactions");
+	  const point_history_collection = req.custom.db
+		.client()
+		.collection("point_history");
+	  const refresh_collection = req.custom.db
+		.client()
+		.collection("refresh_juice_gift");
+  
+	  const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
+	  const all_orders_data = data.orders;
+	  const orders = await collection
+		.find({ _id: { $in: all_orders_data.map((od) => ObjectID(od.id)) } })
+		.toArray();
+  
+	  if (all_orders_data.length !== orders.length) {
+		console.error("different length");
+		return res.out({}, enums.status_message.UNEXPECTED_ERROR);
+	  }
+  
+	  for (const order_data of all_orders_data) {
+		const promises = [];
+		const order = orders.find((o) => o._id.toString() === order_data.id.toString());
+		if (!order || order.status === order_data.status) {
+			continue;
+		};
+  
+		const user_info =
+		  order && order.user_data && order.user_data._id
+			? await member_collection
+				.findOne({ _id: ObjectID(order.user_data._id.toString()) })
+				.catch(() => null)
+			: null;
+  
+		if (
+		  order.order_number &&
+		  parseInt(order_data.status) === 14 &&
+		  !order_data.order_number
+		) {
+		  order_data.order_number = order.order_number;
+		}
+  
+		if (order.order_number && parseInt(order_data.status) !== 14) {
+		  order_data.order_number = order.order_number;
+		}
+
+		let data_to_update = {
+			status: order_data.status,
+			order_number: order_data.order_number,
+		};
+
+		if (order_data.employee_username) data_to_update.employee_username = order_data.employee_username;
+		if (order_data.driver_username) data_to_update.driver_username = order_data.driver_username;
+  
+		promises.push(
+		  collection.updateOne(
+			{ _id: ObjectID(order_data.id) },
+			{
+			  $set: data_to_update,
+			}
+		  )
+		);
+  
+		if (parseInt(order_data.status) !== 4) {
+		  update_status_webhook(order_data.id, order_data.status);
+		}
+  
+		// Order Completed 4
+		// OR Request reversed 9
+		if (
+		  (parseInt(order_data.status) === 4 && order.status != 4) ||
+		  (parseInt(order_data.status) === 9 && order.status === 4)
+		) {
+		  const is_canceled =
+			parseInt(order_data.status) === 9 && order.status === 4;
+  
+		  if (order.user_data && order.user_data._id && user_info) {
+			let points = parseInt(user_info.points || 0);
+			let wallet = parseFloat(user_info.wallet || 0);
+  
+			// const new_points = order.total ? parseInt(order.total) : 0;
+			const new_points =
+			  order.payment_method.id === "knet"
+				? parseInt(order.total) + parseInt(order.total) / 2
+				: parseInt(order.total);
+			if (new_points > 0) {
+			  if (
+				order.payment_method == "wallet" ||
+				order.discount_by_wallet == true
+			  ) {
+				//wallet = user_info.wallet - wallet2money;
+			  } else {
+				let point_transaction_data = {
+				  points: parseInt(new_points),
+				  createdAt: common.getDate(),
+				  expiresAt: moment(common.getDate()).add(9, "months").toDate(),
+				  used: false,
+				  trashed: false,
+				};
+				let point_history_data = {
+				  order_id: ObjectID(order._id.toString()),
+				  added_points: parseInt(new_points),
+				  created: common.getDate(),
+				  expiresAt: moment(common.getDate()).add(9, "months").toDate(),
+				};
+				let total_points = 0;
+				if (order.points_transfer_mobile) {
+				  const member = await member_collection.findOne({
+					mobile: order.points_transfer_mobile,
+				  });
+				  total_points = is_canceled
+					? parseInt(member.points || 0) - new_points
+					: parseInt(member.points || 0) + new_points;
+				  if (member) {
+					point_transaction_data.member_id = ObjectID(
+					  member._id.toString()
+					);
+					point_history_data = {
+					  ...point_history_data,
+					  member_id: ObjectID(member._id.toString()),
+					  sender_id: ObjectID(order.user_data._id.toString()),
+					  old_points: member.points || 0,
+					  new_points: total_points,
+					  old_wallet: common.getFixedPrice(member.wallet || 0),
+					  new_wallet: common.getFixedPrice(member.wallet || 0),
+					  notes: is_canceled
+						? "canceled transfered order"
+						: "Transferred",
+					  type: is_canceled ? "canceled" : "transfered",
+					};
+					await member_collection.updateOne(
+					  { _id: member._id },
+					  { $set: { points: total_points } }
+					);
+				  }
+				} else {
+				  points = is_canceled
+					? points - parseInt(new_points)
+					: points + parseInt(new_points);
+				  total_points = points;
+				  point_transaction_data.member_id = ObjectID(
+					order.user_data._id.toString()
+				  );
+				  point_history_data = {
+					...point_history_data,
+					member_id: ObjectID(order.user_data._id.toString()),
+					old_points: user_info.points || 0,
+					new_points: points,
+					old_wallet: common.getFixedPrice(user_info.wallet || 0),
+					new_wallet: common.getFixedPrice(wallet),
+					notes: is_canceled ? "canceled order" : "Bonus from order",
+					type: is_canceled ? "canceled" : "bonus",
+				  };
+				}
+  
+				promises.push(
+				  point_transactions_collection.insertOne(point_transaction_data)
+				);
+  
+				promises.push(
+				  point_history_collection.insertOne(point_history_data)
+				);
+			  }
+  
+			  promises.push(
+				member_collection.updateOne(
+				  {
+					_id: ObjectID(order.user_data._id.toString()),
+				  },
+				  {
+					$set: {
+					  points: points,
+					  wallet: wallet,
+					},
+				  }
+				)
+			  );
+			}
+		  }
+		}
+  
+		// Order Canceled 5
+		else if (
+		  parseInt(order_data.status) === 5 &&
+		  order.status != 5 &&
+		  parseFloat(order.discount_by_wallet_value) > 0
+		) {
+		  const wallet =
+			parseFloat(user_info.wallet) +
+			parseFloat(order.discount_by_wallet_value);
+  
+		  promises.push(
+			member_collection.updateOne(
+			  {
+				_id: ObjectID(order.user_data._id.toString()),
+			  },
+			  {
+				$set: {
+				  wallet: wallet,
+				},
+			  }
+			)
+		  );
+		}
+  
+		let message_body = null;
+		let message_title = null;
+		let is_wallet_notification = false;
+  
+		if (user_info && user_info.device_token) {
+		  if (
+			user_info.language &&
+			["ar", "en"].indexOf(user_info.language) > -1
+		  ) {
+			req.custom.local = require(`../../i18n/${user_info.language}`);
+		  }
+  
+		  // Order Processing 2
+		  if (parseInt(order_data.status) === 2 && order.status != 2) {
+			message_body = req.custom.local.order_notification_body_2;
+			message_title = req.custom.local.order_notification_title_2;
+		  }
+		  // Order On the way 3
+		  else if (parseInt(order_data.status) === 3 && order.status != 3) {
+			message_body = req.custom.local.order_notification_body_3;
+			message_title = req.custom.local.order_notification_title_3;
+		  }
+		  // Order Delivered 4
+		  else if (parseInt(order_data.status) === 4 && order.status != 4) {
+			message_body = req.custom.local.order_notification_body_4;
+			message_title = req.custom.local.order_notification_title_4;
+			is_wallet_notification = true;
+		  }
+		  // Order Canceled 5
+		  else if (parseInt(order_data.status) === 5 && order.status != 5) {
+			message_body = req.custom.local.order_notification_body_5;
+			message_title = req.custom.local.order_notification_title_5;
+		  }
+		  // Order Disapproved 6
+		  else if (parseInt(order_data.status) === 6 && order.status != 6) {
+			message_body = req.custom.local.order_notification_body_6;
+			message_title = req.custom.local.order_notification_title_6;
+		  }
+		  // Order Confirmed 7
+		  else if (parseInt(order_data.status) === 7 && order.status != 7) {
+			message_body = req.custom.local.order_notification_body_7;
+			message_title = req.custom.local.order_notification_title_7;
+		  }
+		  // Order Returned 8
+		  // else if (parseInt(order_data.status) === 8 && order.status != 8) {
+		  // 	message_body = req.custom.local.order_notification_body_8;
+		  // 	message_title = req.custom.local.order_notification_title_8;
+		  // }
+		  // Order Ready to pick 12
+		  else if (parseInt(order_data.status) === 12 && order.status != 12) {
+			message_body = req.custom.local.order_notification_body_12;
+			message_title = req.custom.local.order_notification_title_12;
+		  }
+		  // Order Time is up 13
+		  else if (parseInt(order_data.status) === 13 && order.status != 13) {
+			message_body = req.custom.local.order_notification_body_13;
+			message_title = req.custom.local.order_notification_title_13;
+		  }
+  
+		  if (message_body) {
+			const device_tokens = [user_info.device_token];
+			const message = {
+			  title: message_title,
+			  body: message_body,
+			  url: null,
+			};
+  
+			promises.push(
+			  common.send_to_multiple(
+				message,
+				device_tokens,
+				is_wallet_notification
+			  )
+			);
+		  }
+		}
+  
+		if (update_quantity_arr.indexOf(order.status) > -1) {
+		  return false;
+		}
+  
+		if (order.status == 4) {
+		  const exist_promo = await refresh_collection.findOne({
+			member_id: order.user_data._id,
+		  });
+		  if (!exist_promo) {
+			const coupon = create_coupon(req, order);
+			const sms_text = req.custom.local.coupon_refresh_juice(coupon);
+			promises.push(sendSms(order.user_data.mobile, sms_text));
+			const refresh_juice_data = {
+			  member_id: order.user_data._id,
+			  created_at: new Date(),
+			};
+			promises.push(refresh_collection.insertOne(refresh_juice_data));
+		  }
+		}
+  
+		await Promise.all(promises);
+
+	}
+	
+	return res.out({
+		message: req.custom.local.saved_done
+	}, enums.status_message.UPDATED);
+	} catch (err) {
+	  console.error("UPDATE STATUS ERROR: ", err);
+	  return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
+	}
+  };
+  
