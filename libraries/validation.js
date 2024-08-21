@@ -178,7 +178,7 @@ function getDataWithTypes(row, model, data = {}) {
 					}
 					break;
 				default:
-					data[k] = row[k]?.toString();
+					data[k] = row[k].toString();
 					break;
 			}
 		}
