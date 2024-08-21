@@ -18,452 +18,83 @@ const collectionName = "order";
  * @param {Object} res
  */
 module.exports.update_status = async (req, res) => {
-
 	try {
-		const update_quantity_arr = [4, 5, 6, 7, 8, 9, 11];
-
-	const collection = req.custom.db.client().collection(collectionName);
-	// original order
-	let order = await collection.findOne({ _id: ObjectID(req.params.Id) });
-
-	if (!order) {
-		return res.out({
-			message: req.custom.local.item_not_exists
-		}, enums.status_message.NOT_FOUND);
-	}
-
-	if (order.status === parseInt(req.body.status)) {
-		return res.out({ message: req.custom.local.order_being_processed }, enums.status_message.VALIDATION_ERROR);
-	}
-
-	const member_collection = req.custom.db.client().collection('member');
-	const user_info = order && order.user_data && order.user_data._id ?
-		await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null) : null;
-
-		if (order.order_number && parseInt(req.body.status) === 14 && !req.body.order_number) req.body.order_number = order.order_number;
-		
-		if (order.order_number && parseInt(req.body.status) !== 14 ) req.body.order_number = order.order_number;
-		
-	
-	/* //if (order.order_number) req.body.order_number;
-	if (parseInt(req.body.status) == 11) {
-		try {
-			const remote_order_number = await get_remote_order_number(order._id.toString());
-			if (remote_order_number) req.body.order_number = remote_order_number;
-			//else delete req.custom.model.order_number;
-		} catch(err) {
-			console.error('ERROR GETTING ORDER NUMBER: ', err);
-		}
-	} */
-
-	req.custom.model = require('./models/update_status');
-
-	mainController.update(req, res, collectionName, async () => {
-
-		if (parseInt(req.body.status) !== 4) {
-			update_status_webhook(req.params.Id, req.body.status);
-		}
-		//update_status_desktop_webhook(req.params.Id, req.body.status);
-
-		// Order Completed 4
-		// OR Request reversed 9
-		if ((parseInt(req.body.status) === 4 && order.status != 4) || (parseInt(req.body.status) === 9 && order.status === 4)) {
-			const is_canceled = parseInt(req.body.status) === 9 && order.status === 4;
-
-			if (order.user_data && order.user_data._id && user_info) {
-
-				let points = parseInt(user_info.points || 0);
-				let wallet = parseFloat(user_info.wallet || 0);
-
-				// const new_points = order.total ? parseInt(order.total) : 0;
-				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) / 2 : parseInt(order.total);
-				if (new_points > 0) {
-					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
-						wallet = user_info.wallet - wallet2money;
-					} else {
-						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-						const point_history_collection = req.custom.db.client().collection('point_history');
-						let point_transaction_data = {
-							points: parseInt(new_points),
-							createdAt: common.getDate(),
-							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
-							used: false,
-							trashed: false
-						};
-						let point_history_data = {
-							order_id: ObjectID(order._id.toString()),
-							added_points: parseInt(new_points),
-							created: common.getDate(),
-							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
-						};
-						let total_points = 0;
-						if (order.points_transfer_mobile) {
-							const member = await member_collection.findOne({ mobile: order.points_transfer_mobile });
-							total_points = is_canceled ? (parseInt(member.points || 0) - new_points) : (parseInt(member.points || 0) + new_points);
-							if (member) {
-								point_transaction_data.member_id = ObjectID(member._id.toString());
-								point_history_data = {
-									...point_history_data,
-									member_id: ObjectID(member._id.toString()),
-									sender_id: ObjectID(order.user_data._id.toString()),
-									old_points: member.points || 0,
-									new_points: total_points,
-									old_wallet: common.getFixedPrice(member.wallet || 0),
-									new_wallet: common.getFixedPrice(member.wallet || 0),
-									notes: is_canceled ? "canceled transfered order" : "Transferred",
-									type: is_canceled ? "canceled" : "transfered",
-								};
-								await member_collection.updateOne({ _id: member._id }, { $set: { points: total_points } });
-							}
-						} else {
-							points = is_canceled ? (points - parseInt(new_points)) : (points + parseInt(new_points));
-							total_points = points;
-							point_transaction_data.member_id = ObjectID(order.user_data._id.toString());
-							point_history_data = {
-								...point_history_data,
-								member_id: ObjectID(order.user_data._id.toString()),
-								old_points: user_info.points || 0,
-								new_points: points,
-								old_wallet: common.getFixedPrice(user_info.wallet || 0),
-								new_wallet: common.getFixedPrice(wallet),
-								notes: is_canceled ? "canceled order" : "Bonus from order",
-								type: is_canceled ? "canceled" : "bonus",
-							};
-						}
-
-						
-						await point_transactions_collection.insertOne(point_transaction_data).catch((err) => { console.log('Points transaction error: ', err) });
-
-						await point_history_collection.insertOne(point_history_data).catch((err) => { console.log('Points history error: ', err) });
-					}
-
-					await member_collection.updateOne({
-						_id: ObjectID(order.user_data._id.toString())
-					}, {
-						$set: {
-							points: points,
-							wallet: wallet
-						}
-					})
-						.catch((error) => { });
-				}
-			}
-		}
-		
-		// Order Canceled 5
-		else if (parseInt(req.body.status) === 5 && order.status != 5 && parseFloat(order.discount_by_wallet_value) > 0) {
-			const wallet = parseFloat(user_info.wallet) + parseFloat(order.discount_by_wallet_value);
-			await member_collection.updateOne({
-				_id: ObjectID(order.user_data._id.toString())
-			}, {
-				$set: {
-					wallet: wallet
-				}
-			})
-				.catch((error) => { });
-		}
-
-		let message_body = null;
-		let message_title = null;
-		let is_wallet_notification = false;
-
-		if (user_info && user_info.device_token) {
-
-			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
-				req.custom.local = require(`../../i18n/${user_info.language}`);
-			}
-
-			// Order Processing 2
-			if (parseInt(req.body.status) === 2 && order.status != 2) {
-				message_body = req.custom.local.order_notification_body_2;
-				message_title = req.custom.local.order_notification_title_2;
-			}
-			// Order On the way 3
-			else if (parseInt(req.body.status) === 3 && order.status != 3) {
-				message_body = req.custom.local.order_notification_body_3;
-				message_title = req.custom.local.order_notification_title_3;
-			}
-			// Order Delivered 4
-			else if (parseInt(req.body.status) === 4 && order.status != 4) {
-				message_body = req.custom.local.order_notification_body_4;
-				message_title = req.custom.local.order_notification_title_4;
-				is_wallet_notification = true;
-			}
-			// Order Canceled 5
-			else if (parseInt(req.body.status) === 5 && order.status != 5) {
-				message_body = req.custom.local.order_notification_body_5;
-				message_title = req.custom.local.order_notification_title_5;
-			}
-			// Order Disapproved 6
-			else if (parseInt(req.body.status) === 6 && order.status != 6) {
-				message_body = req.custom.local.order_notification_body_6;
-				message_title = req.custom.local.order_notification_title_6;
-			}
-			// Order Confirmed 7
-			else if (parseInt(req.body.status) === 7 && order.status != 7) {
-				message_body = req.custom.local.order_notification_body_7;
-				message_title = req.custom.local.order_notification_title_7;
-			}
-			// Order Returned 8
-			// else if (parseInt(req.body.status) === 8 && order.status != 8) {
-			// 	message_body = req.custom.local.order_notification_body_8;
-			// 	message_title = req.custom.local.order_notification_title_8;
-			// }
-			// Order Ready to pick 12
-			else if (parseInt(req.body.status) === 12 && order.status != 12) {
-				message_body = req.custom.local.order_notification_body_12;
-				message_title = req.custom.local.order_notification_title_12;
-			}
-			// Order Time is up 13
-			else if (parseInt(req.body.status) === 13 && order.status != 13) {
-				message_body = req.custom.local.order_notification_body_13;
-				message_title = req.custom.local.order_notification_title_13;
-			}
-
-
-			if (message_body) {
-				const device_tokens = [user_info.device_token];
-				const message = {
-					title: message_title,
-					body: message_body,
-					url: null,
-				};
-				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
-			}
-		}
-
-		/* if (!req.custom.authUser.employee && ? [2, 12, 14].indexOf(req.body.status) === -1 : update_quantity_arr.indexOf(req.body.status) === -1) {
-			return false;
-		} */
-
-		const updated_order = await collection.findOne({
-			_id: ObjectID(req.params.Id)
-		})
-			.then((o) => o)
-			.catch(() => null);
-
-		let remoteResponse = {};
-		let updateStatusRemoteResponse = {};
-		let isRemoteSuccess = null;
-		const response_collection = req.custom.db.client().collection("remote_requests_logs");
-		/* if (parseInt(req.body.status) == 17) {
-
-			const convertedOrder = convertFields({...order, employee_username: req.body.employee_username});
-			try {
-				const config = {
-					method: 'POST',
-					url: 'https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
-					},
-					data: convertedOrder
-				};
-				console.log('RESPONSE BEFORE: ', order._id);
-				const response = await axios(config).catch(err => console.error('ERROR: ', err));
-				console.log('RESPONSE AFTER: ', order._id, response.data);
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: response.data, created: new Date() });
-				remoteResponse = response.data;
-				if (response && response.data && response.data.iserror == 0) {
-					isRemoteSuccess = true;
-					await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
-					update_status_webhook(req.params.Id, 8);
-					//updateStatusRemoteResponse = update_status_desktop_webhook(req.params.Id, 8);
-				} else {
-					isRemoteSuccess = false;
-				}
-			} catch(err) {
-				console.log('========================= CATCHED =======================', err);
-				remoteResponse = err;
-				isRemoteSuccess = false;
-				await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/CreateSAPInvoice", request: convertedOrder, response: err.response.data, created: new Date() }).catch(err => console.log('that is the real error: ', err, convertedOrder));
-			}
-
-		}
-
-		if (parseInt(req.body.status) == 18) {
-			const driverUsername = req.body.employee_department && parseInt(req.body.employee_department) === 2 ? req.body.employee_username : order.driver_username;
-			if (driverUsername) {
-				try {
-					const config = {
-						method: 'POST',
-						url: 'https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3',
-						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
-						},
-						data: {
-							so_number: order._id.toString(),
-							driverusername:  driverUsername,
-							delivery_remarks: "",
-							user_id: 0
-						}
-					};
-					const response = await axios(config);
-					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
-						so_number: order._id.toString(),
-						driverusername:  driverUsername,
-						delivery_remarks: "",
-						user_id: 0
-					}, response: response.data, created: new Date() });
-					remoteResponse = response.data;
-					if (response && response.data && response.data.iserror == 0) {
-						isRemoteSuccess = true;
-						await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: { status: 8 } });
-					} else {
-						isRemoteSuccess = false;
-					}
-				} catch(err) {
-					remoteResponse = err;
-					isRemoteSuccess = false;
-					await response_collection.insertOne({ url: "https://jm3eia.tk:83/SalesOrder/UpdateOrderStatus3", request: {
-						so_id: order.order_number,
-						driverusername:  driverUsername
-					}, response: err.response.data, created: new Date() });
-				}
-			} else {
-				console.log('============= no driver username =============');
-			}
-
-		} */
-			
-		if (req.body.employee_username) {
-			let action = 'update_status';
-			let toUpdate = {};
-
-			if (req.body.employee_department === 1) {
-				toUpdate = { employee_username: req.body.employee_username }
-			}
-
-			if (req.body.employee_department === 2) {
-				toUpdate = { driver_username: req.body.employee_username }
-			}
-
-			if (req.body.employee_department === 3) {
-				toUpdate = { store_manager_username: req.body.employee_username }
-			}
-
-			await collection.updateOne({
-				_id: ObjectID(req.params.Id)
-			}, {
-				$set: toUpdate
-			});
-
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
-			
-			if (isRemoteSuccess) {
-				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
-			}
-		}
-
-		if (!updated_order || update_quantity_arr.indexOf(order.status) > -1) {
-			return false;
-		}
-
-		if (order.status == 4) {
-			const refresh_collection = req.custom.db.client().collection('refresh_juice_gift');
-			const exist_promo = await refresh_collection.findOne({
-				member_id: order.user_data._id,
-			});
-			if (!exist_promo) {
-				const coupon = create_coupon(req, order);
-				const sms_text = req.custom.local.coupon_refresh_juice(coupon);
-				await sendSms(order.user_data.mobile, sms_text);
-				const refresh_juice_data = {
-					member_id: order.user_data._id,
-					created_at: new Date(),
-				};
-				await refresh_collection.insertOne(refresh_juice_data);
-			}
-		}
-
-		/* const skus = updated_order.products.map((p) => p.sku.toString());
-		const prod_collection = req.custom.db.client().collection('product');
-		const filter = { $or: [{ "sku": { "$in": skus } }, { "variants.sku": { "$in": skus } }] };
-		const the_products = await prod_collection.find(filter)
-			.toArray() || [];
-		let promises = [];
-
-		const token = await get_remote_token(req);
-		const data = req.body;
-
-		for (const _sku of skus) {
-
-			const remote_product = {
-				store_id: null,
-				quantity: 0,
-				soft_code: null,
-			};
-
-			const lastUser_update = ObjectID(req.custom.authUser.userId);
-			let row = {};
-			let prod_n_storeArr = [];
-			const product = the_products.find((_p) => _p.sku == (_sku.indexOf("-") > -1 ? _sku.substring(0, _sku.indexOf("-")) : _sku))
-			if (skus.indexOf(product.sku) > -1) {
-				prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-					const ordered_product = updated_order.products.find((u_p) => u_p.sku = product.sku);
-					if (updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-						s.quantity += parseInt(ordered_product.quantity);
-
-						// Start setting remote product
-						remote_product.store_id = s.store_id;
-						remote_product.quantity = parseInt(s.quantity);
-						remote_product.soft_code = product.soft_code;
-						// End setting remote product
-
-					}
-					return s;
-				});
-				row = {
-					$set: {
-						prod_n_storeArr: prod_n_storeArr,
-						lastUser_update: lastUser_update
-					}
-				};
-			} else {
-				const variants = product.variants.map((v) => {
-					if (skus.indexOf(v.sku) > -1) {
-						v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-							const ordered_product = updated_order.products.find((u_p) => u_p.sku = v.sku);
-							if (updated_order && updated_order.store_id && s && s.store_id && updated_order.store_id.toString() === s.store_id.toString()) {
-								s.quantity += parseInt(ordered_product.quantity);
-
-								// Start setting remote product
-								remote_product.store_id = s.store_id;
-								remote_product.quantity = parseInt(s.quantity);
-								remote_product.soft_code = v.soft_code;
-								// End setting remote product
-
-							}
-							return s;
-						});
-					}
-					return v;
-				});
-				row = {
-					$set: {
-						variants: variants,
-						lastUser_update: lastUser_update
-					}
-				};
-			}
-
-			const update = prod_collection.updateOne({
-				_id: ObjectID(product._id.toString())
-			}, {
-				$set: { prod_n_storeArr: prod_n_storeArr }
-			});
-			promises.push(update_remote_quantity(req, remote_product, token));
-			promises.push(update);
-		}
-
-		Promise.all(promises).catch((err) => console.log(err)); */
-	});
+	  if (req.custom.isAuthorized === false) {
+		  return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	  }
+	  if (req.params.Id && !ObjectID.isValid(req.params.Id)) {
+		  return res.out({
+			  'message': req.custom.local.id_not_valid
+		  }, enums.status_message.INVALID_URL_PARAMETER);
+	  }
+  
+	  const local = req.custom.local;
+  
+	  const collectionName = "order";
+	  const collection = req.custom.db.client().collection(collectionName);
+  
+	  const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+  
+	  if (!order) {
+		return res.out(
+		  {
+			message: local.item_not_exists,
+		  },
+		  enums.status_message.NOT_FOUND
+		);
+	  }
+  
+	  if (order.status === parseInt(req.body.status)) {
+		return res.out(
+		  { message: req.custom.local.order_being_processed },
+		  enums.status_message.VALIDATION_ERROR
+		);
+	  }
+  
+	  if (
+		order.order_number &&
+		parseInt(req.body.status) === 14 &&
+		!req.body.order_number
+	  )
+		req.body.order_number = order.order_number;
+  
+	  if (order.order_number && parseInt(req.body.status) !== 14)
+		req.body.order_number = order.order_number;
+  
+	  req.custom.model = require("./models/update_status");
+  
+	  const {
+		  data,
+		  unset,
+		  error
+	  } = await req.custom.getValidData(req);
+	  if (error) {
+		  return res.out(error, enums.status_message.VALIDATION_ERROR);
+	  }
+	  
+	  data.lastUser_update = ObjectID(req.custom.authUser.userId);
+	  req.custom.cache.unset(collectionName).catch(() => { });
+  
+	  if (req.body.employee_username) {
+		  if (req.body.employee_department === 1) data.employee_username = req.body.employee_username;
+		  if (req.body.employee_department === 2) data.driver_username = req.body.employee_username;
+		  if (req.body.employee_department === 3) data.store_manager_username = req.body.employee_username;
+	  }
+  
+	  await collection.updateOne({ _id: ObjectID(req.params.Id) }, { $set: data });
+  
+	  if (parseInt(req.body.status) !== 4) {
+		update_status_webhook(req.params.Id, req.body.status);
+	  }
+  
+	  return res.out({
+		  message: local.saved_done
+	  }, enums.status_message.UPDATED);
 	} catch (err) {
-		console.error('UPDATE STATUS ERROR: ', err);
-		return res.out({}, enums.status_message.UNEXPECTED_ERROR);
+	  console.error("UPDATE STATUS ERROR: ", err);
+	  return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
 	}
-};
+  };
 
 /**
  * Update driver details
