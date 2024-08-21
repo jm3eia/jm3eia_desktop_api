@@ -1779,14 +1779,19 @@ function convertFields(obj) {
 
   module.exports.update_all_statuses = async (req, res) => {
 	try {
+		console.log(req.body);
 		req.custom.model = require('./models/update_all_statuses');
 		const {
 			data,
 			error
 		} = await req.custom.getValidData(req);
 		if (error) {
+			console.log(error);
 			return res.out(error, enums.status_message.VALIDATION_ERROR);
 		}
+
+		console.log(date);
+
 
 	  const collection = req.custom.db.client().collection("order");
 	  const member_collection = req.custom.db.client().collection("member");
