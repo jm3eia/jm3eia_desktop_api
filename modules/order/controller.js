@@ -29,11 +29,9 @@ module.exports.update_status = async (req, res) => {
 	  }
   
 	  const local = req.custom.local;
-  
-	  const collectionName = "order";
 	  const collection = req.custom.db.client().collection(collectionName);
   
-	  const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+	  const order = await collection.findOne({ _id: ObjectID(req.params.Id) }, { projection: { _id: 1, status: 1, order_number: 1 } });
   
 	  if (!order) {
 		return res.out(
