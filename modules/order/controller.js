@@ -1790,7 +1790,7 @@ function convertFields(obj) {
 			return res.out(error, enums.status_message.VALIDATION_ERROR);
 		}
 
-		console.log(date);
+		console.log(data);
 
 
 	  const collection = req.custom.db.client().collection("order");
