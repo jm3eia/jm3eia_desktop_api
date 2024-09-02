@@ -60,7 +60,7 @@ module.exports.update_status = async (req, res) => {
 
 	mainController.update(req, res, collectionName, async () => {
 
-		if (parseInt(req.body.status) !== 4) {
+		if (parseInt(req.body.status) === 11) {
 			update_status_webhook(req.params.Id, req.body.status);
 		}
 		//update_status_desktop_webhook(req.params.Id, req.body.status);
@@ -76,7 +76,7 @@ module.exports.update_status = async (req, res) => {
 				let wallet = parseFloat(user_info.wallet || 0);
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
-				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) / 2 : parseInt(order.total);
+				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.05 : parseInt(order.total);
 				if (new_points > 0) {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
