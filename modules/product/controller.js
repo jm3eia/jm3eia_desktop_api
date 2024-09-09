@@ -167,7 +167,7 @@ module.exports.update_price_store_status = async (req, res) => {
 		}
 	}
 	
-	req.custom.cache.unset(collectionName).catch(() => { });
+	//req.custom.cache.unset(collectionName).catch(() => { });
 
 	collection.updateOne({
 		soft_code: req.params.soft_code,
@@ -278,7 +278,7 @@ module.exports.quantity = async (req, res) => {
 			}
 		};
 	}
-	req.custom.cache.unset(collectionName).catch(() => { });
+	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
 			update_base_product(req, product, data.store_id.toString());
@@ -614,7 +614,7 @@ module.exports.increase_quantity = async (req, res) => {
 			}
 		};
 	}
-	req.custom.cache.unset(collectionName).catch(() => { });
+	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
 			update_base_product(req, product, data.store_id.toString(), "increase", data.quantity);
@@ -718,7 +718,7 @@ module.exports.decrease_quantity = async (req, res) => {
 	}
 
 
-	req.custom.cache.unset(collectionName).catch(() => { });
+	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
 			update_base_product(req, product, data.store_id.toString(), "decrease", data.quantity);
