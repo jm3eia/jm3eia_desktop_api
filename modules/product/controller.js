@@ -225,6 +225,10 @@ module.exports.quantity = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
+	if (!product.prod_n_storeArr) {
+		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
+	}
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
@@ -565,6 +569,10 @@ module.exports.increase_quantity = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
+	if (!product.prod_n_storeArr) {
+		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
+	}
+
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
@@ -666,6 +674,10 @@ module.exports.decrease_quantity = async (req, res) => {
 	}
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
+
+	if (!product.prod_n_storeArr) {
+		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
+	}
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
