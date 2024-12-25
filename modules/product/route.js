@@ -122,4 +122,6 @@ router.put('/:barcode/transfer_quantity/jm3eia', controller.transfer_quantity_to
 router.put('/:barcode/transfer_quantity/express', controller.transfer_quantity_to_express);
 router.put('/:barcode/transfer_quantity/mangaf_express', controller.transfer_quantity_to_mangaf);
 
+router.put('/:Id', controller.update_product_by_id);
+
 module.exports = router;

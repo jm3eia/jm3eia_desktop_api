@@ -1319,3 +1319,13 @@ module.exports.transfer_quantity_to_mangaf = async (req, res) => {
 		message: local.saved_done
 	}, enums.status_message.UPDATED)
 }
+
+module.exports.update_product_by_id = async function (req, res) {
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+	
+	req.custom.model = require(`./models/update`);
+	
+	mainController.update(req, res, collectionName);
+};
