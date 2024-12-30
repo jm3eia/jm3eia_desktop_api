@@ -37,6 +37,10 @@ module.exports = {
         "type": Number,
         "required": false
     },
+    "price": {
+        "type": Number,
+        "required": true
+    },
     "prod_n_categoryArr": {
         "type": Array,
         "model": {
@@ -58,18 +62,6 @@ module.exports = {
             },
         }
     },
-    "created": {
-        "type": Date,
-        "default_value": new Date(),
-        "insertOnly": true,
-        "auto": true
-    },
-    "modified": {
-        "type": Date,
-        "default_value": new Date(),
-        "updateOnly": true,
-        "auto": true
-    },
     "rack_zone": {
         "type": String,
         "required": false
@@ -78,4 +70,10 @@ module.exports = {
         "type": Boolean,
         "required": true
     },
+    "modified": {
+        "type": Date,
+        "default_value": new Date(),
+        "updateOnly": true,
+        "auto": true
+    }
 };
