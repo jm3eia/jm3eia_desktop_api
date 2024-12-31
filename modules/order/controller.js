@@ -10,6 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
+const { claim_wallet_offers } = require("./utils");
 const collectionName = "order";
 
 /**
@@ -74,6 +75,10 @@ module.exports.update_status = async (req, res) => {
 
 				let points = parseInt(user_info.points || 0);
 				let wallet = parseFloat(user_info.wallet || 0);
+
+				if (parseInt(req.body.status) === 4 && order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
+					await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
+				}
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
 				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.5 : parseInt(order.total);
