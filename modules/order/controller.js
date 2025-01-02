@@ -81,7 +81,7 @@ module.exports.update_status = async (req, res) => {
 				}
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
-				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.5 : parseInt(order.total);
+				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.06 : parseInt(order.total);
 				if (new_points > 0) {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
