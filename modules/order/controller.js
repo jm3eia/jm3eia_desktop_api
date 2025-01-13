@@ -76,12 +76,19 @@ module.exports.update_status = async (req, res) => {
 				let points = parseInt(user_info.points || 0);
 				let wallet = parseFloat(user_info.wallet || 0);
 
-				if (parseInt(req.body.status) === 4 && order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
-					await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
+				if (parseInt(req.body.status) === 4) {
+					if (order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
+						await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
+					}
+
+					if (!user_info.can_spin_wheel) {
+						await member_collection.updateOne({ _id: ObjectID(order.user_data._id.toString()) }, { $set: { can_spin_wheel: true } }).catch((error) => { });
+					}
+
 				}
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
-				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.06 : parseInt(order.total);
+				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
 				if (new_points > 0) {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
