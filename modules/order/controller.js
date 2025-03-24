@@ -903,6 +903,21 @@ module.exports.list = (req, res) => {
 		}
 	}
 
+	if (req.query.filter && req.query.filter.from_delivery_time && req.query.filter.to_delivery_time) {
+		req.custom.clean_filter['delivery_time'] = {
+			"$gte": new Date(req.query.filter.from_delivery_time.toString()),
+			"$lte": new Date(req.query.filter.to_delivery_time.toString())
+		};
+	} else {
+		if (req.query.filter && req.query.filter.from_delivery_time) {
+			req.custom.clean_filter['delivery_time'] = { "$gte": new Date(req.query.filter.from_delivery_time.toString()) };
+		}
+
+		if (req.query.filter && req.query.filter.to_delivery_time) {
+			req.custom.clean_filter['delivery_time'] = { "$lte": new Date(req.query.filter.to_delivery_time.toString()) };
+		}
+	}
+
 	if (req.query.payment_method) {
 		req.custom.clean_filter['payment_method.id'] = req.query.payment_method;
 	}
