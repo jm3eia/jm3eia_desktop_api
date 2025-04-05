@@ -77,6 +77,8 @@ module.exports.update_status = async (req, res) => {
 				let wallet = parseFloat(user_info.wallet || 0);
 
 				if (parseInt(req.body.status) === 4) {
+					collection.updateOne({ _id: ObjectID(order._id.toString()) }, { $set: { delivered_at: common.getDate() } });
+					
 					if (order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
 						await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
 					}
@@ -915,6 +917,21 @@ module.exports.list = (req, res) => {
 
 		if (req.query.filter && req.query.filter.to_delivery_time) {
 			req.custom.clean_filter['delivery_time'] = { "$lte": new Date(req.query.filter.to_delivery_time.toString()) };
+		}
+	}
+
+	if (req.query.filter && req.query.filter.from_delivered_at && req.query.filter.to_delivered_at) {
+		req.custom.clean_filter['delivered_at'] = {
+			"$gte": new Date(req.query.filter.from_delivered_at.toString()),
+			"$lte": new Date(req.query.filter.to_delivered_at.toString())
+		};
+	} else {
+		if (req.query.filter && req.query.filter.from_delivered_at) {
+			req.custom.clean_filter['delivered_at'] = { "$gte": new Date(req.query.filter.from_delivered_at.toString()) };
+		}
+
+		if (req.query.filter && req.query.filter.to_delivered_at) {
+			req.custom.clean_filter['delivered_at'] = { "$lte": new Date(req.query.filter.to_delivered_at.toString()) };
 		}
 	}
 
