@@ -71,13 +71,16 @@ module.exports.update_status = async (req, res) => {
 		if ((parseInt(req.body.status) === 4 && order.status != 4) || (parseInt(req.body.status) === 9 && order.status === 4)) {
 			const is_canceled = parseInt(req.body.status) === 9 && order.status === 4;
 
+			if (parseInt(req.body.status) === 4) {
+				collection.updateOne({ _id: ObjectID(order._id.toString()) }, { $set: { delivered_at: common.getDate() } });
+			}
+
 			if (order.user_data && order.user_data._id && user_info) {
 
 				let points = parseInt(user_info.points || 0);
 				let wallet = parseFloat(user_info.wallet || 0);
 
 				if (parseInt(req.body.status) === 4) {
-					collection.updateOne({ _id: ObjectID(order._id.toString()) }, { $set: { delivered_at: common.getDate() } });
 					
 					if (order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
 						await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
