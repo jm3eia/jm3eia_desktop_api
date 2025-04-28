@@ -104,8 +104,8 @@ module.exports.update_status = async (req, res) => {
 						"member_id": ObjectID(order.user_data._id.toString()),
 						"old_wallet": user_info.wallet,
 						"new_wallet": new_wallet,
-						"type": "deducted",
-						"notes": `Buying by wallet from ${user_info.wallet} to ${new_wallet}`,
+						"type": "cashback",
+						"notes": `Order Cashback - wallet from ${user_info.wallet} to ${new_wallet}`,
 						"created": new Date(),
 					};
 					await wallet_history_collection.insertOne(wallet_data);
