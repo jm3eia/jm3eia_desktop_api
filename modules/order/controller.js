@@ -97,7 +97,7 @@ module.exports.update_status = async (req, res) => {
 
 				if (order.supplier._id !== "Jm3eia" && SUPPLIERS_LIST.includes(order.supplier._id.toString())) {
 					const wallet_history_collection = req.custom.db.client().collection('wallet_history');
-					const cash_back_amount = (parseInt(order.total) / 2) < 3 ? (parseInt(order.total) / 2) : 3;
+					const cash_back_amount = ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) < 3 ? ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) : 3;
 					const new_wallet = common.getFixedPrice(parseFloat(user_info.wallet) + parseFloat(cash_back_amount));
 					user_info.wallet = common.getFixedPrice(user_info.wallet);
 					const wallet_data = {
