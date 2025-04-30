@@ -34,9 +34,6 @@ module.exports.send_to_multiple = (message, device_tokens) => {
     .sendEachForMulticast(message_notif)
     .then((response) => {
       console.log("Multicast notification sent:", response);
-      console.log("Multicast notification sent:", JSON.stringify(response));
-      console.log("Multicast notification sent:", JSON.stringify(response.responses[0].error[0]));
-      console.log("Multicast notification sent:", response.responses[0].error[0]);
       return {
         success: response.successCount,
         failure: response.failureCount,
