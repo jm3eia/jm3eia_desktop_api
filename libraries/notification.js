@@ -19,9 +19,9 @@ module.exports.send_to_multiple = (message, device_tokens) => {
     tokens: device_tokens,
     notification: notificationData,
     data: {
-      url: message.url || null,
+      url: "",
       click_action: "FLUTTER_NOTIFICATION_CLICK",
-      wallet: true,
+      wallet: "true",
       id: "1",
       status: "done",
     },
