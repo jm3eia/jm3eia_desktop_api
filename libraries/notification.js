@@ -7,11 +7,11 @@ admin.initializeApp({
 
 module.exports.send_to_multiple = (message, device_tokens) => {
   const notificationData = {
-    body: this.message.body,
-    title: this.message.title,
+    body: message.body,
+    title: message.title,
   };
 
-  if (this.message.image) {
+  if (message.image) {
     notificationData.imageUrl = `https://media.jm3eia.com${this.message.image}`;
   }
 
