@@ -15,7 +15,7 @@ module.exports.send_to_multiple = (message, device_tokens) => {
     notificationData.imageUrl = `https://media.jm3eia.com${this.message.image}`;
   }
 
-  const message = {
+  const message_notif = {
     tokens: device_tokens,
     notification: notificationData,
     data: {
@@ -27,11 +27,11 @@ module.exports.send_to_multiple = (message, device_tokens) => {
     },
   };
 
-  console.error("MESSAGE: ", message);
+  console.error("MESSAGE: ", message_notif);
 
   return admin
     .messaging()
-    .sendEachForMulticast(message)
+    .sendEachForMulticast(message_notif)
     .then((response) => {
       console.log("Multicast notification sent:", response);
       return {
