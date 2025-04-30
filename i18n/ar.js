@@ -76,5 +76,7 @@ module.exports = {
 		"4": "مورد خارجي",
 		"5": "رفرش"
 	},
-	order_being_processed: "جاري تجهيز الطلب من قبل مورد آخر"
+	order_being_processed: "جاري تجهيز الطلب من قبل مورد آخر",
+	cashback_notification_title: "مبارك عليك 🥳 ٥٠٪ كاش باك ",
+	cashback_notification_body: (amount) => `تم ايداع (${amount} د.ك ) برصيد حسابك في تطبيق جمعية دوت كوم`,
 };

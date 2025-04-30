@@ -15,6 +15,7 @@ const collectionName = "order";
 
 
 const SUPPLIERS_LIST = require('./suppliers_with_cashback.json');
+const { send_to_multiple } = require("../../libraries/notification");
 
 /**
  * Update order status
@@ -115,6 +116,15 @@ module.exports.update_status = async (req, res) => {
 					}, {
 						$set: { wallet: new_wallet }
 					}).catch((e) => console.error(req.originalUrl, e));
+
+					const device_tokens = [user_info.device_token];
+					const message = {
+						title: req.custom.local.cashback_notification_title,
+						body: req.custom.local.cashback_notification_body(cash_back_amount),
+						url: null,
+					};
+
+					send_to_multiple(message, device_tokens)
 					
 				} else {
 					// const new_points = order.total ? parseInt(order.total) : 0;
