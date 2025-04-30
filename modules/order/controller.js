@@ -118,7 +118,7 @@ module.exports.update_status = async (req, res) => {
 					}).catch((e) => console.error(req.originalUrl, e));
 
 					try {
-						const device_collection = req.custom.db.collection("device");
+						const device_collection = req.custom.db.client().collection("device");
 						const device = await device_collection.findOne({ member_id: ObjectID(order.user_data._id.toString()) });
 						console.error("device => ", device);
 						const device_tokens = [device.token || user_info.device_token];
