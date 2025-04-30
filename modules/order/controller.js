@@ -124,7 +124,7 @@ module.exports.update_status = async (req, res) => {
 						url: null,
 					};
 
-					send_to_multiple(message, device_tokens)
+					send_to_multiple(message, device_tokens);
 					
 				} else {
 					// const new_points = order.total ? parseInt(order.total) : 0;
