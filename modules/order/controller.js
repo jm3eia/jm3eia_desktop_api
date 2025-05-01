@@ -10,7 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
-const { claim_wallet_offers } = require("./utils");
+const { claim_wallet_offers, cashback_whatsapp_message } = require("./utils");
 const collectionName = "order";
 
 
@@ -117,7 +117,9 @@ module.exports.update_status = async (req, res) => {
 						$set: { wallet: new_wallet }
 					}).catch((e) => console.error(req.originalUrl, e));
 
-					try {
+					cashback_whatsapp_message(order.user_data.mobile, cash_back_amount, order.lang || "ar");
+
+					/* try {
 						const device_collection = req.custom.db.client().collection("device");
 						const device = await device_collection.findOne({ member_id: ObjectID(order.user_data._id.toString()) });
 						console.error("device => ", device);
@@ -131,7 +133,7 @@ module.exports.update_status = async (req, res) => {
 						send_to_multiple(message, device_tokens);
 					} catch (err) {
 						console.error(err);
-					}
+					} */
 					
 				} else {
 					// const new_points = order.total ? parseInt(order.total) : 0;

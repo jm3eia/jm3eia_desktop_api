@@ -46,5 +46,9 @@ module.exports = {
     base_url_level: process.env.APP_BASE_URL_LEVEL,
     sms: {
         api_key: process.env.SMS_API_KEY,
+    },
+    cm: {
+        product_token: process.env.CM_PRODUCT_TOKEN,
+        sender_id: process.env.CM_SENDER_ID
     }
 };

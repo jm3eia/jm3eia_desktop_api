@@ -1,5 +1,6 @@
 const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
+const config = require('../../libraries/config');
 
 module.exports.claim_wallet_offers = async (req, offers, user_info, order_id) => {
     if (offers.filter(o => o.type === 'wallet').length < 1) return;
@@ -33,4 +34,74 @@ module.exports.claim_wallet_offers = async (req, offers, user_info, order_id) =>
         $set: { wallet: new_wallet }
     }).catch((e) => console.error(req.originalUrl, e))
 
+}
+
+module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang = "ar") => {
+  const url = "https://gw.cmtelecom.com/v1.0/message";
+
+  const payload = {
+    messages: {
+      authentication: {
+        productToken: config.cm.product_token,
+      },
+      msg: [
+        {
+          from: config.cm.sender_id,
+          to: [
+            {
+              number: recipitent_phone,
+            },
+          ],
+          allowedChannels: ["WhatsApp"],
+          richContent: {
+            conversation: [
+              {
+                template: {
+                  whatsapp: {
+                    namespace: "308b56a0_20b1_4bfa_a3d9_d35c23380d2b",
+                    element_name: "50__cash_back_on_your_wallet",
+                    language: {
+                      policy: "deterministic",
+                      code: language,
+                    },
+                    components: [
+                      {
+                        type: "body",
+                        parameters: [
+                          {
+                            type: "text",
+                            text: amount,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        //"X-CM-PRODUCTTOKEN": "3ae44f13-0d98-499c-adbc-337051749503",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      console.log("Message sent successfully:", data);
+    } else {
+      console.error("Error sending message:", data);
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+  }
 }
