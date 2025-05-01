@@ -50,7 +50,7 @@ module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang
           from: config.cm.sender_id,
           to: [
             {
-              number: recipitent_phone,
+              number: `00965${recipitent_phone}`,
             },
           ],
           body: {
