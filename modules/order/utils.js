@@ -1,4 +1,5 @@
 const ObjectID = require('mongodb').ObjectID;
+const axios = require('axios');
 const common = require("../../libraries/common");
 const config = require('../../libraries/config');
 
@@ -90,11 +91,26 @@ module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang
   };
 
   try {
+    const response = await axios.post(url, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  
+    console.log("Message sent successfully:", response.data);
+  } catch (error) {
+    if (error.response) {
+      console.error("Error sending message:", error.response.data);
+    } else {
+      console.error("Axios error:", error.message);
+    }
+  }
+
+  /* try {
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        //"X-CM-PRODUCTTOKEN": "3ae44f13-0d98-499c-adbc-337051749503",
       },
       body: JSON.stringify(payload),
     });
@@ -107,5 +123,5 @@ module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang
     }
   } catch (error) {
     console.error("Fetch error:", error);
-  }
+  } */
 }
