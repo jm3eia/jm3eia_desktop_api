@@ -36,7 +36,7 @@ module.exports.claim_wallet_offers = async (req, offers, user_info, order_id) =>
 
 }
 
-module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang = "ar") => {
+module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang = "ar", fallback_message = "") => {
   const url = "https://gw.cmtelecom.com/v1.0/message";
 
   const payload = {
@@ -52,6 +52,10 @@ module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang
               number: recipitent_phone,
             },
           ],
+          body: {
+            type: "auto",
+            content: fallback_message,
+          },
           allowedChannels: ["WhatsApp"],
           richContent: {
             conversation: [
@@ -62,7 +66,7 @@ module.exports.cashback_whatsapp_message = async (recipitent_phone, amount, lang
                     element_name: "50__cash_back_on_your_wallet",
                     language: {
                       policy: "deterministic",
-                      code: language,
+                      code: lang,
                     },
                     components: [
                       {

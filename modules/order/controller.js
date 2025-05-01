@@ -117,7 +117,11 @@ module.exports.update_status = async (req, res) => {
 						$set: { wallet: new_wallet }
 					}).catch((e) => console.error(req.originalUrl, e));
 
-					cashback_whatsapp_message(order.user_data.mobile, cash_back_amount, order.lang || "ar");
+					const lang = user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1 ? user_info.language : "ar";
+					req.custom.local = require(`../../i18n/${lang}`);
+
+					const fallback_message = `${req.custom.local.cashback_notification_title} ${req.custom.local.cashback_notification_body(cash_back_amount)}`;
+					cashback_whatsapp_message(order.user_data.mobile, cash_back_amount, lang, fallback_message);
 
 					/* try {
 						const device_collection = req.custom.db.client().collection("device");
