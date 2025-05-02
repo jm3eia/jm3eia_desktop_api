@@ -107,6 +107,7 @@ module.exports.update_status = async (req, res) => {
 						"new_wallet": new_wallet,
 						"type": "cashback",
 						"notes": `Order Cashback - wallet from ${user_info.wallet} to ${new_wallet}`,
+						"order_id": ObjectID(order._id.toString()),
 						"created": new Date(),
 					};
 					await wallet_history_collection.insertOne(wallet_data);
@@ -139,79 +140,79 @@ module.exports.update_status = async (req, res) => {
 						console.error(err);
 					} */
 					
-				} else {
-					// const new_points = order.total ? parseInt(order.total) : 0;
-					const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
-					if (new_points > 0) {
-						if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
-							wallet = user_info.wallet - wallet2money;
-						} else {
-							const point_transactions_collection = req.custom.db.client().collection('point_transactions');
-							const point_history_collection = req.custom.db.client().collection('point_history');
-							let point_transaction_data = {
-								points: parseInt(new_points),
-								createdAt: common.getDate(),
-								expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
-								used: false,
-								trashed: false
-							};
-							let point_history_data = {
-								order_id: ObjectID(order._id.toString()),
-								added_points: parseInt(new_points),
-								created: common.getDate(),
-								expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
-							};
-							let total_points = 0;
-							if (order.points_transfer_mobile) {
-								const member = await member_collection.findOne({ mobile: order.points_transfer_mobile });
-								total_points = is_canceled ? (parseInt(member.points || 0) - new_points) : (parseInt(member.points || 0) + new_points);
-								if (member) {
-									point_transaction_data.member_id = ObjectID(member._id.toString());
-									point_history_data = {
-										...point_history_data,
-										member_id: ObjectID(member._id.toString()),
-										sender_id: ObjectID(order.user_data._id.toString()),
-										old_points: member.points || 0,
-										new_points: total_points,
-										old_wallet: common.getFixedPrice(member.wallet || 0),
-										new_wallet: common.getFixedPrice(member.wallet || 0),
-										notes: is_canceled ? "canceled transfered order" : "Transferred",
-										type: is_canceled ? "canceled" : "transfered",
-									};
-									await member_collection.updateOne({ _id: member._id }, { $set: { points: total_points } });
-								}
-							} else {
-								points = is_canceled ? (points - parseInt(new_points)) : (points + parseInt(new_points));
-								total_points = points;
-								point_transaction_data.member_id = ObjectID(order.user_data._id.toString());
+				}
+
+				// const new_points = order.total ? parseInt(order.total) : 0;
+				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
+				if (new_points > 0) {
+					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
+						wallet = user_info.wallet - wallet2money;
+					} else {
+						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
+						const point_history_collection = req.custom.db.client().collection('point_history');
+						let point_transaction_data = {
+							points: parseInt(new_points),
+							createdAt: common.getDate(),
+							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+							used: false,
+							trashed: false
+						};
+						let point_history_data = {
+							order_id: ObjectID(order._id.toString()),
+							added_points: parseInt(new_points),
+							created: common.getDate(),
+							expiresAt: moment(common.getDate()).add(9, 'months').toDate(),
+						};
+						let total_points = 0;
+						if (order.points_transfer_mobile) {
+							const member = await member_collection.findOne({ mobile: order.points_transfer_mobile });
+							total_points = is_canceled ? (parseInt(member.points || 0) - new_points) : (parseInt(member.points || 0) + new_points);
+							if (member) {
+								point_transaction_data.member_id = ObjectID(member._id.toString());
 								point_history_data = {
 									...point_history_data,
-									member_id: ObjectID(order.user_data._id.toString()),
-									old_points: user_info.points || 0,
-									new_points: points,
-									old_wallet: common.getFixedPrice(user_info.wallet || 0),
-									new_wallet: common.getFixedPrice(wallet),
-									notes: is_canceled ? "canceled order" : "Bonus from order",
-									type: is_canceled ? "canceled" : "bonus",
+									member_id: ObjectID(member._id.toString()),
+									sender_id: ObjectID(order.user_data._id.toString()),
+									old_points: member.points || 0,
+									new_points: total_points,
+									old_wallet: common.getFixedPrice(member.wallet || 0),
+									new_wallet: common.getFixedPrice(member.wallet || 0),
+									notes: is_canceled ? "canceled transfered order" : "Transferred",
+									type: is_canceled ? "canceled" : "transfered",
 								};
+								await member_collection.updateOne({ _id: member._id }, { $set: { points: total_points } });
 							}
-
-							
-							await point_transactions_collection.insertOne(point_transaction_data).catch((err) => { console.log('Points transaction error: ', err) });
-
-							await point_history_collection.insertOne(point_history_data).catch((err) => { console.log('Points history error: ', err) });
+						} else {
+							points = is_canceled ? (points - parseInt(new_points)) : (points + parseInt(new_points));
+							total_points = points;
+							point_transaction_data.member_id = ObjectID(order.user_data._id.toString());
+							point_history_data = {
+								...point_history_data,
+								member_id: ObjectID(order.user_data._id.toString()),
+								old_points: user_info.points || 0,
+								new_points: points,
+								old_wallet: common.getFixedPrice(user_info.wallet || 0),
+								new_wallet: common.getFixedPrice(wallet),
+								notes: is_canceled ? "canceled order" : "Bonus from order",
+								type: is_canceled ? "canceled" : "bonus",
+							};
 						}
 
-						await member_collection.updateOne({
-							_id: ObjectID(order.user_data._id.toString())
-						}, {
-							$set: {
-								points: points,
-								wallet: wallet
-							}
-						})
-							.catch((error) => { });
+						
+						await point_transactions_collection.insertOne(point_transaction_data).catch((err) => { console.log('Points transaction error: ', err) });
+
+						await point_history_collection.insertOne(point_history_data).catch((err) => { console.log('Points history error: ', err) });
 					}
+
+					await member_collection.updateOne({
+						_id: ObjectID(order.user_data._id.toString())
+					}, {
+						$set: {
+							points: points,
+							wallet: wallet
+						}
+					})
+						.catch((error) => { });
 				}
 			}
 		}
