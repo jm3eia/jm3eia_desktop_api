@@ -99,7 +99,7 @@ module.exports.update_status = async (req, res) => {
 				if (order.supplier._id !== "Jm3eia" && SUPPLIERS_LIST.includes(order.supplier._id.toString())) {
 					const wallet_history_collection = req.custom.db.client().collection('wallet_history');
 					const cash_back_amount = ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) < 3 ? ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) : 3;
-					const new_wallet = common.getFixedPrice(parseFloat(user_info.wallet) + parseFloat(cash_back_amount));
+					const new_wallet = common.getFixedPrice(wallet + parseFloat(cash_back_amount));
 					user_info.wallet = common.getFixedPrice(user_info.wallet);
 					const wallet_data = {
 						"member_id": ObjectID(order.user_data._id.toString()),
@@ -120,7 +120,8 @@ module.exports.update_status = async (req, res) => {
 						$set: { wallet: new_wallet }
 					}).catch((e) => console.error(req.originalUrl, e));
 
-					user_info.wallet = parseFloat(user_info.wallet) + parseFloat(new_wallet);
+					wallet = new_wallet;
+					user_info.wallet = new_wallet;
 
 					const lang = user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1 ? user_info.language : "ar";
 					req.custom.local = require(`../../i18n/${lang}`);
