@@ -114,13 +114,17 @@ module.exports.update_status = async (req, res) => {
 	
 					console.error("Updating member wallet for user", order.user_data._id.toString(), "with new_wallet", new_wallet);
 
-					const result = await member_collection.updateOne({
+					await member_collection.updateOne({
 						_id: ObjectID(order.user_data._id.toString())
 					}, {
 						$set: { wallet: new_wallet }
 					}).catch((e) => console.error(req.originalUrl, e));
 
-					console.error("Wallet update result:", result);
+					const member_test = await member_collection.findOne({
+						_id: ObjectID(order.user_data._id.toString())
+					});
+
+					console.error("Wallet update result: ", member_test);
 
 					const lang = user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1 ? user_info.language : "ar";
 					req.custom.local = require(`../../i18n/${lang}`);
