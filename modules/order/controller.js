@@ -10,7 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
-const { claim_wallet_offers, cashback_whatsapp_message } = require("./utils");
+const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message } = require("./utils");
 const collectionName = "order";
 
 
@@ -233,6 +233,13 @@ module.exports.update_status = async (req, res) => {
 				}
 			})
 				.catch((error) => { });
+		}
+
+		if (parseInt(req.body.status) === 8 && order.status != 8 && order.user_data && order.user_data._id && user_info) {
+			const deleted_products = order.products.filter(p => p.quantity === 0);
+			const whatsapp_message = deleted_products.map(p => p.name['ar']).join(', ');
+
+			product_unavailable_whatsapp_message(user_info.mobile, whatsapp_message);
 		}
 
 		let message_body = null;
