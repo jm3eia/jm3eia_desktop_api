@@ -217,3 +217,56 @@ module.exports.product_unavailable_whatsapp_message = async (
     }
   }
 };
+
+module.exports.emmit_change_status = async (order_id, user_id, status) => {
+  try {
+    const host = "https://api.webengage.com";
+    const licenseCode = config.webengage.license_code;
+    const apiKey = config.webengage.api_key;
+
+    const response = await axios.post(
+      `${host}/v1/accounts/${licenseCode}/events`,
+      {
+        userId: user_id,
+        eventName: "Order Status Changed",
+        eventTime: getEventTime(common.getDate()),
+        eventData: {
+          "order Id": order_id,
+          user_id: user_id,
+          Status: status,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Event sent successfully:", response.data);
+  } catch (error) {
+    console.error(
+      "Error sending event:",
+      error.response ? error.response.data : error.message
+    );
+  }
+};
+
+function getEventTime(date = new Date()) {
+  const pad = (n) => (n < 10 ? "0" + n : n);
+
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hour = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const sec = pad(date.getSeconds());
+
+  const offset = -date.getTimezoneOffset();
+  const offsetSign = offset >= 0 ? "+" : "-";
+  const offsetHours = pad(Math.floor(Math.abs(offset) / 60));
+  const offsetMinutes = pad(Math.abs(offset) % 60);
+
+  return `${year}-${month}-${day}T${hour}:${min}:${sec}${offsetSign}${offsetHours}${offsetMinutes}`;
+}

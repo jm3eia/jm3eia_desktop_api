@@ -10,7 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
-const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message } = require("./utils");
+const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message, emmit_change_status } = require("./utils");
 const collectionName = "order";
 
 
@@ -64,6 +64,8 @@ module.exports.update_status = async (req, res) => {
 	req.custom.model = require('./models/update_status');
 
 	mainController.update(req, res, collectionName, async () => {
+
+		emmit_change_status(order._id.toString(), user_info.mobile, req.custom.local.order_status_list[req.body.status]);
 
 		if (parseInt(req.body.status) === 11) {
 			update_status_webhook(req.params.Id, req.body.status);
@@ -149,7 +151,7 @@ module.exports.update_status = async (req, res) => {
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
 				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
-				if (new_points > 0) {
+				if (new_points > 0 && order.supplier._id === "Jm3eia") {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
 					} else {

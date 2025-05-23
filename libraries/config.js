@@ -50,5 +50,9 @@ module.exports = {
     cm: {
         product_token: process.env.CM_PRODUCT_TOKEN,
         sender_id: process.env.CM_SENDER_ID
+    },
+    webengage: {
+        license_code: process.env.WEBENGAGE_LICENSE_CODE,
+        api_key: process.env.WEBENGAGE_API_KEY,
     }
 };
