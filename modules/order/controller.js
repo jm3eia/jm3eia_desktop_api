@@ -98,7 +98,7 @@ module.exports.update_status = async (req, res) => {
 
 				}
 
-				if (order.supplier._id !== "Jm3eia" && SUPPLIERS_LIST.includes(order.supplier._id.toString())) {
+				/* if (order.supplier._id !== "Jm3eia" && SUPPLIERS_LIST.includes(order.supplier._id.toString())) {
 					const wallet_history_collection = req.custom.db.client().collection('wallet_history');
 					const cash_back_amount = ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) < 3 ? ((parseFloat(order.total) - parseFloat(order.shipping_cost)) / 2) : 3;
 					const new_wallet = common.getFixedPrice(wallet + parseFloat(cash_back_amount));
@@ -130,28 +130,11 @@ module.exports.update_status = async (req, res) => {
 
 					const fallback_message = `${req.custom.local.cashback_notification_title} ${req.custom.local.cashback_notification_body(cash_back_amount)}`;
 					cashback_whatsapp_message(order.user_data.mobile, cash_back_amount, lang, fallback_message);
-
-					/* try {
-						const device_collection = req.custom.db.client().collection("device");
-						const device = await device_collection.findOne({ member_id: ObjectID(order.user_data._id.toString()) });
-						console.error("device => ", device);
-						const device_tokens = [device.token || user_info.device_token];
-						const message = {
-							title: req.custom.local.cashback_notification_title,
-							body: req.custom.local.cashback_notification_body(cash_back_amount),
-							url: null,
-						};
-
-						send_to_multiple(message, device_tokens);
-					} catch (err) {
-						console.error(err);
-					} */
-					
-				}
+				} */
 
 				// const new_points = order.total ? parseInt(order.total) : 0;
 				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
-				if (new_points > 0 && order.supplier._id === "Jm3eia") {
+				if (new_points > 0) {
 					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
 						wallet = user_info.wallet - wallet2money;
 					} else {
