@@ -65,7 +65,7 @@ module.exports.update_status = async (req, res) => {
 
 	mainController.update(req, res, collectionName, async () => {
 
-		emmit_change_status(order._id.toString(), user_info.mobile, req.custom.local.order_status_list[req.body.status], user_info.points, user_info.wallet);
+		//emmit_change_status(order._id.toString(), user_info.mobile, req.custom.local.order_status_list[req.body.status], user_info.points, user_info.wallet);
 
 		if (parseInt(req.body.status) === 11) {
 			update_status_webhook(req.params.Id, req.body.status);
