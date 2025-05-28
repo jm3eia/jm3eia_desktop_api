@@ -218,11 +218,28 @@ module.exports.product_unavailable_whatsapp_message = async (
   }
 };
 
-module.exports.emmit_change_status = async (order_id, user_id, status) => {
+module.exports.emmit_change_status = async (
+  order_id,
+  user_id,
+  status,
+  points = 0,
+  wallet = 0
+) => {
   try {
     const host = "https://api.webengage.com";
     const licenseCode = config.webengage.license_code;
     const apiKey = config.webengage.api_key;
+
+    const eventData = {
+      "order Id": order_id,
+      user_id: user_id,
+      Status: status,
+    };
+
+    if (status === 4) {
+      eventData["Points"] = points;
+      eventData["Wallet"] = wallet;
+    }
 
     const response = await axios.post(
       `${host}/v1/accounts/${licenseCode}/events`,
@@ -230,11 +247,7 @@ module.exports.emmit_change_status = async (order_id, user_id, status) => {
         userId: user_id,
         eventName: "Order Status Changed",
         eventTime: getEventTime(common.getDate()),
-        eventData: {
-          "order Id": order_id,
-          user_id: user_id,
-          Status: status,
-        },
+        eventData: eventData,
       },
       {
         headers: {
