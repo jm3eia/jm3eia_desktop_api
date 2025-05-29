@@ -10,7 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
-const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message } = require("./utils");
+const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message, emmit_change_status } = require("./utils");
 const collectionName = "order";
 
 
@@ -65,7 +65,7 @@ module.exports.update_status = async (req, res) => {
 
 	mainController.update(req, res, collectionName, async () => {
 
-		//emmit_change_status(order._id.toString(), user_info.mobile, req.custom.local.order_status_list[req.body.status], user_info.points, user_info.wallet);
+		emmit_change_status(order._id.toString(), user_info.mobile, req.custom.local.order_status_list[req.body.status], user_info.points, user_info.wallet);
 
 		if (parseInt(req.body.status) === 11) {
 			update_status_webhook(req.params.Id, req.body.status);
