@@ -63,6 +63,8 @@ module.exports.update_status = async (req, res) => {
 
 	req.custom.model = require('./models/update_status');
 
+	if (parseInt(req.body.status) === 8) req.body.successfully_configured = true;
+
 	mainController.update(req, res, collectionName, async () => {
 		const mobile = user_info ? user_info.mobile : order.user_data.mobile;
 		emmit_change_status(order._id.toString(), mobile, req.custom.local.order_status_list[req.body.status], user_info?.points, user_info?.wallet);
