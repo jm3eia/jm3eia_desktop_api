@@ -63,7 +63,7 @@ module.exports.update_status = async (req, res) => {
 
 	req.custom.model = require('./models/update_status');
 
-	if (parseInt(req.body.status) === 8) req.body.successfully_configured = true;
+	if (parseInt(req.body.status) === 8) req.body.successfully_prepared = true;
 
 	mainController.update(req, res, collectionName, async () => {
 		const mobile = user_info ? user_info.mobile : order.user_data.mobile;
@@ -1050,6 +1050,38 @@ module.exports.getConfiguredOrders = (req, res) => {
 	};
 
 	req.custom.clean_filter['status'] = 11;
+
+	req.custom.clean_sort = {
+		created: -1
+	};
+
+	mainController.list(req, res, collectionName, {}, (out) => {
+		out.data = out.data.map((doc) => {
+			try {
+				doc.products = doc.products.reduce((prod, curr) => {
+					//console.log(curr);
+					if (curr.supplier) {
+						prod[curr.supplier.name.en] = prod[curr.supplier.name.en] || [];
+						prod[curr.supplier.name.en].push(curr);
+					}
+					else {
+						prod[curr.supplier_id] = prod[curr.supplier_id] || [];
+						prod[curr.supplier_id].push(curr);
+					}
+					return prod;
+				}, {});
+			} catch (error) {
+				//	doc.products = [];
+			}
+
+			return doc;
+		});
+		res.out(out);
+	});
+}
+
+module.exports.get_prepared_orders = (req, res) => {
+	req.custom.clean_filter['successfully_prepared'] = true;
 
 	req.custom.clean_sort = {
 		created: -1

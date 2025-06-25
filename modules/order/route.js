@@ -19,6 +19,8 @@ router.get('/remote_requests', controller.get_remote_requests);
  */
 router.get('/configured', controller.getConfiguredOrders);
 
+router.get('/prepared', controller.get_prepared_orders);
+
 /**
  * GET /order/driver
  */
