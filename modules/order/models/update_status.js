@@ -10,7 +10,7 @@ module.exports = {
         "required": false
     },
     "successfully_prepared": {
-        "type": String,
+        "type": Boolean,
         "required": false
     },
     "modified": {
