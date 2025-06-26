@@ -64,8 +64,11 @@ module.exports.update_status = async (req, res) => {
 	req.custom.model = require('./models/update_status');
 
 	if (parseInt(req.body.status) === 8) {
+		console.error('YESS');
 		req.body.successfully_prepared = true;
 		//req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
+	} else {
+		console.error('NOO ', req.body.status);
 	}
 
 	mainController.update(req, res, collectionName, async () => {
