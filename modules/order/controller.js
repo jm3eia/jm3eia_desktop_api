@@ -65,7 +65,7 @@ module.exports.update_status = async (req, res) => {
 
 	if (parseInt(req.body.status) === 8) {
 		req.body.successfully_prepared = true;
-		req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
+		//req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
 	}
 
 	mainController.update(req, res, collectionName, async () => {
@@ -1104,8 +1104,6 @@ module.exports.get_prepared_orders = async (req, res) => {
 	req.custom.clean_sort = {
 		created: -1
 	};
-
-	await req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
 
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
