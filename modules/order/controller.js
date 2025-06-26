@@ -1105,7 +1105,7 @@ module.exports.get_prepared_orders = async (req, res) => {
 
 	req.custom.clean_filter['successfully_prepared'] = true;
 
-	await req.custom.db.client().collection('order').createIndex({ successfully_prepared_at: -1 }).catch((e) => null);
+	//await req.custom.db.client().collection('order').createIndex({ successfully_prepared_at: -1 }).catch((e) => null);
 
 	req.custom.clean_sort = {
 		successfully_prepared_at: -1
