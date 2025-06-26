@@ -63,7 +63,10 @@ module.exports.update_status = async (req, res) => {
 
 	req.custom.model = require('./models/update_status');
 
-	if (parseInt(req.body.status) === 8) req.body.successfully_prepared = true;
+	if (parseInt(req.body.status) === 8) {
+		req.body.successfully_prepared = true;
+		req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
+	}
 
 	mainController.update(req, res, collectionName, async () => {
 		const mobile = user_info ? user_info.mobile : order.user_data.mobile;
@@ -1080,12 +1083,29 @@ module.exports.getConfiguredOrders = (req, res) => {
 	});
 }
 
-module.exports.get_prepared_orders = (req, res) => {
+module.exports.get_prepared_orders = async (req, res) => {
+	if (req.query.filter && req.query.filter.from_date && req.query.filter.to_date) {
+		req.custom.clean_filter['created'] = {
+			"$gte": new Date(req.query.filter.from_date.toString()),
+			"$lte": new Date(req.query.filter.to_date.toString())
+		};
+	} else {
+		if (req.query.filter && req.query.filter.from_date) {
+			req.custom.clean_filter['created'] = { "$gte": new Date(req.query.filter.from_date.toString()) };
+		}
+
+		if (req.query.filter && req.query.filter.to_date) {
+			req.custom.clean_filter['created'] = { "$lte": new Date(req.query.filter.to_date.toString()) };
+		}
+	}
+
 	req.custom.clean_filter['successfully_prepared'] = true;
 
 	req.custom.clean_sort = {
 		created: -1
 	};
+
+	await req.custom.db.client().collection('order').createIndex({ successfully_prepared: 1 }).catch((e) => null);
 
 	mainController.list(req, res, collectionName, {}, (out) => {
 		out.data = out.data.map((doc) => {
