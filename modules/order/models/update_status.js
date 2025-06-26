@@ -9,6 +9,10 @@ module.exports = {
         "type": String,
         "required": false
     },
+    "successfully_prepared": {
+        "type": String,
+        "required": false
+    },
     "modified": {
         "type": Date,
         "default": new Date(),
