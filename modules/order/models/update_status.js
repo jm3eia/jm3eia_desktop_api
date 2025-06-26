@@ -13,6 +13,10 @@ module.exports = {
         "type": Boolean,
         "required": false
     },
+    "successfully_prepared_at": {
+        "type": Boolean,
+        "required": false
+    },
     "modified": {
         "type": Date,
         "default": new Date(),
