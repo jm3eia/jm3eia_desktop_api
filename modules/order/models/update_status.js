@@ -14,7 +14,7 @@ module.exports = {
         "required": false
     },
     "successfully_prepared_at": {
-        "type": Boolean,
+        "type": Date,
         "required": false
     },
     "modified": {
