@@ -130,15 +130,18 @@ module.exports.points_stats = async (req, res) => {
 
       const members = await member_collection.find({ _id: { $in: offerMembersIds } }, { fullname: 1, mobile: 1 }).toArray();
 
-      const rewardsIds = out.data.map(r => ObjectID(r.reward_id.toString()));
+      const rewardsIds = out.data.filter(r => r.reward_id).map(r => ObjectID(r.reward_id.toString()));
       const rewards = await reward_collection.find({ _id: { $in: rewardsIds } }, { title: 1 }).toArray();
 
       for (let point_history of out.data) {
         const member = members.find(m => m._id.toString() == point_history.member_id.toString());
-        const reward = rewards.find(r => r._id.toString() == point_history.reward_id.toString());
         point_history.fullname = member.fullname;
         point_history.mobile = member.mobile;
-        point_history.title = reward.title;
+
+        if (point_history.type === "claimed_reward") {
+          const reward = rewards.find(r => r._id.toString() == point_history.reward_id.toString());
+          point_history.title = reward.title;
+        }
       }
 
       res.out(out);
