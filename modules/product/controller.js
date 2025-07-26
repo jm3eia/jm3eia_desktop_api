@@ -296,6 +296,109 @@ module.exports.quantity = async (req, res) => {
 		}, enums.status_message.UNEXPECTED_ERROR));
 };
 
+module.exports.update_quantity_by_barcode = async (req, res) => {
+
+	if (req.custom.isAuthorized === false) {
+		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+	}
+
+	req.custom.model = require('./models/update_quantity_by_barcode')
+
+	const local = req.custom.local;
+
+	const {
+		data,
+		unset,
+		error
+	} = await req.custom.getValidData(req);
+	if (error) {
+		return res.out(error, enums.status_message.VALIDATION_ERROR);
+	}
+
+	const filter = { $or: [{ "barcode": data.barcode }, { "variants.barcode": data.barcode }] };
+
+	const collection = req.custom.db.client().collection(collectionName);
+	const product = await collection.findOne(filter);
+
+	if (!product) {
+		return res.out({
+			message: local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	const oldProduct = JSON.parse(JSON.stringify(product));
+
+	if (!product.prod_n_storeArr) {
+		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
+	}
+
+	const lastUser_update = ObjectID(req.custom.authUser.userId);
+	let row = {};
+	let prod_n_storeArr = [];
+	let status = parseInt(data.quantity) > 0 ? true : product.status;
+	if (product.barcode == data.barcode) {
+		if (status == true) {
+			status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
+		}
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = parseInt(data.quantity);
+			}
+			return s;
+		});
+		row = {
+			$set: {
+				prod_n_storeArr: prod_n_storeArr,
+				lastUser_update: lastUser_update,
+				status: parseInt(data.quantity) > 0 ? true : false,
+				last_quantity_update: new Date()
+			}
+		};
+
+	} else {
+		let totalQuantity = 0;
+		const variants = product.variants.map((v) => {
+			if (v.barcode == data.barcode) {
+				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+						s.quantity = parseInt(data.quantity);
+					}
+					return s;
+				});
+			}
+			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
+			return v;
+		});
+		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+				s.quantity = totalQuantity;
+			}
+			return s;
+		});
+		row = {
+			$set: {
+				variants: variants,
+				lastUser_update: lastUser_update,
+				prod_n_storeArr,
+				status: totalQuantity > 0 ? true : false,
+				last_quantity_update: new Date()
+			}
+		};
+	}
+	//req.custom.cache.unset(collectionName).catch(() => { });
+	collection.updateOne(filter, row)
+		.then((response) => {
+			update_base_product(req, product, data.store_id.toString());
+			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);
+			return res.out({
+				message: local.saved_done
+			}, enums.status_message.UPDATED)
+		})
+		.catch((error) => res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR));
+};
+
 /**
  * Update barcode
  * @param {Object} req
