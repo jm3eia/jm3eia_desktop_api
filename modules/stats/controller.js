@@ -58,17 +58,17 @@ module.exports.list = async (req, res) => {
 module.exports.pro_stats = async (req, res) => {
     try {
         const filter = {};
-        if (req.query.from_date && req.query.to_date) {
+        if (req.query.date_from && req.query.date_to) {
             filter['start_date'] = {
-                "$gte": new Date(req.query.from_date.toString()),
-                "$lte": new Date(req.query.to_date.toString())
+                "$gte": new Date(req.query.date_from.toString()),
+                "$lte": new Date(req.query.date_to.toString())
             };
         } else {
-            if (req.query.from_date) {
-                filter['start_date'] = { "$gte": new Date(req.query.from_date.toString()) };
+            if (req.query.date_from) {
+                filter['start_date'] = { "$gte": new Date(req.query.date_from.toString()) };
             }
-            if (req.query.to_date) {
-                filter['start_date'] = { "$lte": new Date(req.query.to_date.toString()) };
+            if (req.query.date_to) {
+                filter['start_date'] = { "$lte": new Date(req.query.date_to.toString()) };
             }
         }
         
