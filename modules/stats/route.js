@@ -14,5 +14,7 @@ router.get('/', controller.list);
   */
  router.get('/pro', controller.pro_stats);
 
+ router.get('/points', controller.points_stats);
+
 
 module.exports = router;

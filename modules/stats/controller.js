@@ -92,3 +92,56 @@ module.exports.pro_stats = async (req, res) => {
         return res.out({ error: error.message }, status_message.UNEXPECTED_ERROR);
     }
 }
+
+
+module.exports.points_stats = async (req, res) => {
+  try {
+    req.custom.clean_filter['type'] = "claimed_reward";
+
+    if (req.query.date_from && req.query.date_to) {
+      req.custom.clean_filter['created'] = {
+        "$gte": new Date(req.query.date_from.toString()),
+        "$lte": new Date(req.query.date_to.toString())
+      };
+    } else {
+      if (req.query.date_from) {
+        req.custom.clean_filter['created'] = { "$gte": new Date(req.query.date_from.toString()) };
+      }
+  
+      if (req.query.date_to) {
+        req.custom.clean_filter['created'] = { "$lte": new Date(req.query.date_to.toString()) };
+      }
+    }
+
+
+    mainController.list(req, res, "point_history", undefined, async (out) => {
+      if (out.data.length < 1) {
+        return res.out(out);
+      }
+
+      const offerMembersIds = out.data.map(o => ObjectID(o.member_id.toString()));
+
+      const member_collection = req.custom.db.client().collection('member');
+      const reward_collection = req.custom.db.client().collection("reward");
+
+      const members = await member_collection.find({ _id: { $in: offerMembersIds } }, { fullname: 1, mobile: 1 }).toArray();
+
+      const rewardsIds = out.data.map(r => ObjectID(r.reward_id.toString()));
+      const rewards = await reward_collection.find({ _id: { $in: rewardsIds } }, { title: 1 }).toArray();
+
+      for (let point_history of out.data) {
+        const member = members.find(m => m._id.toString() == point_history.member_id.toString());
+        const reward = rewards.find(r => r._id.toString() == point_history.reward_id.toString());
+        point_history.fullname = member.fullname;
+        point_history.mobile = member.mobile;
+        point_history.title = reward.title;
+      }
+
+      res.out(out);
+
+    })
+  } catch(error) {
+    console.error('Error fetching pro stats:', error);
+        return res.out({ error: error.message }, status_message.UNEXPECTED_ERROR);
+  }
+}
