@@ -53,3 +53,46 @@ module.exports.list = async (req, res) => {
     return res.out({ error: 'Failed to retrieve statistics' });
   }
 };
+
+
+module.exports.pro_stats = async (req, res) => {
+    try {
+        const filter = {};
+        if (req.query.from_date && req.query.to_date) {
+            filter['start_date'] = {
+                "$gte": new Date(req.query.from_date.toString()),
+                "$lte": new Date(req.query.to_date.toString())
+            };
+        } else {
+            if (req.query.from_date) {
+                filter['start_date'] = { "$gte": new Date(req.query.from_date.toString()) };
+            }
+            if (req.query.to_date) {
+                filter['start_date'] = { "$lte": new Date(req.query.to_date.toString()) };
+            }
+        }
+        
+        const member_collection = req.custom.db.client().collection('member');
+        const pro_logs_collection = req.custom.db.client().collection('jm3eia_pro_logs');
+        
+        // Get both counts concurrently for better performance
+        const [totalSubscriptionsByFilter, currentActiveSubscriptions] = await Promise.all([
+            pro_logs_collection.countDocuments(filter),
+            member_collection.countDocuments({ "pro.active": true })
+        ]);
+        
+        // Return the response
+        return res.out({
+            totalSubscriptionsByFilter,
+            currentActiveSubscriptions
+        });
+        
+    } catch (error) {
+        console.error('Error fetching pro stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+}

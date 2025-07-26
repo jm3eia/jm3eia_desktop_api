@@ -9,5 +9,10 @@ const controller = require('./controller');
  */
 router.get('/', controller.list);
 
+/**
+  * GET /stats/pro
+  */
+ router.get('/pro', controller.pro_stats);
+
 
 module.exports = router;

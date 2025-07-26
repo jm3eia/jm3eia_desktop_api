@@ -28,9 +28,4 @@ router.get('/', controller.list);
   */
  router.put('/:Id', controller.update);
 
- /**
-  * PUT /member/:Id
-  */
- router.get('/pro', controller.pro_stats);
-
 module.exports = router;
