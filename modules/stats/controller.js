@@ -98,7 +98,11 @@ module.exports.pro_stats = async (req, res) => {
 
 module.exports.points_stats = async (req, res) => {
   try {
-    req.custom.clean_filter['$or'] = [{ type: "claimed_reward" }, { type: "converted" }];
+    if (req.query.type) {
+      req.custom.clean_filter['type'] = req.query.type;
+    } else {
+      req.custom.clean_filter['$or'] = [{ type: "claimed_reward" }, { type: "converted" }];
+    }
 
     if (req.query.date_from && req.query.date_to) {
       req.custom.clean_filter['created'] = {
