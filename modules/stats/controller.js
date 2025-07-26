@@ -83,16 +83,12 @@ module.exports.pro_stats = async (req, res) => {
         
         // Return the response
         return res.out({
-            totalSubscriptionsByFilter,
-            currentActiveSubscriptions
+            filtered: totalSubscriptionsByFilter,
+            active: currentActiveSubscriptions
         });
         
     } catch (error) {
         console.error('Error fetching pro stats:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        return res.out({ error: error.message }, status_message.UNEXPECTED_ERROR);
     }
 }
