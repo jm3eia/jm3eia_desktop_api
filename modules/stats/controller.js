@@ -116,9 +116,11 @@ module.exports.points_stats = async (req, res) => {
 
 
     mainController.list(req, res, "point_history", undefined, async (out) => {
-      if (out.data.length < 1) {
+      try {
+        if (out.data.length < 1) {
         return res.out(out);
       }
+      
 
       const offerMembersIds = out.data.map(o => ObjectID(o.member_id.toString()));
 
@@ -139,6 +141,9 @@ module.exports.points_stats = async (req, res) => {
       }
 
       res.out(out);
+      } catch (err) {
+        console.error(err);
+      }
 
     })
   } catch(error) {
