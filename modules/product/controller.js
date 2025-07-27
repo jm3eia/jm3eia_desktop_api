@@ -13,7 +13,7 @@ const collectionName = "product";
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.info = (req, res) => {
+/* module.exports.info = (req, res) => {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
@@ -36,7 +36,62 @@ module.exports.info = (req, res) => {
 		}
 		res.out(doc);
 	});
+}; */
+
+module.exports.info = async (req, res) => {
+	try {
+		if (req.custom.isAuthorized === false) {
+			return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
+		}
+	
+		const filter = {
+			soft_code: req.params.soft_code
+		}
+	
+		const collection = req.custom.db.client().collection(collectionName);
+		const order_collection = req.custom.db.client().collection("order");
+		const product = await collection.findOne(filter);
+		if (!product) return res.out({ message: "Product not found" }, enums.status_message.NO_DATA);
+	
+		if (product.floor && [1, 2, 3, 4, 5].includes(product.floor)) {
+			const local = req.custom.local;
+			product.floor = local.product_floors[product.floor];
+		}
+		if (product.picture) product.picture_with_base = process.env.MEDIA_URL + product.picture;
+		
+		const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+		const result = await order_collection.aggregate([
+			{
+				$match: {
+					$or: [ { status: 11 }, { status: 1 } ],
+					created: { $gte: twentyFourHoursAgo },
+					"products._id": product._id
+				}
+			},
+			{ $unwind: "$products" },
+			{
+				$match: {
+					"products._id": product._id
+				}
+			},
+			{
+				$group: {
+					_id: null,
+					total_quantity: { $sum: "$products.quantity" }
+				}
+			}
+		]).toArray();
+
+		const totalQuantity = result.length > 0 ? result[0].total_quantity : 0;
+	
+		return res.out({...product, confirmed_orders: totalQuantity});
+	} catch (err) {
+		console.error(err);
+		return res.out({ message: err.message }, enums.status_message.UNEXPECTED_ERROR);
+	}
 };
+
 
 module.exports.product_details = async (req, res) => {
 	if (req.custom.isAuthorized === false) {
