@@ -913,22 +913,10 @@ module.exports.update_status = async (req, res) => {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
 	}
 
-	update_status_fix(req, res).catch((error) => {
-		console.log('Error in updating status', error);
-	});
-	
-	const local = req.custom.local;
-	res.out({
-		message: local.saved_done,
-		updated_count: "Process started in background",
-	}, enums.status_message.UPDATED);
-
-};
-
-const update_status_fix = async (req, res) => {
 	const collection = req.custom.db.client().collection(collectionName);
 	const filter = {
 		status: true,
+		supplier_id: { $exists: false }
 	};
 	const total = await new Promise((resolve, reject) => {
 		collection.count(filter, (err, total) => {
@@ -997,7 +985,13 @@ const update_status_fix = async (req, res) => {
 	}
 
 	console.log('Done', updated_count);
-}
+	const local = req.custom.local;
+	res.out({
+		message: local.saved_done,
+		updated_count: updated_count,
+	}, enums.status_message.UPDATED);
+
+};
 
 /**
  * List all stores
