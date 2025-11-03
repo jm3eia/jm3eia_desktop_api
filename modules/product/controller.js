@@ -780,9 +780,9 @@ module.exports.increase_quantity = async (req, res) => {
 			}
 		};
 	}
-	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
 		.then((response) => {
+			req.custom.cache.unset(collectionName).catch(() => { });
 			update_base_product(req, product, data.store_id.toString(), "increase", data.quantity);
 			common.saveActionLog(req, 'UPDATE', 'product', product._id, { ...product, variants: row['$set']['variants'] || product.variants, prod_n_storeArr: row['$set']['prod_n_storeArr'], status: row['$set']['status'], lastUser_update: lastUser_update }, oldProduct);;
 			return res.out({
