@@ -1,12 +1,12 @@
-/* const admin = require("firebase-admin");
+const admin = require("firebase-admin");
 const serviceAccount = require("./jm3eia-9185b-firebase-adminsdk-idn96-7c207925d3.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-}); */
+});
 
 module.exports.send_to_multiple = (message, device_tokens) => {
- /*  const notificationData = {
+  const notificationData = {
     body: message.body,
     title: message.title,
   };
@@ -48,5 +48,5 @@ module.exports.send_to_multiple = (message, device_tokens) => {
         failure: 0,
         results: [],
       };
-    }); */
+    });
 };
