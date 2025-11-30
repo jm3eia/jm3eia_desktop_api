@@ -1044,6 +1044,34 @@ module.exports.list_by_barcode = (req, res) => {
 	mainController.list(req, res, collectionName);
 };
 
+module.exports.list_out_of_stock = (req, res) => {
+	req.custom.clean_filter["prod_n_storeArr"] = {
+        $elemMatch: {
+            store_id: ObjectID("5d3827c683545d0366ac4285"),
+            $or: [
+                { quantity: { $lte: 0 } },
+                { status: false }
+            ]
+        }
+    }
+
+	if (req.query && req.query.from_date && req.query.to_date) {
+		req.custom.clean_filter['out_of_stock_at'] = {
+			"$gte": new Date(req.query.from_date.toString()),
+			"$lte": new Date(req.query.to_date.toString())
+		};
+	} else {
+		if (req.query && req.query.from_date) {
+			req.custom.clean_filter['out_of_stock_at'] = { "$gte": new Date(req.query.quantity_from_date.toString()) };
+		}
+
+		if (req.query && req.query.to_date) {
+			req.custom.clean_filter['out_of_stock_at'] = { "$lte": new Date(req.query.to_date.toString()) };
+		}
+	}
+
+	mainController.list(req, res, collectionName, { rack_zone: 1, barcode: 1, soft_code: 1, out_of_stock_at: 1 });
+};
 
 
 module.exports.removeProductFromOrders = async (req, res) => {

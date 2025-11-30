@@ -12,6 +12,6 @@ const controller = require('./controller');
 
 //router.post('/products/fix', controller.fix_parent_products);
 
-router.post('/products/fix_variants', controller.fix_variants);
+//router.post('/products/fix_variants', controller.fix_variants);
 
 module.exports = router;

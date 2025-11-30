@@ -8,6 +8,7 @@ const controller = require('./controller');
  * POST /product
  */
 router.post('/', controller.create);
+router.get('/out_of_stock', controller.list_out_of_stock);
 
 /**
  * GET /product/:Id/details
