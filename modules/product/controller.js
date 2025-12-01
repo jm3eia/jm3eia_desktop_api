@@ -1090,7 +1090,8 @@ module.exports.list_main_screen_products = (req, res) => {
 		"ends_at": 1,
 		"sorting": 1
 	}, async (out) => {
-		const features = out.data;
+		try {
+			const features = out.data;
 		const product_collection = req.custom.db.client().collection("product");
 		const projection = {
 			"_id": 0,
@@ -1170,6 +1171,12 @@ module.exports.list_main_screen_products = (req, res) => {
 
 		out.data = featured.filter(f => (!f.expiration_date || f.expiration_date > new Date()) && f.products.filter(i => !i.exchange_with_points || user.member_id).length > 0);
 		return res.out(out);
+		} catch (e) {
+			console.error(req.originalUrl, e);
+			return res.out({
+				'message': e.message
+			}, enums.status_message.UNEXPECTED_ERROR);
+		}
 	});
 };
 
