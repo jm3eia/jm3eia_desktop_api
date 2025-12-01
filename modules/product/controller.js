@@ -1091,7 +1091,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		"sorting": 1
 	}, async (out) => {
 		const features = out.data;
-		const product_collection = req.custom.db.collection("product");
+		const product_collection = req.custom.db.client().collection("product");
 		const projection = {
 			"_id": 0,
 			"sku": 1,
