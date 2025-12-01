@@ -1161,7 +1161,7 @@ module.exports.list_main_screen_products = (req, res) => {
 			};
 
 			const products = await product_collection.aggregate(pipeline, options).toArray();
-
+console.error('products length => ', products.length);
 			if (products && products.length > 0) {
 				feature.products = products;//products.map((i) => normalizeProduct(req, user, i));
 				if (feature.products.length > 0) featured.push(feature);
