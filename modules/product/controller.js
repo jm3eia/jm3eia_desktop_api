@@ -1125,7 +1125,7 @@ module.exports.list_main_screen_products = (req, res) => {
 			
 			const filter = {};
 			filter['status'] = true;
-			filter['features.feature_id'] = feature._id;
+			filter['features.feature_id'] = ObjectID(feature._id.toString());
 
 			const pipeline = [
 				{
@@ -1163,7 +1163,7 @@ module.exports.list_main_screen_products = (req, res) => {
 			const products = await product_collection.aggregate(pipeline, options).toArray();
 
 			if (products && products.length > 0) {
-				feature.products = products.map((i) => normalizeProduct(req, user, i));
+				feature.products = products;//products.map((i) => normalizeProduct(req, user, i));
 				if (feature.products.length > 0) featured.push(feature);
 			}
 
