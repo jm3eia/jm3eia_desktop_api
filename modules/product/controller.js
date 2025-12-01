@@ -1079,6 +1079,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		"sorting": 1
 	};
 	req.custom.clean_filter['supplier_id'] = { $exists: false };
+	req.custom.clean_filter['status'] = true;
 	mainController.list(req, res, "feature", {
 		"_id": 1,
 		"name": {
