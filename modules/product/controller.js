@@ -1079,7 +1079,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		"sorting": 1
 	};
 	req.custom.clean_filter['supplier_id'] = { $exists: false };
-	mainController.list(req, res, collectionName, {
+	mainController.list(req, res, "feature", {
 		"_id": 1,
 		"name": {
 			$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
@@ -1096,7 +1096,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		const projection = {
 			"_id": 0,
 			"sku": 1,
-			/* "name": {
+			"name": {
 				$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
 			},
 			"picture": 1,
@@ -1118,7 +1118,7 @@ module.exports.list_main_screen_products = (req, res) => {
 			"vip_old_price": 1,
 			"vip_price": 1,
 			"vip_discount_price_valid_until": 1,
-			"options": 1 */
+			"options": 1
 		};
 		const featured = [];
 		for (const feature of features) {
@@ -1131,7 +1131,7 @@ module.exports.list_main_screen_products = (req, res) => {
 				{
 					$match: filter
 				},
-				/* {
+				{
 					$addFields: {
 						"order": {
 							"$filter": {
@@ -1148,7 +1148,7 @@ module.exports.list_main_screen_products = (req, res) => {
 					$sort: {
 						"order.sorting": 1
 					}
-				}, */
+				},
 				{
 					$limit: 15
 				},
