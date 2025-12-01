@@ -1080,7 +1080,7 @@ module.exports.list_main_screen_products = (req, res) => {
 	};
 	req.custom.clean_filter['supplier_id'] = { $exists: false };
 	req.custom.clean_filter['status'] = true;
-	req.custom.limit = 4;
+	//req.custom.limit = 4;
 	mainController.list(req, res, "feature", {
 		"_id": 1,
 		"name": {
