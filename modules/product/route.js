@@ -9,6 +9,7 @@ const controller = require('./controller');
  */
 router.post('/', controller.create);
 router.get('/out_of_stock', controller.list_out_of_stock);
+router.get('/main', controller.list_main_screen_products);
 
 /**
  * GET /product/:Id/details

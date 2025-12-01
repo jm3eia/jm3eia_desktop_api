@@ -1074,6 +1074,106 @@ module.exports.list_out_of_stock = (req, res) => {
 };
 
 
+module.exports.list_main_screen_products = (req, res) => {
+	req.custom.clean_sort = {
+		"sorting": 1
+	};
+	req.custom.clean_filter['supplier_id'] = { $exists: false };
+	mainController.list(req, res, collectionName, {
+		"_id": 1,
+		"name": {
+			$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
+		},
+		"expiration_date": 1,
+		"expiration_date_message": 1,
+		"starts_at": 1,
+		"ends_at": 1,
+		"sorting": 1
+	}, async (out) => {
+		const features = out.data;
+		const product_collection = req.custom.db.collection("product");
+		const projection = {
+			"_id": 0,
+			"sku": 1,
+			"name": {
+				$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
+			},
+			"picture": 1,
+			"old_price": 1,
+			"price": 1,
+			"pro_price": 1,
+			"exchange_with_points": 1,
+			"points": 1,
+			"availability": `$prod_n_storeArr`,
+			"has_variants": { $isArray: "$variants" },
+			"prod_n_storeArr": 1,
+			"prod_n_categoryArr": 1,
+			"max_quantity_cart": {
+				$ifNull: ["$max_quantity_cart", 0]
+			},
+			"supplier_id": 1,
+			"show_discount_percentage": 1,
+			"discount_price_valid_until": 1,
+			"vip_old_price": 1,
+			"vip_price": 1,
+			"vip_discount_price_valid_until": 1,
+			"options": 1
+		};
+		const featured = [];
+		for (const feature of features) {
+			
+			const filter = {};
+			filter['status'] = true;
+			filter['features.feature_id'] = feature._id;
+
+			const pipeline = [
+				{
+					$match: filter
+				},
+				{
+					$addFields: {
+						"order": {
+							"$filter": {
+								"input": "$features",
+								"as": "p",
+								"cond": {
+									"$eq": ["$$p.feature_id", feature._id]
+								}
+							}
+						}
+					}
+				},
+				{
+					$sort: {
+						"order.sorting": 1
+					}
+				},
+				{
+					$limit: 15
+				},
+				{
+					$project: projection
+				}
+			];
+			const options = {
+				"allowDiskUse": true
+			};
+
+			const products = await product_collection.aggregate(pipeline, options).toArray();
+
+			if (products && products.length > 0) {
+				feature.products = products.map((i) => normalizeProduct(req, user, i));
+				if (feature.products.length > 0) featured.push(feature);
+			}
+
+		}
+
+		out.data = featured.filter(f => (!f.expiration_date || f.expiration_date > new Date()) && f.products.filter(i => !i.exchange_with_points || user.member_id).length > 0);
+		return res.out(out);
+	});
+};
+
+
 module.exports.removeProductFromOrders = async (req, res) => {
 	if (req.custom.isAuthorized === false) {
 		return res.out(req.custom.UnauthorizedObject, enums.status_message.UNAUTHENTICATED);
