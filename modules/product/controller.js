@@ -1159,7 +1159,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		}
 		
 		out.data = featured.filter(f => (!f.expiration_date || f.expiration_date > new Date()) && f.products.filter(i => !i.exchange_with_points || user.member_id).length > 0);
-		return res.out({ data: out.data, count: out.data.length });
+		return res.out({ data: out.data.slice(0, 4), count: out.data.length });
 		} catch (e) {
 			console.error(req.originalUrl, e);
 			return res.out({
