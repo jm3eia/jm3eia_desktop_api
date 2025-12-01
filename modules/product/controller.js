@@ -1083,9 +1083,7 @@ module.exports.list_main_screen_products = (req, res) => {
 	//req.custom.limit = 4;
 	mainController.list(req, res, "feature", {
 		"_id": 1,
-		"name": {
-			$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
-		},
+		"name": 1,
 		"expiration_date": 1,
 		"expiration_date_message": 1,
 		"starts_at": 1,
