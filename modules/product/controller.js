@@ -1080,6 +1080,7 @@ module.exports.list_main_screen_products = (req, res) => {
 	};
 	req.custom.clean_filter['supplier_id'] = { $exists: false };
 	req.custom.clean_filter['status'] = true;
+	req.custom.limit = 4;
 	mainController.list(req, res, "feature", {
 		"_id": 1,
 		"name": {
@@ -1150,7 +1151,6 @@ module.exports.list_main_screen_products = (req, res) => {
 			};
 
 			const products = await product_collection.aggregate(pipeline, options).toArray();
-			console.error('products length => ', products.length);
 			if (products && products.length > 0) {
 				feature.products = products;//products.map((i) => normalizeProduct(req, user, i));
 				if (feature.products.length > 0) featured.push(feature);
@@ -1159,7 +1159,7 @@ module.exports.list_main_screen_products = (req, res) => {
 		}
 		
 		out.data = featured.filter(f => (!f.expiration_date || f.expiration_date > new Date()) && f.products.filter(i => !i.exchange_with_points || user.member_id).length > 0);
-		return res.out({...out, test: { featured: featured.length, outdata: out.data.length, features: features.length } });
+		return res.out({ data: out.data, count: out.data.length });
 		} catch (e) {
 			console.error(req.originalUrl, e);
 			return res.out({
