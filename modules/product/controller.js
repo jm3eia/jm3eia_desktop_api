@@ -1070,7 +1070,7 @@ module.exports.list_out_of_stock = (req, res) => {
 		}
 	}
 
-	mainController.list(req, res, collectionName, { rack_zone: 1, barcode: 1, soft_code: 1, out_of_stock_at: 1 });
+	mainController.list(req, res, collectionName, { rack_zone: 1, barcode: 1, soft_code: 1, out_of_stock_at: 1, name: 1 });
 };
 
 
@@ -1096,29 +1096,17 @@ module.exports.list_main_screen_products = (req, res) => {
 		const projection = {
 			"_id": 0,
 			"sku": 1,
-			"name": {
-				$ifNull: [`$name.${req.custom.lang}`, `$name.${req.custom.config.local}`]
-			},
+			"name": 1,
 			"picture": 1,
 			"old_price": 1,
 			"price": 1,
 			"pro_price": 1,
-			"exchange_with_points": 1,
-			"points": 1,
-			"availability": `$prod_n_storeArr`,
-			"has_variants": { $isArray: "$variants" },
 			"prod_n_storeArr": 1,
-			"prod_n_categoryArr": 1,
-			"max_quantity_cart": {
-				$ifNull: ["$max_quantity_cart", 0]
-			},
-			"supplier_id": 1,
 			"show_discount_percentage": 1,
 			"discount_price_valid_until": 1,
 			"vip_old_price": 1,
 			"vip_price": 1,
 			"vip_discount_price_valid_until": 1,
-			"options": 1
 		};
 		const featured = [];
 		for (const feature of features) {
