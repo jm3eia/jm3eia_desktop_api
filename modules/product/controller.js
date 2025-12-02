@@ -1070,6 +1070,8 @@ module.exports.list_out_of_stock = (req, res) => {
 		}
 	}
 
+	req.custom.clean_filter['supplier_id'] = { $exists: false };
+
 	mainController.list(req, res, collectionName, { rack_zone: 1, barcode: 1, soft_code: 1, out_of_stock_at: 1, name: 1 });
 };
 
