@@ -1099,6 +1099,7 @@ module.exports.list_main_screen_products = (req, res) => {
 			"_id": 0,
 			"sku": 1,
 			"name": 1,
+			"barcode": 1,
 			"picture": 1,
 			"old_price": 1,
 			"price": 1,
