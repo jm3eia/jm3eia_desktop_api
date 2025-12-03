@@ -1141,7 +1141,7 @@ module.exports.list_main_screen_products = (req, res) => {
 					}
 				},
 				{
-					$limit: 15
+					$limit: 1000
 				},
 				{
 					$project: projection
