@@ -303,7 +303,8 @@ module.exports.quantity = async (req, res) => {
 				prod_n_storeArr: prod_n_storeArr,
 				lastUser_update: lastUser_update,
 				status: parseInt(data.quantity) > 0 ? true : false,
-				last_quantity_update: new Date()
+				last_quantity_update: new Date(),
+				needs_search_indexing: true
 			}
 		};
 
@@ -333,7 +334,8 @@ module.exports.quantity = async (req, res) => {
 				lastUser_update: lastUser_update,
 				prod_n_storeArr,
 				status: totalQuantity > 0 ? true : false,
-				last_quantity_update: new Date()
+				last_quantity_update: new Date(),
+				needs_search_indexing: true
 			}
 		};
 	}
@@ -746,7 +748,8 @@ module.exports.increase_quantity = async (req, res) => {
 				prod_n_storeArr: prod_n_storeArr,
 				lastUser_update: lastUser_update,
 				status: true,
-				last_quantity_update: new Date()
+				last_quantity_update: new Date(),
+				needs_search_indexing: true
 			}
 		};
 
@@ -776,7 +779,8 @@ module.exports.increase_quantity = async (req, res) => {
 				lastUser_update: lastUser_update,
 				prod_n_storeArr,
 				status: true,
-				last_quantity_update: new Date()
+				last_quantity_update: new Date(),
+				needs_search_indexing: true
 			}
 		};
 	}
