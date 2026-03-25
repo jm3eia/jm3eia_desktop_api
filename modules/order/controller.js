@@ -10,7 +10,7 @@ const enums = require("../../libraries/enums");
 const { unskipProduct } = require("../product/utils");
 const { sendSms } = require("../../libraries/sms");
 const { create_coupon } = require("./extra/coupon");
-const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message, emmit_change_status } = require("./utils");
+const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message, emmit_change_status, reward_referrer_on_first_delivered_order } = require("./utils");
 const collectionName = "order";
 
 
@@ -100,6 +100,7 @@ module.exports.update_status = async (req, res) => {
 					if (order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
 						await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
 					}
+					await reward_referrer_on_first_delivered_order(req, order);
 
 					if (!user_info.can_spin_wheel) {
 						await member_collection.updateOne({ _id: ObjectID(order.user_data._id.toString()) }, { $set: { can_spin_wheel: true } }).catch((error) => { });
@@ -2001,6 +2002,7 @@ function convertFields(obj) {
 
 		if (order_data.employee_username) data_to_update.employee_username = order_data.employee_username;
 		if (order_data.driver_username) data_to_update.driver_username = order_data.driver_username;
+		if (parseInt(order_data.status) === 4 && order.status != 4) data_to_update.delivered_at = common.getDate();
   
 		promises.push(
 		  collection.updateOne(
@@ -2027,6 +2029,17 @@ function convertFields(obj) {
 		  if (order.user_data && order.user_data._id && user_info) {
 			let points = parseInt(user_info.points || 0);
 			let wallet = parseFloat(user_info.wallet || 0);
+
+			if (parseInt(order_data.status) === 4) {
+				if (order.offers && order.offers.filter((o) => o.type === "wallet").length > 0) {
+					await claim_wallet_offers(req, order.offers.filter((o) => o.type === "wallet"), user_info, order._id);
+				}
+				await reward_referrer_on_first_delivered_order(req, order);
+
+				if (!user_info.can_spin_wheel) {
+					await member_collection.updateOne({ _id: ObjectID(order.user_data._id.toString()) }, { $set: { can_spin_wheel: true } }).catch(() => null);
+				}
+			}
   
 			// const new_points = order.total ? parseInt(order.total) : 0;
 			const new_points =

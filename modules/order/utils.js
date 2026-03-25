@@ -283,3 +283,103 @@ function getEventTime(date = new Date()) {
 
   return `${year}-${month}-${day}T${hour}:${min}:${sec}${offsetSign}${offsetHours}${offsetMinutes}`;
 }
+
+module.exports.reward_referrer_on_first_delivered_order = async (req, order) => {
+  try {
+    if (!order || !order._id || !order.user_data || !order.user_data._id) {
+      return { applied: false, reason: "invalid_order" };
+    }
+
+    const referred_id = ObjectID(order.user_data._id.toString());
+    const order_collection = req.custom.db.client().collection("order");
+    const referral_collection = req.custom.db.client().collection("referral");
+    const member_collection = req.custom.db.client().collection("member");
+    const wallet_history_collection = req.custom.db.client().collection("wallet_history");
+
+    const previous_delivered_orders = await order_collection.countDocuments({
+      "user_data._id": referred_id,
+      status: 4,
+      _id: { $ne: ObjectID(order._id.toString()) },
+    });
+    if (previous_delivered_orders > 0) {
+      return { applied: false, reason: "not_first_delivered_order" };
+    }
+
+    const referral_claim = await referral_collection.findOneAndUpdate(
+      {
+        referred_id: referred_id,
+        referrer_rewarded: false,
+      },
+      {
+        $set: {
+          referrer_rewarded: true,
+          first_delivered_order_id: ObjectID(order._id.toString()),
+          modified: new Date(),
+        },
+      },
+      { returnDocument: "before" }
+    );
+
+    if (!referral_claim || !referral_claim.value) {
+      return { applied: false, reason: "no_pending_referral" };
+    }
+
+    const referral = referral_claim.value;
+    const referrer_id = ObjectID(referral.referrer_id.toString());
+    const reward_amount = parseFloat(referral.referrer_reward_amount || 3);
+
+    const existing_reward = await wallet_history_collection.findOne(
+      {
+        type: "referral_referrer_reward",
+        referral_id: ObjectID(referral._id.toString()),
+      },
+      { projection: { _id: 1 } }
+    );
+    if (existing_reward) {
+      return { applied: false, reason: "already_rewarded" };
+    }
+
+    const referrer = await member_collection.findOne(
+      { _id: referrer_id },
+      { projection: { _id: 1, wallet: 1 } }
+    );
+    if (!referrer) {
+      await referral_collection.updateOne(
+        { _id: ObjectID(referral._id.toString()) },
+        {
+          $set: {
+            referrer_rewarded: false,
+            first_delivered_order_id: null,
+            modified: new Date(),
+          },
+        }
+      );
+      return { applied: false, reason: "referrer_not_found" };
+    }
+
+    const old_wallet = common.getFixedPrice(referrer.wallet || 0);
+    const new_wallet = common.getFixedPrice(parseFloat(old_wallet) + reward_amount);
+
+    await wallet_history_collection.insertOne({
+      member_id: referrer_id,
+      referral_id: ObjectID(referral._id.toString()),
+      referred_id: referred_id,
+      order_id: ObjectID(order._id.toString()),
+      old_wallet,
+      new_wallet,
+      type: "referral_referrer_reward",
+      notes: `Referral reward after first delivered order ${order._id.toString()}`,
+      created: new Date(),
+    });
+
+    await member_collection.updateOne(
+      { _id: referrer_id },
+      { $set: { wallet: new_wallet } }
+    );
+
+    return { applied: true, referrer_id: referrer_id.toString() };
+  } catch (e) {
+    console.error("[reward_referrer_on_first_delivered_order]", e);
+    return { applied: false, reason: "unexpected_error" };
+  }
+};
