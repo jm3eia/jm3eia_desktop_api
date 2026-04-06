@@ -9,7 +9,7 @@ module.exports.claim_wallet_offers = async (
   user_info,
   order_id
 ) => {
-  if (offers.filter((o) => o.type === "wallet").length < 1) return;
+  if (offers.filter((o) => o.type === "wallet").length < 1) return undefined;
 
   const wallet = parseFloat(user_info.wallet || 0);
 
@@ -48,6 +48,8 @@ module.exports.claim_wallet_offers = async (
       }
     )
     .catch((e) => console.error(req.originalUrl, e));
+
+  return { wallet: new_wallet };
 };
 
 module.exports.cashback_whatsapp_message = async (
@@ -290,13 +292,18 @@ function getEventTime(date = new Date()) {
  * - referrer: referrer_reward_amount (wallet type referral_referrer_reward)
  */
 module.exports.reward_referrer_on_first_delivered_order = async (req, order) => {
+  let referredWalletAfter = null;
+  const withReferredWallet = (o) =>
+    referredWalletAfter != null ? { ...o, referred_wallet_after: referredWalletAfter } : o;
+
   try {
     if (!order || !order._id || !order.user_data || !order.user_data._id) {
-      return { applied: false, reason: "invalid_order" };
+      return withReferredWallet({ applied: false, reason: "invalid_order" });
     }
 
     const referred_id = ObjectID(order.user_data._id.toString());
     const order_id = ObjectID(order._id.toString());
+
     const order_collection = req.custom.db.client().collection("order");
     const referral_collection = req.custom.db.client().collection("referral");
     const member_collection = req.custom.db.client().collection("member");
@@ -308,12 +315,12 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
       _id: { $ne: order_id },
     });
     if (previous_delivered_orders > 0) {
-      return { applied: false, reason: "not_first_delivered_order" };
+      return withReferredWallet({ applied: false, reason: "not_first_delivered_order" });
     }
 
     const referral = await referral_collection.findOne({ referred_id });
     if (!referral) {
-      return { applied: false, reason: "no_pending_referral" };
+      return withReferredWallet({ applied: false, reason: "no_pending_referral" });
     }
 
     const referral_oid = ObjectID(referral._id.toString());
@@ -341,6 +348,11 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
           }
         );
         referred_credited = true;
+        const _referredSync = await member_collection.findOne(
+          { _id: referred_id },
+          { projection: { wallet: 1 } }
+        );
+        if (_referredSync) referredWalletAfter = _referredSync.wallet;
       } else {
         const referred_claim = await referral_collection.findOneAndUpdate(
           { _id: referral_oid, referred_rewarded: false },
@@ -372,7 +384,7 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
                 },
               }
             );
-            return { applied: false, reason: "referred_member_not_found" };
+            return withReferredWallet({ applied: false, reason: "referred_member_not_found" });
           }
           try {
             const old_w = common.getFixedPrice(referred_member.wallet || 0);
@@ -398,6 +410,7 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
               { $set: { wallet: new_w } }
             );
             referred_credited = true;
+            referredWalletAfter = new_w;
           } catch (e) {
             await referral_collection.updateOne(
               { _id: referral_oid },
@@ -420,14 +433,14 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
       _id: referral_oid,
     });
     if (!referral_after || referral_after.referrer_rewarded) {
-      return {
+      return withReferredWallet({
         applied: referred_credited || referrer_credited,
         referred_credited,
         referrer_credited,
         reason: referral_after?.referrer_rewarded
           ? "referrer_already_rewarded"
           : undefined,
-      };
+      });
     }
 
     const existing_referrer_wallet = await wallet_history_collection.findOne(
@@ -448,12 +461,12 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
           },
         }
       );
-      return {
+      return withReferredWallet({
         applied: true,
         referred_credited,
         referrer_credited: true,
         reason: "referrer_wallet_already_exists",
-      };
+      });
     }
 
     const referral_claim = await referral_collection.findOneAndUpdate(
@@ -472,17 +485,16 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
     );
 
     if (!referral_claim || !referral_claim.value) {
-      return {
+      return withReferredWallet({
         applied: referred_credited,
         referred_credited,
         referrer_credited: false,
-      };
+      });
     }
 
     const ref_before = referral_claim.value;
     const referrer_id = ObjectID(ref_before.referrer_id.toString());
     const reward_amount = parseFloat(ref_before.referrer_reward_amount || 3);
-
     const referrer = await member_collection.findOne(
       { _id: referrer_id },
       { projection: { _id: 1, wallet: 1 } }
@@ -497,19 +509,18 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
           },
         }
       );
-      return {
+      return withReferredWallet({
         applied: referred_credited,
         referred_credited,
         referrer_credited: false,
         reason: "referrer_not_found",
-      };
+      });
     }
 
     const old_wallet = common.getFixedPrice(referrer.wallet || 0);
     const new_wallet = common.getFixedPrice(
       parseFloat(old_wallet) + reward_amount
     );
-
     await wallet_history_collection.insertOne({
       member_id: referrer_id,
       referral_id: referral_oid,
@@ -528,14 +539,14 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
     );
     referrer_credited = true;
 
-    return {
+    return withReferredWallet({
       applied: true,
       referred_credited,
       referrer_credited: true,
       referrer_id: referrer_id.toString(),
-    };
+    });
   } catch (e) {
-    console.error("[reward_referrer_on_first_delivered_order]", e);
-    return { applied: false, reason: "unexpected_error" };
+    console.error(e);
+    return withReferredWallet({ applied: false, reason: "unexpected_error" });
   }
 };

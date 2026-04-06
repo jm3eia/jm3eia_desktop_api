@@ -13,7 +13,6 @@ const { create_coupon } = require("./extra/coupon");
 const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_whatsapp_message, emmit_change_status, reward_referrer_on_first_delivered_order } = require("./utils");
 const collectionName = "order";
 
-
 const SUPPLIERS_LIST = require('./suppliers_with_cashback.json');
 const { send_to_multiple } = require("../../libraries/notification");
 
@@ -98,14 +97,21 @@ module.exports.update_status = async (req, res) => {
 				if (parseInt(req.body.status) === 4) {
 					
 					if (order.offers && order.offers.filter(o => o.type === 'wallet').length > 0) {
-						await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
+						const claimRet = await claim_wallet_offers(req, order.offers.filter(o => o.type === 'wallet'), user_info, order._id);
+						if (claimRet?.wallet != null) {
+							wallet = parseFloat(claimRet.wallet);
+							user_info.wallet = claimRet.wallet;
+						}
 					}
-					await reward_referrer_on_first_delivered_order(req, order);
+					const rewardRet = await reward_referrer_on_first_delivered_order(req, order);
+					if (rewardRet?.referred_wallet_after != null) {
+						wallet = parseFloat(rewardRet.referred_wallet_after);
+						user_info.wallet = rewardRet.referred_wallet_after;
+					}
 
 					if (!user_info.can_spin_wheel) {
 						await member_collection.updateOne({ _id: ObjectID(order.user_data._id.toString()) }, { $set: { can_spin_wheel: true } }).catch((error) => { });
 					}
-
 				}
 
 				/* if (order.supplier._id !== "Jm3eia" && SUPPLIERS_LIST.includes(order.supplier._id.toString())) {
@@ -1142,7 +1148,7 @@ module.exports.get_prepared_orders = async (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-module.exports.read = (req, res) => {
+module.exports.read = async (req, res) => {
 	//req.custom.where_property = "order_id";
 	mainController.read(req, res, collectionName, async (doc) => {
 
@@ -2032,9 +2038,17 @@ function convertFields(obj) {
 
 			if (parseInt(order_data.status) === 4) {
 				if (order.offers && order.offers.filter((o) => o.type === "wallet").length > 0) {
-					await claim_wallet_offers(req, order.offers.filter((o) => o.type === "wallet"), user_info, order._id);
+					const claimRet = await claim_wallet_offers(req, order.offers.filter((o) => o.type === "wallet"), user_info, order._id);
+					if (claimRet?.wallet != null) {
+						wallet = parseFloat(claimRet.wallet);
+						user_info.wallet = claimRet.wallet;
+					}
 				}
-				await reward_referrer_on_first_delivered_order(req, order);
+				const rewardRet = await reward_referrer_on_first_delivered_order(req, order);
+				if (rewardRet?.referred_wallet_after != null) {
+					wallet = parseFloat(rewardRet.referred_wallet_after);
+					user_info.wallet = rewardRet.referred_wallet_after;
+				}
 
 				if (!user_info.can_spin_wheel) {
 					await member_collection.updateOne({ _id: ObjectID(order.user_data._id.toString()) }, { $set: { can_spin_wheel: true } }).catch(() => null);
