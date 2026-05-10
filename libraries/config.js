@@ -54,5 +54,9 @@ module.exports = {
     webengage: {
         license_code: process.env.WEBENGAGE_LICENSE_CODE,
         api_key: process.env.WEBENGAGE_API_KEY,
-    }
+    },
+    /** Referral wallet rewards (first qualifying delivered order). Min `order.total` in account currency (e.g. KWD). */
+    referral: {
+        reward_min_order_total: parseFloat(process.env.REFERRAL_REWARD_MIN_ORDER_TOTAL || "8") || 8,
+    },
 };

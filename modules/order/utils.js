@@ -287,9 +287,12 @@ function getEventTime(date = new Date()) {
 }
 
 /**
- * When the referred user's first order is delivered (status 4), credit both:
+ * When the referred user's first delivered order with total >= referral.reward_min_order_total
+ * (default 8), credit both:
  * - referred user: referred_reward_amount (wallet type referral_referred_reward)
  * - referrer: referrer_reward_amount (wallet type referral_referrer_reward)
+ *
+ * Earlier delivered orders below the minimum do not consume the "first order" slot.
  */
 module.exports.reward_referrer_on_first_delivered_order = async (req, order) => {
   let referredWalletAfter = null;
@@ -303,19 +306,33 @@ module.exports.reward_referrer_on_first_delivered_order = async (req, order) => 
 
     const referred_id = ObjectID(order.user_data._id.toString());
     const order_id = ObjectID(order._id.toString());
+    const minOrderTotal = config.referral.reward_min_order_total;
+    const thisOrderTotal = parseFloat(order.total);
+    if (Number.isNaN(thisOrderTotal) || thisOrderTotal < minOrderTotal) {
+      return withReferredWallet({
+        applied: false,
+        reason: "order_total_below_referral_minimum",
+      });
+    }
 
     const order_collection = req.custom.db.client().collection("order");
     const referral_collection = req.custom.db.client().collection("referral");
     const member_collection = req.custom.db.client().collection("member");
     const wallet_history_collection = req.custom.db.client().collection("wallet_history");
 
-    const previous_delivered_orders = await order_collection.countDocuments({
+    const previous_qualifying_delivered = await order_collection.countDocuments({
       "user_data._id": referred_id,
       status: 4,
       _id: { $ne: order_id },
+      $expr: {
+        $gte: [{ $toDouble: { $ifNull: ["$total", 0] } }, minOrderTotal],
+      },
     });
-    if (previous_delivered_orders > 0) {
-      return withReferredWallet({ applied: false, reason: "not_first_delivered_order" });
+    if (previous_qualifying_delivered > 0) {
+      return withReferredWallet({
+        applied: false,
+        reason: "not_first_qualifying_delivered_order",
+      });
     }
 
     const referral = await referral_collection.findOne({ referred_id });

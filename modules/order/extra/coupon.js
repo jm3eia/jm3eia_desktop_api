@@ -45,7 +45,7 @@ exports.create_coupon = function (req, p, data) {
 		"name": "jm3eia_offer_" + code,
 		"code": code,
 		"discount_value": 0,
-		"member_id": null,
+		"member_ids": [],
 		"max_uses": 1,
 		"max_uses_per_user": 1,
 		"number_of_uses": 0,
