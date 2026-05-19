@@ -47,6 +47,7 @@ module.exports = {
 	unauthorized_user: "You don't have permission to access this page",
 	unsupported_file_types: "Error: File upload only supports the following filetypes",
 	order_not_confirmed: "لم يتم تأكيد هذا الطلب بعد.",
+	order_not_delivering: "يجب أن يكون الطلب في حالة التوصيل لبدء التوصيل.",
 
 	order_status_list: {
 		"0": 'لم يتم التأكيد',

@@ -17,6 +17,10 @@ module.exports = {
         "type": String,
         "required": false
     },
+    "driver_id": {
+        "type": String,
+        "required": false
+    },
     "modified": {
         "type": Date,
         "default": new Date(),

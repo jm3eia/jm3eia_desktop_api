@@ -78,6 +78,12 @@ router.put('/:Id/number', controller.update_order_number);
 router.put('/:Id/status', controller.update_status);
 
 /**
+ * PUT /order/:Id/on_delivery
+ * Status 18 → 10 and notify the customer app
+ */
+router.put('/:Id/on_delivery', controller.mark_on_delivery);
+
+/**
  * PUT /order/all_statuses
  */
 router.put('/all_statuses', controller.update_all_statuses);

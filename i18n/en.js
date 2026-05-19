@@ -59,6 +59,7 @@ module.exports = {
   unsupported_file_types:
     "Error: File upload only supports the following filetypes",
   order_not_confirmed: "This order is not confirmed yet.",
+  order_not_delivering: "Order must be in delivering status to start delivery.",
 
   order_status_list: {
     0: "Not confirmed",

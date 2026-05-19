@@ -407,32 +407,39 @@ module.exports.update_status = async (req, res) => {
 
 		} */
 			
-		if (req.body.employee_username) {
+		if (req.body.employee_username || req.body.employee_id) {
 			let action = 'update_status';
-			let toUpdate = {};
+			const toUpdate = {};
 
-			if (req.body.employee_department === 1) {
-				toUpdate = { employee_username: req.body.employee_username }
+			if (req.body.employee_department === 1 && req.body.employee_username) {
+				toUpdate.employee_username = req.body.employee_username;
 			}
 
 			if (req.body.employee_department === 2) {
-				toUpdate = { driver_username: req.body.employee_username }
+				if (req.body.employee_username) {
+					toUpdate.driver_username = req.body.employee_username;
+				}
+				if (req.body.employee_id) {
+					toUpdate.driver_id = req.body.employee_id.toString();
+				}
 			}
 
-			if (req.body.employee_department === 3) {
-				toUpdate = { store_manager_username: req.body.employee_username }
+			if (req.body.employee_department === 3 && req.body.employee_username) {
+				toUpdate.store_manager_username = req.body.employee_username;
 			}
 
-			await collection.updateOne({
-				_id: ObjectID(req.params.Id)
-			}, {
-				$set: toUpdate
-			});
+			if (Object.keys(toUpdate).length > 0) {
+				await collection.updateOne({
+					_id: ObjectID(req.params.Id)
+				}, {
+					$set: toUpdate
+				});
 
-			await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
-			
-			if (isRemoteSuccess) {
-				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+				await common.saveLog(req, action, 'order', ObjectID(req.params.Id), updated_order, order, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+
+				if (isRemoteSuccess) {
+					await common.saveLog(req, action, 'order', ObjectID(req.params.Id), {...updated_order, status: 8}, {...order, status: 17}, { status: req.body.status }, null, {...req.query, remote_response: remoteResponse, is_remote_success: isRemoteSuccess});
+				}
 			}
 		}
 
@@ -818,7 +825,7 @@ module.exports.remove_driver_details = async (req, res) => {
 	collection.updateOne({ _id: ObjectID(req.params.Id) },
 		{
 			$unset:
-				{ driver_name: '', driver_mobile: '', driver_track_id: '' }
+				{ driver_name: '', driver_mobile: '', driver_track_id: '', driver_id: '' }
 		}).then((response) => res.out({
 			message: req.custom.local.saved_done
 		}, enums.status_message.UPDATED))
@@ -894,7 +901,7 @@ module.exports.update_delivery_time = async (req, res) => {
 		{
 			$set: { delivery_time: common.getDate(req.body.delivery_time), status: 8 },
 			$unset:
-				{ driver_name: '', driver_mobile: '', driver_track_id: '' }
+				{ driver_name: '', driver_mobile: '', driver_track_id: '', driver_id: '' }
 		}).then((response) => res.out({
 			message: req.custom.local.saved_done
 		}, enums.status_message.UPDATED))
@@ -1281,6 +1288,70 @@ module.exports.getDeliveringOrder = async (req, res) => {
 	req.custom.clean_filter = { status: 18 };
 	req.custom.limit = 1000;
 	mainController.list(req, res, collectionName, { status: 1, driver_username: 1 });
+};
+
+/**
+ * Mark order as on delivery: status 18 → 10 and notify the customer app.
+ * @param {Object} req
+ * @param {Object} res
+ */
+module.exports.mark_on_delivery = async (req, res) => {
+	const collection = req.custom.db.client().collection(collectionName);
+	const order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+
+	if (!order) {
+		return res.out({
+			message: req.custom.local.item_not_exists
+		}, enums.status_message.NOT_FOUND);
+	}
+
+	if (order.status === 10) {
+		return res.out({ message: req.custom.local.order_being_processed }, enums.status_message.VALIDATION_ERROR);
+	}
+
+	if (order.status !== 18) {
+		return res.out({
+			message: req.custom.local.order_not_delivering
+		}, enums.status_message.VALIDATION_ERROR);
+	}
+
+	try {
+		await collection.updateOne(
+			{ _id: ObjectID(req.params.Id) },
+			{ $set: { status: 10, modified: new Date() } }
+		);
+
+		update_status_webhook(req.params.Id, 10);
+
+		const member_collection = req.custom.db.client().collection('member');
+		const user_info = order.user_data && order.user_data._id
+			? await member_collection.findOne({ _id: ObjectID(order.user_data._id.toString()) }).catch(() => null)
+			: null;
+
+		if (user_info && user_info.device_token) {
+			let local = req.custom.local;
+			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
+				local = require(`../../i18n/${user_info.language}`);
+			}
+			const message = {
+				title: local.order_notification_title_10,
+				body: local.order_notification_body_10,
+				url: null,
+			};
+			await common.send_to_multiple(message, [user_info.device_token], false).catch(() => null);
+		}
+
+		const updated_order = await collection.findOne({ _id: ObjectID(req.params.Id) });
+		await common.saveLog(req, 'update_status', 'order', ObjectID(req.params.Id), updated_order, order, { status: 10 });
+
+		return res.out({
+			message: req.custom.local.saved_done
+		}, enums.status_message.UPDATED);
+	} catch (error) {
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR);
+	}
 };
 
 module.exports.refundToWallet = async (req, res) => {
