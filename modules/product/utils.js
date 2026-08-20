@@ -223,3 +223,33 @@ module.exports.update_base_product = async function (req, product, store_id, typ
 
     return total_quantities > 0;
   }
+
+const DEFAULT_STORE_ID = "5d3827c683545d0366ac4285";
+
+/**
+ * Ensure product/variant has prod_n_storeArr and an entry for storeId.
+ * Variants are often saved without store quantities; quantity endpoints crash without this.
+ */
+module.exports.ensure_prod_n_store_arr = (entity, storeId) => {
+	const resolvedStoreId = storeId
+		? ObjectID(storeId.toString())
+		: ObjectID(DEFAULT_STORE_ID);
+
+	if (!Array.isArray(entity.prod_n_storeArr)) {
+		entity.prod_n_storeArr = [];
+	}
+
+	const hasStore = entity.prod_n_storeArr.some(
+		(s) => s && s.store_id && s.store_id.toString() === resolvedStoreId.toString()
+	);
+
+	if (!hasStore) {
+		entity.prod_n_storeArr.push({
+			store_id: resolvedStoreId,
+			quantity: 0,
+			status: true,
+		});
+	}
+
+	return entity.prod_n_storeArr;
+};

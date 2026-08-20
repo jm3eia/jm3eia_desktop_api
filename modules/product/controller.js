@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const common = require("../../libraries/common");
 const enums = require("../../libraries/enums");
 const mainController = require("../../libraries/mainController");
-const { skipProduct, unskipProduct,  update_base_product, get_prod_status_by_quantity } = require('./utils');
+const { skipProduct, unskipProduct,  update_base_product, get_prod_status_by_quantity, ensure_prod_n_store_arr } = require('./utils');
 const collectionName = "product";
 
 /**
@@ -280,64 +280,69 @@ module.exports.quantity = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
-	if (!product.prod_n_storeArr) {
-		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
-	}
+	ensure_prod_n_store_arr(product, data.store_id);
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
 	let status = parseInt(data.quantity) > 0 ? true : product.status;
-	if (product.soft_code == req.params.soft_code) {
-		if (status == true) {
-			status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
-		}
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = parseInt(data.quantity);
+	try {
+		if (product.soft_code == req.params.soft_code) {
+			if (status == true) {
+				status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
 			}
-			return s;
-		});
-		row = {
-			$set: {
-				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update,
-				status: parseInt(data.quantity) > 0 ? true : false,
-				last_quantity_update: new Date(),
-				needs_search_indexing: true
-			}
-		};
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = parseInt(data.quantity);
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					prod_n_storeArr: prod_n_storeArr,
+					lastUser_update: lastUser_update,
+					status: parseInt(data.quantity) > 0 ? true : false,
+					last_quantity_update: new Date(),
+					needs_search_indexing: true
+				}
+			};
 
-	} else {
-		let totalQuantity = 0;
-		const variants = product.variants.map((v) => {
-			if (v.soft_code == req.params.soft_code) {
-				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity = parseInt(data.quantity);
-					}
-					return s;
-				});
-			}
-			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
-			return v;
-		});
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = totalQuantity;
-			}
-			return s;
-		});
-		row = {
-			$set: {
-				variants: variants,
-				lastUser_update: lastUser_update,
-				prod_n_storeArr,
-				status: totalQuantity > 0 ? true : false,
-				last_quantity_update: new Date(),
-				needs_search_indexing: true
-			}
-		};
+		} else {
+			let totalQuantity = 0;
+			const variants = (product.variants || []).map((v) => {
+				ensure_prod_n_store_arr(v, data.store_id);
+				if (v.soft_code == req.params.soft_code) {
+					v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+						if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+							s.quantity = parseInt(data.quantity);
+						}
+						return s;
+					});
+				}
+				v.prod_n_storeArr.forEach(store => totalQuantity += parseInt(store.quantity) || 0);
+				return v;
+			});
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = totalQuantity;
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					variants: variants,
+					lastUser_update: lastUser_update,
+					prod_n_storeArr,
+					status: totalQuantity > 0 ? true : false,
+					last_quantity_update: new Date(),
+					needs_search_indexing: true
+				}
+			};
+		}
+	} catch (error) {
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR);
 	}
 	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
@@ -385,62 +390,67 @@ module.exports.update_quantity_by_barcode = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
-	if (!product.prod_n_storeArr) {
-		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
-	}
+	ensure_prod_n_store_arr(product, data.store_id);
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
 	let status = parseInt(data.quantity) > 0 ? true : product.status;
-	if (product.barcode == data.barcode) {
-		if (status == true) {
-			status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
-		}
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = parseInt(data.quantity);
+	try {
+		if (product.barcode == data.barcode) {
+			if (status == true) {
+				status = product.prod_n_storeArr.find((s) => s.quantity > 0 && s.status == true) ? product.status : false;
 			}
-			return s;
-		});
-		row = {
-			$set: {
-				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update,
-				status: parseInt(data.quantity) > 0 ? true : false,
-				last_quantity_update: new Date()
-			}
-		};
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = parseInt(data.quantity);
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					prod_n_storeArr: prod_n_storeArr,
+					lastUser_update: lastUser_update,
+					status: parseInt(data.quantity) > 0 ? true : false,
+					last_quantity_update: new Date()
+				}
+			};
 
-	} else {
-		let totalQuantity = 0;
-		const variants = product.variants.map((v) => {
-			if (v.barcode == data.barcode) {
-				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity = parseInt(data.quantity);
-					}
-					return s;
-				});
-			}
-			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
-			return v;
-		});
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = totalQuantity;
-			}
-			return s;
-		});
-		row = {
-			$set: {
-				variants: variants,
-				lastUser_update: lastUser_update,
-				prod_n_storeArr,
-				status: totalQuantity > 0 ? true : false,
-				last_quantity_update: new Date()
-			}
-		};
+		} else {
+			let totalQuantity = 0;
+			const variants = (product.variants || []).map((v) => {
+				ensure_prod_n_store_arr(v, data.store_id);
+				if (v.barcode == data.barcode) {
+					v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+						if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+							s.quantity = parseInt(data.quantity);
+						}
+						return s;
+					});
+				}
+				v.prod_n_storeArr.forEach(store => totalQuantity += parseInt(store.quantity) || 0);
+				return v;
+			});
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = totalQuantity;
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					variants: variants,
+					lastUser_update: lastUser_update,
+					prod_n_storeArr,
+					status: totalQuantity > 0 ? true : false,
+					last_quantity_update: new Date()
+				}
+			};
+		}
+	} catch (error) {
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR);
 	}
 	//req.custom.cache.unset(collectionName).catch(() => { });
 	collection.updateOne(filter, row)
@@ -729,60 +739,65 @@ module.exports.increase_quantity = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
-	if (!product.prod_n_storeArr) {
-		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
-	}
+	ensure_prod_n_store_arr(product, data.store_id);
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
-	if (product.soft_code == req.params.soft_code) {
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = parseInt(s.quantity) + parseInt(data.quantity);
-			}
-			return s;
-		});
-		row = {
-			$set: {
-				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update,
-				status: true,
-				last_quantity_update: new Date(),
-				needs_search_indexing: true
-			}
-		};
+	try {
+		if (product.soft_code == req.params.soft_code) {
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = parseInt(s.quantity) + parseInt(data.quantity);
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					prod_n_storeArr: prod_n_storeArr,
+					lastUser_update: lastUser_update,
+					status: true,
+					last_quantity_update: new Date(),
+					needs_search_indexing: true
+				}
+			};
 
-	} else {
-		let totalQuantity = 0;
-		const variants = product.variants.map((v) => {
-			if (v.soft_code == req.params.soft_code) {
-				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity = parseInt(s.quantity) + parseInt(data.quantity);
-					}
-					return s;
-				});
-			}
-			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
-			return v;
-		});
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = totalQuantity;
-			}
-			return s;
-		});
-		row = {
-			$set: {
-				variants: variants,
-				lastUser_update: lastUser_update,
-				prod_n_storeArr,
-				status: true,
-				last_quantity_update: new Date(),
-				needs_search_indexing: true
-			}
-		};
+		} else {
+			let totalQuantity = 0;
+			const variants = (product.variants || []).map((v) => {
+				ensure_prod_n_store_arr(v, data.store_id);
+				if (v.soft_code == req.params.soft_code) {
+					v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+						if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+							s.quantity = parseInt(s.quantity) + parseInt(data.quantity);
+						}
+						return s;
+					});
+				}
+				v.prod_n_storeArr.forEach(store => totalQuantity += parseInt(store.quantity) || 0);
+				return v;
+			});
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = totalQuantity;
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					variants: variants,
+					lastUser_update: lastUser_update,
+					prod_n_storeArr,
+					status: true,
+					last_quantity_update: new Date(),
+					needs_search_indexing: true
+				}
+			};
+		}
+	} catch (error) {
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR);
 	}
 	collection.updateOne(filter, row)
 		.then((response) => {
@@ -837,58 +852,63 @@ module.exports.decrease_quantity = async (req, res) => {
 
 	const oldProduct = JSON.parse(JSON.stringify(product));
 
-	if (!product.prod_n_storeArr) {
-		product.prod_n_storeArr = [{ store_id: ObjectID("5d3827c683545d0366ac4285"), quantity: 0, status: true }]
-	}
+	ensure_prod_n_store_arr(product, data.store_id);
 
 	const lastUser_update = ObjectID(req.custom.authUser.userId);
 	let row = {};
 	let prod_n_storeArr = [];
-	if (product.soft_code == req.params.soft_code) {
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = parseInt(s.quantity) - parseInt(data.quantity);
-			}
-			s.quantity = s.quantity >= 0 ? s.quantity : 0;
-			return s;
-		});
-		row = {
-			$set: {
-				prod_n_storeArr: prod_n_storeArr,
-				lastUser_update: lastUser_update,
-				last_quantity_update: new Date()
-			}
-		};
-	} else {
-		let totalQuantity = 0;
-		const variants = product.variants.map((v) => {
-			if (v.soft_code == req.params.soft_code) {
-				v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
-					if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-						s.quantity = parseInt(s.quantity) - parseInt(data.quantity);
-					}
-					s.quantity = s.quantity >= 0 ? s.quantity : 0;
-					return s;
-				});
-			}
-			v.prod_n_storeArr.forEach(store => totalQuantity += store.quantity);
-			return v;
-		});
-		prod_n_storeArr = product.prod_n_storeArr.map((s) => {
-			if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
-				s.quantity = totalQuantity;
-			}
-			return s;
-		});
-		row = {
-			$set: {
-				variants: variants,
-				prod_n_storeArr,
-				lastUser_update: lastUser_update,
-				status: totalQuantity > 0 ? true : false,
-				last_quantity_update: new Date()
-			}
-		};
+	try {
+		if (product.soft_code == req.params.soft_code) {
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = parseInt(s.quantity) - parseInt(data.quantity);
+				}
+				s.quantity = s.quantity >= 0 ? s.quantity : 0;
+				return s;
+			});
+			row = {
+				$set: {
+					prod_n_storeArr: prod_n_storeArr,
+					lastUser_update: lastUser_update,
+					last_quantity_update: new Date()
+				}
+			};
+		} else {
+			let totalQuantity = 0;
+			const variants = (product.variants || []).map((v) => {
+				ensure_prod_n_store_arr(v, data.store_id);
+				if (v.soft_code == req.params.soft_code) {
+					v.prod_n_storeArr = v.prod_n_storeArr.map((s) => {
+						if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+							s.quantity = parseInt(s.quantity) - parseInt(data.quantity);
+						}
+						s.quantity = s.quantity >= 0 ? s.quantity : 0;
+						return s;
+					});
+				}
+				v.prod_n_storeArr.forEach(store => totalQuantity += parseInt(store.quantity) || 0);
+				return v;
+			});
+			prod_n_storeArr = product.prod_n_storeArr.map((s) => {
+				if (data && data.store_id && s && s.store_id && data.store_id.toString() === s.store_id.toString()) {
+					s.quantity = totalQuantity;
+				}
+				return s;
+			});
+			row = {
+				$set: {
+					variants: variants,
+					prod_n_storeArr,
+					lastUser_update: lastUser_update,
+					status: totalQuantity > 0 ? true : false,
+					last_quantity_update: new Date()
+				}
+			};
+		}
+	} catch (error) {
+		return res.out({
+			message: error.message
+		}, enums.status_message.UNEXPECTED_ERROR);
 	}
 
 
