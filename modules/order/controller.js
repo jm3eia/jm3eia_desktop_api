@@ -14,7 +14,7 @@ const { claim_wallet_offers, cashback_whatsapp_message, product_unavailable_what
 const collectionName = "order";
 
 const SUPPLIERS_LIST = require('./suppliers_with_cashback.json');
-const { send_to_multiple } = require("../../libraries/notification");
+const { notifyOrderTracking, isTrackingStatus } = require("../../libraries/tracking_push");
 
 /**
  * Update order status
@@ -246,69 +246,57 @@ module.exports.update_status = async (req, res) => {
 		let message_body = null;
 		let message_title = null;
 		let is_wallet_notification = false;
+		const nextStatus = parseInt(req.body.status, 10);
 
 		if (user_info && user_info.device_token) {
+			const lang =
+				user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1
+					? user_info.language
+					: 'en';
+			req.custom.local = require(`../../i18n/${lang}`);
 
-			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
-				req.custom.local = require(`../../i18n/${user_info.language}`);
-			}
+			if (isTrackingStatus(nextStatus) && order.status != nextStatus) {
+				await notifyOrderTracking({
+					token: user_info.device_token,
+					orderId: order._id.toString(),
+					statusNumber: nextStatus,
+					previousStatus: order.status,
+					local: req.custom.local,
+					lang,
+					deliveryTime: order.delivery_time || req.body.delivery_time,
+				}).catch(() => null);
+			} else {
+				// Non-tracking pushes — legacy banner pipeline
+				if (nextStatus === 2 && order.status != 2) {
+					message_body = req.custom.local.order_notification_body_2;
+					message_title = req.custom.local.order_notification_title_2;
+				} else if (nextStatus === 3 && order.status != 3) {
+					message_body = req.custom.local.order_notification_body_3;
+					message_title = req.custom.local.order_notification_title_3;
+				} else if (nextStatus === 5 && order.status != 5) {
+					message_body = req.custom.local.order_notification_body_5;
+					message_title = req.custom.local.order_notification_title_5;
+				} else if (nextStatus === 6 && order.status != 6) {
+					message_body = req.custom.local.order_notification_body_6;
+					message_title = req.custom.local.order_notification_title_6;
+				} else if (nextStatus === 7 && order.status != 7) {
+					message_body = req.custom.local.order_notification_body_7;
+					message_title = req.custom.local.order_notification_title_7;
+				} else if (nextStatus === 12 && order.status != 12) {
+					message_body = req.custom.local.order_notification_body_12;
+					message_title = req.custom.local.order_notification_title_12;
+				} else if (nextStatus === 13 && order.status != 13) {
+					message_body = req.custom.local.order_notification_body_13;
+					message_title = req.custom.local.order_notification_title_13;
+				}
 
-			// Order Processing 2
-			if (parseInt(req.body.status) === 2 && order.status != 2) {
-				message_body = req.custom.local.order_notification_body_2;
-				message_title = req.custom.local.order_notification_title_2;
-			}
-			// Order On the way 3
-			else if (parseInt(req.body.status) === 3 && order.status != 3) {
-				message_body = req.custom.local.order_notification_body_3;
-				message_title = req.custom.local.order_notification_title_3;
-			}
-			// Order Delivered 4
-			else if (parseInt(req.body.status) === 4 && order.status != 4) {
-				message_body = req.custom.local.order_notification_body_4;
-				message_title = req.custom.local.order_notification_title_4;
-				is_wallet_notification = true;
-			}
-			// Order Canceled 5
-			else if (parseInt(req.body.status) === 5 && order.status != 5) {
-				message_body = req.custom.local.order_notification_body_5;
-				message_title = req.custom.local.order_notification_title_5;
-			}
-			// Order Disapproved 6
-			else if (parseInt(req.body.status) === 6 && order.status != 6) {
-				message_body = req.custom.local.order_notification_body_6;
-				message_title = req.custom.local.order_notification_title_6;
-			}
-			// Order Confirmed 7
-			else if (parseInt(req.body.status) === 7 && order.status != 7) {
-				message_body = req.custom.local.order_notification_body_7;
-				message_title = req.custom.local.order_notification_title_7;
-			}
-			// Order Returned 8
-			// else if (parseInt(req.body.status) === 8 && order.status != 8) {
-			// 	message_body = req.custom.local.order_notification_body_8;
-			// 	message_title = req.custom.local.order_notification_title_8;
-			// }
-			// Order Ready to pick 12
-			else if (parseInt(req.body.status) === 12 && order.status != 12) {
-				message_body = req.custom.local.order_notification_body_12;
-				message_title = req.custom.local.order_notification_title_12;
-			}
-			// Order Time is up 13
-			else if (parseInt(req.body.status) === 13 && order.status != 13) {
-				message_body = req.custom.local.order_notification_body_13;
-				message_title = req.custom.local.order_notification_title_13;
-			}
-
-
-			if (message_body) {
-				const device_tokens = [user_info.device_token];
-				const message = {
-					title: message_title,
-					body: message_body,
-					url: null,
-				};
-				await common.send_to_multiple(message, device_tokens, is_wallet_notification).catch(() => null);
+				if (message_body) {
+					await common.send_to_multiple(
+						{ title: message_title, body: message_body, url: null },
+						[user_info.device_token],
+						is_wallet_notification
+					).catch(() => null);
+				}
 			}
 		}
 
@@ -1329,16 +1317,20 @@ module.exports.mark_on_delivery = async (req, res) => {
 			: null;
 
 		if (user_info && user_info.device_token) {
-			let local = req.custom.local;
-			if (user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1) {
-				local = require(`../../i18n/${user_info.language}`);
-			}
-			const message = {
-				title: local.order_notification_title_10,
-				body: local.order_notification_body_10,
-				url: null,
-			};
-			await common.send_to_multiple(message, [user_info.device_token], false).catch(() => null);
+			const lang =
+				user_info.language && ['ar', 'en'].indexOf(user_info.language) > -1
+					? user_info.language
+					: 'en';
+			const local = require(`../../i18n/${lang}`);
+			await notifyOrderTracking({
+				token: user_info.device_token,
+				orderId: order._id.toString(),
+				statusNumber: 10,
+				previousStatus: 18,
+				local,
+				lang,
+				deliveryTime: order.delivery_time,
+			}).catch(() => null);
 		}
 
 		const updated_order = await collection.findOne({ _id: ObjectID(req.params.Id) });
@@ -2254,80 +2246,67 @@ function convertFields(obj) {
 		let message_body = null;
 		let message_title = null;
 		let is_wallet_notification = false;
-  
+		const nextStatus = parseInt(order_data.status, 10);
+
 		if (user_info && user_info.device_token) {
-		  if (
-			user_info.language &&
-			["ar", "en"].indexOf(user_info.language) > -1
-		  ) {
-			req.custom.local = require(`../../i18n/${user_info.language}`);
-		  }
-  
-		  // Order Processing 2
-		  if (parseInt(order_data.status) === 2 && order.status != 2) {
-			message_body = req.custom.local.order_notification_body_2;
-			message_title = req.custom.local.order_notification_title_2;
-		  }
-		  // Order On the way 3
-		  else if (parseInt(order_data.status) === 3 && order.status != 3) {
-			message_body = req.custom.local.order_notification_body_3;
-			message_title = req.custom.local.order_notification_title_3;
-		  }
-		  // Order Delivered 4
-		  else if (parseInt(order_data.status) === 4 && order.status != 4) {
-			message_body = req.custom.local.order_notification_body_4;
-			message_title = req.custom.local.order_notification_title_4;
-			is_wallet_notification = true;
-		  }
-		  // Order Canceled 5
-		  else if (parseInt(order_data.status) === 5 && order.status != 5) {
-			message_body = req.custom.local.order_notification_body_5;
-			message_title = req.custom.local.order_notification_title_5;
-		  }
-		  // Order Disapproved 6
-		  else if (parseInt(order_data.status) === 6 && order.status != 6) {
-			message_body = req.custom.local.order_notification_body_6;
-			message_title = req.custom.local.order_notification_title_6;
-		  }
-		  // Order Confirmed 7
-		  else if (parseInt(order_data.status) === 7 && order.status != 7) {
-			message_body = req.custom.local.order_notification_body_7;
-			message_title = req.custom.local.order_notification_title_7;
-		  }
-		  // Order Returned 8
-		  // else if (parseInt(order_data.status) === 8 && order.status != 8) {
-		  // 	message_body = req.custom.local.order_notification_body_8;
-		  // 	message_title = req.custom.local.order_notification_title_8;
-		  // }
-		  // Order Ready to pick 12
-		  else if (parseInt(order_data.status) === 12 && order.status != 12) {
-			message_body = req.custom.local.order_notification_body_12;
-			message_title = req.custom.local.order_notification_title_12;
-		  }
-		  // Order Time is up 13
-		  else if (parseInt(order_data.status) === 13 && order.status != 13) {
-			message_body = req.custom.local.order_notification_body_13;
-			message_title = req.custom.local.order_notification_title_13;
-		  }
-  
-		  if (message_body) {
-			const device_tokens = [user_info.device_token];
-			const message = {
-			  title: message_title,
-			  body: message_body,
-			  url: null,
-			};
-  
+		  const lang =
+			user_info.language && ["ar", "en"].indexOf(user_info.language) > -1
+			  ? user_info.language
+			  : "en";
+		  req.custom.local = require(`../../i18n/${lang}`);
+
+		  if (isTrackingStatus(nextStatus) && order.status != nextStatus) {
 			promises.push(
-			  common.send_to_multiple(
-				message,
-				device_tokens,
-				is_wallet_notification
-			  )
+			  notifyOrderTracking({
+				token: user_info.device_token,
+				orderId: order._id.toString(),
+				statusNumber: nextStatus,
+				previousStatus: order.status,
+				local: req.custom.local,
+				lang,
+				deliveryTime: order.delivery_time || order_data.delivery_time,
+			  })
 			);
+		  } else {
+			if (nextStatus === 2 && order.status != 2) {
+			  message_body = req.custom.local.order_notification_body_2;
+			  message_title = req.custom.local.order_notification_title_2;
+			} else if (nextStatus === 3 && order.status != 3) {
+			  message_body = req.custom.local.order_notification_body_3;
+			  message_title = req.custom.local.order_notification_title_3;
+			} else if (nextStatus === 5 && order.status != 5) {
+			  message_body = req.custom.local.order_notification_body_5;
+			  message_title = req.custom.local.order_notification_title_5;
+			} else if (nextStatus === 6 && order.status != 6) {
+			  message_body = req.custom.local.order_notification_body_6;
+			  message_title = req.custom.local.order_notification_title_6;
+			} else if (nextStatus === 7 && order.status != 7) {
+			  message_body = req.custom.local.order_notification_body_7;
+			  message_title = req.custom.local.order_notification_title_7;
+			} else if (nextStatus === 12 && order.status != 12) {
+			  message_body = req.custom.local.order_notification_body_12;
+			  message_title = req.custom.local.order_notification_title_12;
+			} else if (nextStatus === 13 && order.status != 13) {
+			  message_body = req.custom.local.order_notification_body_13;
+			  message_title = req.custom.local.order_notification_title_13;
+			}
+
+			if (message_body) {
+			  promises.push(
+				common.send_to_multiple(
+				  {
+					title: message_title,
+					body: message_body,
+					url: null,
+				  },
+				  [user_info.device_token],
+				  is_wallet_notification
+				)
+			  );
+			}
 		  }
 		}
-  
+
 		if (update_quantity_arr.indexOf(order.status) > -1) {
 		  return false;
 		}

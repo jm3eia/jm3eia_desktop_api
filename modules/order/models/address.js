@@ -37,6 +37,10 @@ module.exports = {
 	"longitude": {
 		"required": false
 	},
+	"address_note": {
+		"type": String,
+		"required": false
+	},
 	"modified": {
 		"type": Date,
 		"default": common.getDate(),
