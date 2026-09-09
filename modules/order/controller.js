@@ -151,9 +151,13 @@ module.exports.update_status = async (req, res) => {
 				// const new_points = order.total ? parseInt(order.total) : 0;
 				const new_points = order.payment_method.id === "knet" ? parseInt(order.total) + parseInt(order.total) * 0.1 : parseInt(order.total);
 				if (new_points > 0) {
-					if (req.body.payment_method == 'wallet' || req.body.discount_by_wallet == true) {
-						wallet = user_info.wallet - wallet2money;
-					} else {
+					const paidByWallet =
+						(order.payment_method && order.payment_method.id === 'wallet') ||
+						order.discount_by_wallet === true ||
+						req.body.payment_method == 'wallet' ||
+						req.body.discount_by_wallet == true;
+
+					if (!paidByWallet) {
 						const point_transactions_collection = req.custom.db.client().collection('point_transactions');
 						const point_history_collection = req.custom.db.client().collection('point_history');
 						let point_transaction_data = {
