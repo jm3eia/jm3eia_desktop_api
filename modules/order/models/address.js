@@ -41,6 +41,10 @@ module.exports = {
 		"type": String,
 		"required": false
 	},
+	"way_of_delivery": {
+		"required": false,
+		"in_array": ["direct_to_client", "leave_at_door"]
+	},
 	"modified": {
 		"type": Date,
 		"default": common.getDate(),

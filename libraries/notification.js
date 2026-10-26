@@ -1,10 +1,26 @@
+const fs = require("fs");
+const path = require("path");
 const admin = require("firebase-admin");
-const serviceAccount = require("./jm3eia-9185b-firebase-adminsdk-idn96-7c207925d3.json");
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+const serviceAccountPath = path.join(
+  __dirname,
+  "jm3eia-9185b-firebase-adminsdk-idn96-7c207925d3.json"
+);
+
+let messaging = null;
+
+if (fs.existsSync(serviceAccountPath)) {
+  const serviceAccount = require(serviceAccountPath);
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
+  messaging = admin.messaging();
+} else {
+  console.error(
+    "[notification] Firebase service account missing, push notifications disabled"
+  );
 }
 
 module.exports.send_to_multiple = (message, device_tokens) => {
@@ -31,8 +47,15 @@ module.exports.send_to_multiple = (message, device_tokens) => {
 
   console.error("MESSAGE: ", message_notif);
 
-  return admin
-    .messaging()
+  if (!messaging) {
+    return Promise.resolve({
+      success: 0,
+      failure: 0,
+      results: [],
+    });
+  }
+
+  return messaging
     .sendEachForMulticast(message_notif)
     .then((response) => {
       console.log("Multicast notification sent:", response);
@@ -71,7 +94,7 @@ module.exports.sendTrackingPush = async ({
   title,
   body,
 }) => {
-  if (!token || !orderId || step == null) {
+  if (!messaging || !token || !orderId || step == null) {
     return { success: false, skipped: true };
   }
 
@@ -113,7 +136,7 @@ module.exports.sendTrackingPush = async ({
   };
 
   try {
-    const messageId = await admin.messaging().send(message);
+    const messageId = await messaging.send(message);
     return { success: true, messageId };
   } catch (error) {
     console.error("[tracking.push]", orderId, error.message);
